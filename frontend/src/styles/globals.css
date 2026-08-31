@@ -1,0 +1,303 @@
+@import 'tailwindcss';
+
+/* ============================================================
+   SUNBIRD VACATIONS — DESIGN SYSTEM (Tailwind CSS 4)
+   ============================================================ */
+
+@theme inline {
+  /* ── Brand Colors ── */
+  --color-primary: #0e6973;
+  --color-primary-light: #11899a;
+  --color-primary-dark: #094e56;
+  --color-primary-50: #e8f7f9;
+  --color-primary-100: #c5ecf0;
+  --color-primary-200: #8fd9e2;
+  --color-primary-500: #0e6973;
+  --color-primary-600: #0b5a63;
+  --color-primary-700: #094e56;
+  --color-primary-800: #073d43;
+  --color-primary-900: #052c30;
+
+  --color-secondary: #a60a33;
+  --color-secondary-light: #c81242;
+  --color-secondary-dark: #850828;
+  --color-secondary-50: #fce8ee;
+  --color-secondary-500: #a60a33;
+
+  --color-accent: #8c4a32;
+  --color-accent-light: #a65d42;
+  --color-accent-dark: #6e3a27;
+  --color-accent-50: #f5ece8;
+
+  --color-light: #f9ffaf;
+  --color-light-muted: #faffd6;
+
+  /* ── Neutrals ── */
+  --color-surface: #faf9f0;
+  --color-surface-alt: #f8fafa;
+  --color-surface-muted: #f1f5f5;
+  --color-border: #e2e8e8;
+  --color-border-light: #edf2f2;
+  --color-text: #1a2e2f;
+  --color-text-muted: #5a7172;
+  --color-text-light: #8a9fa0;
+
+  /* ── Typography ── */
+  --font-heading: 'Playfair Display', serif;
+  --font-body: 'Outfit', sans-serif;
+
+  /* ── Shadows ── */
+  --shadow-card: 0 2px 16px rgba(14, 105, 115, 0.06);
+  --shadow-card-hover: 0 8px 32px rgba(14, 105, 115, 0.12);
+  --shadow-elevated: 0 12px 40px rgba(14, 105, 115, 0.14);
+  --shadow-navbar: 0 1px 12px rgba(0, 0, 0, 0.06);
+
+  /* ── Border Radius ── */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+  --radius-full: 9999px;
+
+  /* ── Transitions ── */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Animations ── */
+  --animate-fade-in: fade-in 0.6s var(--ease-smooth) forwards;
+  --animate-fade-up: fade-up 0.6s var(--ease-smooth) forwards;
+  --animate-slide-in-left: slide-in-left 0.6s var(--ease-smooth) forwards;
+  --animate-slide-in-right: slide-in-right 0.6s var(--ease-smooth) forwards;
+  --animate-scale-in: scale-in 0.5s var(--ease-smooth) forwards;
+  --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-spin-slow: spin 8s linear infinite;
+}
+
+/* ── Keyframes ── */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+
+/* ── Base Styles ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-text);
+  background-color: var(--color-surface);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* ── Lenis Smooth Scroll Recommended CSS ── */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Selection ── */
+::selection {
+  background-color: var(--color-primary-100);
+  color: var(--color-primary-900);
+}
+
+/* ── Focus Visible ── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-alt);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary-200);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* ── Utility Layers ── */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .section-padding {
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  @media (min-width: 768px) {
+    .section-padding {
+      padding-top: 5rem;
+      padding-bottom: 5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .section-padding {
+      padding-top: 6rem;
+      padding-bottom: 6rem;
+    }
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .gradient-primary {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.5) 0%,
+      rgba(0, 0, 0, 0.2) 40%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+  }
+
+  .gradient-card {
+    background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
