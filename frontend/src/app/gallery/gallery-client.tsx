@@ -3,17 +3,21 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GalleryCategory, galleryCategories, galleryItems } from '@/data/gallery';
+import { GalleryCategory, galleryCategories, type GalleryItem } from '@/data/gallery';
 import { Lightbox } from '@/components/ui/lightbox';
 
-export function GalleryClient() {
+interface GalleryClientProps {
+  items: GalleryItem[];
+}
+
+export function GalleryClient({ items }: GalleryClientProps) {
   const [activeCategory, setActiveCategory] = useState<GalleryCategory>('ALL');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // Filter items
-  const filteredItems = activeCategory === 'ALL' 
-    ? galleryItems 
-    : galleryItems.filter(item => item.category === activeCategory);
+  const filteredItems = activeCategory === 'ALL'
+    ? items
+    : items.filter(item => item.category === activeCategory);
 
   // Handle opening lightbox
   const openLightbox = (id: string) => {

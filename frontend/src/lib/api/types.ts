@@ -148,3 +148,32 @@ export interface PackageDetailResponse {
   faqs: PackageFaqResponse[];
   images: PackageImagesResponse;
 }
+
+export interface BlogSummary {
+  slug: string;
+  title: string;
+  excerpt: string;
+  author: string;
+  date: string;
+  category: string;
+  image: string;
+  readTime: string;
+}
+
+export interface BlogDetail extends BlogSummary {
+  content: string;
+}
+
+export interface GalleryApiItem {
+  id: string;
+  src: string;
+  category: string;
+  title: string;
+  subtitle: string;
+  aspectRatio: 'square' | 'portrait' | 'landscape';
+}
+
+export interface GalleryApiData {
+  categories: string[];
+  items: GalleryApiItem[];
+}

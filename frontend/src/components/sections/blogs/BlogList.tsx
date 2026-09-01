@@ -3,9 +3,13 @@
 import React from 'react';
 import { Container } from '@/components/ui/container';
 import { BlogCard } from '@/components/cards/BlogCard';
-import { blogsData } from '@/data/blogsData';
+import type { Blog } from '@/data/blogsData';
 
-export function BlogList() {
+interface BlogListProps {
+  blogs: Blog[];
+}
+
+export function BlogList({ blogs }: BlogListProps) {
   return (
     <section className="bg-gray-50 py-20 min-h-screen">
       <Container>
@@ -18,8 +22,8 @@ export function BlogList() {
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {blogsData.map((blog) => (
-            <BlogCard key={blog.id} blog={blog} />
+          {blogs.map((blog) => (
+            <BlogCard key={blog.slug} blog={blog} />
           ))}
         </div>
       </Container>

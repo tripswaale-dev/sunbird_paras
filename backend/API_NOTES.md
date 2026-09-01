@@ -91,7 +91,7 @@ Inactive categories are excluded from section responses.
 
 **Detail** (`GET /api/blogs/{slug}`) — same fields plus `content` (full article body).
 
-JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Individual blog post URLs are **not** included in the sitemap (only `/blogs` listing).
+JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Active blog post URLs are included in the sitemap at `/blogs/{slug}`.
 
 ## Admin Blogs
 
@@ -132,10 +132,11 @@ Filter param `?category=` must use the exact `packages.category` value, not sect
 
 - **`GET /api/sitemap.xml`** — `application/xml`; `<loc>` values use `FRONTEND_URL` from `.env`.
 - **`GET /api/robots.txt`** — `text/plain`; includes `Sitemap: {APP_URL}/api/sitemap.xml`.
-- **Included:** static frontend paths (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, policy pages), active indexable section `view_all_path` URLs, active indexable package URLs.
+- **Included:** static frontend paths (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, policy pages), active indexable section `view_all_path` URLs, active indexable package URLs, active blog post URLs at `/blogs/{slug}`.
 - **Section URL:** `canonical_url` when set, otherwise `{FRONTEND_URL}{view_all_path}`.
 - **Package URL:** `canonical_url` when set, otherwise `{FRONTEND_URL}/packages/{slug}`.
-- **Excluded:** inactive sections/packages, `is_indexable = false` sections/packages, section-scoped package paths, individual blog post URLs.
+- **Gallery listing:** `/gallery` only (no per-item gallery URLs); `<lastmod>` from latest `updated_at` among active gallery items.
+- **Excluded:** inactive sections/packages/blogs/gallery items, `is_indexable = false` sections/packages, section-scoped package paths.
 
 ## Section Detail
 

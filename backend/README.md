@@ -1,6 +1,6 @@
 # Sunbird Vacations — Backend API
 
-Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin management. **Frontend integration complete (Phase 5)** — the Next.js app at `../frontend/` consumes the public read API with static fallbacks.
+Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin management. **Frontend integration complete (Phase 5 + Phase 7)** — the Next.js app at `../frontend/` consumes the public read API with static fallbacks, including blogs.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and environment variable reference.
 
@@ -16,7 +16,7 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 
 - **PHP:** 8.1.10 (Laragon)
 - **Laravel:** 10.x (framework v10.50.3)
-- **Frontend (separate):** Next.js 16 at `../frontend/` — Phase 5 API integration complete
+- **Frontend (separate):** Next.js 16 at `../frontend/` — Phase 5 + Phase 7 API integration complete
 
 ## Project Structure
 
@@ -127,7 +127,7 @@ For production, replace with your real domain (e.g. `https://sunbirdvacations.co
 
 **`FRONTEND_URL` is required in production** — it drives CORS `allowed_origins` in `config/cors.php` and sitemap `<loc>` canonical URLs (Phase 4D).
 
-## Frontend Integration (Phase 5 — complete)
+## Frontend Integration (Phase 5 + Phase 7 — complete)
 
 The Next.js app in `../frontend/` calls this API using:
 
@@ -135,7 +135,19 @@ The Next.js app in `../frontend/` calls this API using:
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and production env pairing (`FRONTEND_URL` ↔ CORS ↔ sitemap).
+See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix (including blogs), deployment checklist, and production env pairing (`FRONTEND_URL` ↔ CORS ↔ sitemap).
+
+### Phase 7 — Blogs (complete)
+
+| Layer | Endpoints | Notes |
+|-------|-----------|-------|
+| Public read | `GET /api/blogs`, `GET /api/blogs/{slug}` | Active blogs only; ordered by `published_at` desc |
+| Admin CRUD | `/api/admin/blogs` | Create, update, delete; `is_active: false` hides from public API |
+| Sitemap | `SitemapGenerator` | Active blog posts at `{FRONTEND_URL}/blogs/{slug}` (`changefreq: monthly`, `priority: 0.6`); 70 URLs with default seed |
+
+Frontend consumes blogs via `frontend/src/lib/api/blogs.ts` and `frontend/src/lib/mappers/blogs.ts`. Sitemap is proxied by frontend `/sitemap.xml` — no frontend sitemap code changes needed for blog URLs.
+
+Run API tests: `php artisan test --filter=Api` (**347+ tests** as of Phase 7, including `BlogApiTest`, `AdminBlogCrudTest`, and updated `SitemapTest`).
 
 ## Phase 2 — Database Schema
 
@@ -238,6 +250,7 @@ Package::where('slug','kashmir-paradise')->first()->itineraryDays()->count(); //
 | GET | `/api/packages/{slug}` | Full package detail |
 | GET | `/api/blogs` | Active blogs ordered by `published_at` desc |
 | GET | `/api/blogs/{slug}` | Full blog detail with content |
+| GET | `/api/gallery` | Active gallery items + filter category codes (excludes UI-only `ALL`) |
 
 ### Example Requests
 
@@ -249,6 +262,7 @@ curl http://localhost:8000/api/packages?search=kashmir
 curl http://localhost:8000/api/packages/kashmir-paradise
 curl http://localhost:8000/api/blogs
 curl http://localhost:8000/api/blogs/story-behind-sunbird-vacations
+curl http://localhost:8000/api/gallery
 ```
 
 ### API Structure
@@ -256,12 +270,14 @@ curl http://localhost:8000/api/blogs/story-behind-sunbird-vacations
 ```
 app/Http/Controllers/Api/
 ├── BlogController.php
+├── GalleryController.php
 ├── SectionController.php
 └── PackageController.php
 
 app/Http/Resources/
 ├── BlogSummaryResource.php
 ├── BlogDetailResource.php
+├── GalleryItemResource.php
 ├── SectionResource.php
 ├── SectionDetailResource.php
 ├── SectionCategoryResource.php
@@ -375,6 +391,29 @@ curl -X POST http://localhost:8000/api/admin/blogs \
 ```
 
 Blogs have no dependent relations — delete is a hard delete. Use `is_active: false` to hide from public API instead.
+
+### Admin Gallery Items CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/gallery-items` | Paginated list (`?search=`, `?category=`, `?is_active=`, `?page=`, `?per_page=`) |
+| POST | `/api/admin/gallery-items` | Create gallery item |
+| GET | `/api/admin/gallery-items/{id}` | Gallery item detail by numeric ID |
+| PUT | `/api/admin/gallery-items/{id}` | Full update |
+| PATCH | `/api/admin/gallery-items/{id}` | Partial update |
+| DELETE | `/api/admin/gallery-items/{id}` | Delete gallery item |
+
+```bash
+curl http://localhost:8000/api/admin/gallery-items \
+  -H "Authorization: Bearer {token}"
+
+curl -X POST http://localhost:8000/api/admin/gallery-items \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"external_id":"test-1","src":"/images/test.jpg","category":"GOA","title":"Test","subtitle":"Subtitle","aspect_ratio":"landscape","sort_order":100,"is_active":true}'
+```
+
+Gallery items have no dependent relations — delete is a hard delete. Use `is_active: false` to hide from public API instead. Category codes come from `GalleryItem::CATEGORY_CODES` (UI-only `ALL` is not stored). Image paths are strings — no file upload in this phase.
 
 ### Admin Section ↔ Package Assignments
 
@@ -513,7 +552,7 @@ SEO columns live on the `sections` table — show always returns 200 for an exis
 | GET | `/api/sitemap.xml` | XML sitemap of frontend URLs |
 | GET | `/api/robots.txt` | Robots rules + sitemap reference |
 
-Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). **`FRONTEND_URL` must be set correctly in production** for canonical URLs. Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), and active indexable packages (`/packages/{slug}` or `canonical_url` when set). Excludes inactive sections/packages and `is_indexable = false` sections/packages. No section-scoped package URLs or blog post URLs.
+Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). **`FRONTEND_URL` must be set correctly in production** for canonical URLs. Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), active indexable packages (`/packages/{slug}` or `canonical_url` when set), and active blog post URLs (`/blogs/{slug}`, `changefreq: monthly`, `priority: 0.6`). The `/gallery` listing URL uses dynamic `<lastmod>` from the latest active gallery item `updated_at` (no per-item gallery URLs). Excludes inactive sections/packages/blogs/gallery items and `is_indexable = false` sections/packages. No section-scoped package URLs. No blog `canonical_url` / `is_indexable` (future SEO step).
 
 Robots `Sitemap:` line points to `{APP_URL}/api/sitemap.xml`.
 

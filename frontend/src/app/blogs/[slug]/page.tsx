@@ -3,9 +3,8 @@ import { notFound } from 'next/navigation';
 import { Calendar, Clock, User } from 'lucide-react';
 import { Container } from '@/components/ui/container';
 import { HeroBanner } from '@/components/common/HeroBanner';
-import { blogsData } from '@/data/blogsData';
+import { getBlogBySlug, getBlogFeaturedPackages } from '@/lib/api/blogs';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { travelPackages } from '@/data/travelPackages';
 
 interface PageProps {
   params: Promise<{
@@ -13,16 +12,10 @@ interface PageProps {
   }>;
 }
 
-export function generateStaticParams() {
-  return blogsData.map((blog) => ({
-    slug: blog.slug,
-  }));
-}
-
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const blog = blogsData.find((b) => b.slug === slug);
-  
+  const blog = await getBlogBySlug(slug);
+
   if (!blog) {
     return {
       title: 'Blog Not Found | Sunbird Vacations',
@@ -37,11 +30,13 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function BlogDetailsPage({ params }: PageProps) {
   const { slug } = await params;
-  const blog = blogsData.find((b) => b.slug === slug);
+  const blog = await getBlogBySlug(slug);
 
   if (!blog) {
     notFound();
   }
+
+  const featuredPackages = await getBlogFeaturedPackages();
 
   return (
     <>
@@ -104,7 +99,7 @@ export default async function BlogDetailsPage({ params }: PageProps) {
           </div>
           
           <PackageList 
-            packages={travelPackages.slice(0, 3)} 
+            packages={featuredPackages} 
             baseRoute="/packages" 
             variant="horizontal" 
           />

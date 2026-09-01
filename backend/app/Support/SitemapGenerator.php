@@ -2,8 +2,11 @@
 
 namespace App\Support;
 
+use App\Models\Blog;
+use App\Models\GalleryItem;
 use App\Models\Package;
 use App\Models\Section;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 class SitemapGenerator
@@ -24,11 +27,12 @@ class SitemapGenerator
     {
         $baseUrl = config('frontend.url');
         $entries = collect();
+        $galleryLastmod = $this->galleryListingLastmod();
 
         foreach (self::STATIC_PATHS as $path => $meta) {
             $entries->push($this->entry(
                 $path === '/' ? $baseUrl.'/' : $baseUrl.$path,
-                null,
+                $path === '/gallery' ? $galleryLastmod : null,
                 $meta['changefreq'],
                 $meta['priority']
             ));
@@ -70,6 +74,19 @@ class SitemapGenerator
                 ));
             });
 
+        Blog::query()
+            ->active()
+            ->orderByDesc('published_at')
+            ->get(['slug', 'updated_at'])
+            ->each(function (Blog $blog) use ($entries, $baseUrl) {
+                $entries->push($this->entry(
+                    $baseUrl.'/blogs/'.$blog->slug,
+                    $blog->updated_at?->toDateString(),
+                    'monthly',
+                    '0.6'
+                ));
+            });
+
         return $entries
             ->unique(fn (array $entry) => $entry['loc'])
             ->values();
@@ -108,5 +125,12 @@ class SitemapGenerator
             'changefreq' => $changefreq,
             'priority' => $priority,
         ];
+    }
+
+    private function galleryListingLastmod(): ?string
+    {
+        $updatedAt = GalleryItem::query()->active()->max('updated_at');
+
+        return $updatedAt ? Carbon::parse($updatedAt)->toDateString() : null;
     }
 }

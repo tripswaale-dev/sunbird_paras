@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\BlogController as AdminBlogController;
+use App\Http\Controllers\Api\Admin\GalleryItemController as AdminGalleryItemController;
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\PackageDetailController as AdminPackageDetailController;
 use App\Http\Controllers\Api\Admin\PackageItineraryDayController as AdminPackageItineraryDayController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Api\Admin\SectionPackageController as AdminSectionPacka
 use App\Http\Controllers\Api\Admin\SectionController as AdminSectionController;
 use App\Http\Controllers\Api\Admin\SectionSeoController as AdminSectionSeoController;
 use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\RobotsController;
 use App\Http\Controllers\Api\SectionController;
@@ -51,6 +53,7 @@ Route::get('/packages', [PackageController::class, 'index']);
 Route::get('/packages/{package:slug}', [PackageController::class, 'show']);
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/{blog:slug}', [BlogController::class, 'show']);
+Route::get('/gallery', [GalleryController::class, 'index']);
 
 Route::post('/admin/login', [AdminAuthController::class, 'login'])
     ->middleware('throttle:admin-login');
@@ -133,6 +136,13 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/blogs/{id}', [AdminBlogController::class, 'update'])->whereNumber('id');
     Route::patch('/blogs/{id}', [AdminBlogController::class, 'update'])->whereNumber('id');
     Route::delete('/blogs/{id}', [AdminBlogController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('/gallery-items', [AdminGalleryItemController::class, 'index']);
+    Route::post('/gallery-items', [AdminGalleryItemController::class, 'store']);
+    Route::get('/gallery-items/{id}', [AdminGalleryItemController::class, 'show'])->whereNumber('id');
+    Route::put('/gallery-items/{id}', [AdminGalleryItemController::class, 'update'])->whereNumber('id');
+    Route::patch('/gallery-items/{id}', [AdminGalleryItemController::class, 'update'])->whereNumber('id');
+    Route::delete('/gallery-items/{id}', [AdminGalleryItemController::class, 'destroy'])->whereNumber('id');
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

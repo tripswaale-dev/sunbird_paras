@@ -1,14 +1,14 @@
 # Phase 5 Integration Status & Deployment Guide
 
-Handoff document for Sunbird Vacations frontend–backend integration (Phase 5, Steps 1–20).
+Handoff document for Sunbird Vacations frontend–backend integration. **Covers Phase 5 + Phase 6 + Phase 7.**
 
 ---
 
 ## 1. Executive Summary
 
-**Phase 5 scope is complete.**
+**Phase 5 scope is complete.** **Phase 6 (SEO crawl files), Phase 7 (blogs), and Phase 8 (gallery) are complete.**
 
-All core package and section flows on the Next.js frontend now load data from the Laravel public read API, with static fallbacks preserved for resilience. The UI and visual design were intentionally left unchanged — only the data source migrated from hardcoded `src/data/*` files to API fetch helpers in `frontend/src/lib/api/`.
+All core package, section, and blog flows on the Next.js frontend now load data from the Laravel public read API, with static fallbacks preserved for resilience. The UI and visual design were intentionally left unchanged — only the data source migrated from hardcoded `src/data/*` files to API fetch helpers in `frontend/src/lib/api/`.
 
 **What was integrated:**
 
@@ -17,8 +17,11 @@ All core package and section flows on the Next.js frontend now load data from th
 - Package detail pages (+ SEO + related packages)
 - `/packages` index
 - `/search`
+- **Phase 7 — Blogs listing and detail** (`/blogs`, `/blogs/[slug]`) with featured packages on detail
+- **Phase 7 — Sitemap blog post URLs** (active blogs at `/blogs/{slug}` via backend → frontend proxy)
+- **Phase 8 — Gallery** (`/gallery` → API + fallback; sitemap `/gallery` with dynamic `lastmod`)
 
-**What remains static:** navigation, blogs, gallery, policy pages, homepage shell components, and several metadata sources (see Section 3).
+**What remains static:** navigation, policy pages, homepage shell components, blog **listing page metadata**, gallery **filter tabs and page metadata**, and several other metadata sources (see Section 3). `blogsData.ts` and `gallery.ts` are retained as **fallback sources** — do not delete.
 
 ---
 
@@ -45,6 +48,10 @@ Six section `[slug]` routes re-export a single implementation at `frontend/src/a
 | Package detail (`/packages/[slug]` + 6 section re-exports) | `GET /api/packages/{slug}`, `GET /api/packages?category=` | `getPackageBySlug()`, `getPackageMetadata()`, `getRelatedPackages()` | `packages.ts` |
 | `/packages` | `GET /api/packages` (paginated, `per_page=50`) | `getPackagesIndexListingPackages()` | `packages.ts` (`allTravelPackages`) |
 | `/search` | `GET /api/packages?search={q}` or all packages when `q` empty | `getSearchPackages(query)` | `packages.ts` via `filterStaticPackagesByQuery()` |
+| `/blogs` | `GET /api/blogs` | `getBlogsListing()` | `blogsData.ts` |
+| `/blogs/[slug]` | `GET /api/blogs/{slug}` | `getBlogBySlug()` | `blogsData.find()` |
+| Featured packages on blog detail | `GET /api/packages?per_page=3` | `getBlogFeaturedPackages()` | `travelPackages.slice(0, 3)` |
+| `/gallery` | `GET /api/gallery` | `getGalleryItems()` | `gallery.ts` (`galleryItems`) |
 
 ### API layer inventory
 
@@ -55,6 +62,8 @@ Six section `[slug]` routes re-export a single implementation at `frontend/src/a
 | `frontend/src/lib/api/types.ts` | Typed API response models |
 | `frontend/src/lib/api/sections.ts` | Section fetch helpers (homepage, listings, SEO) |
 | `frontend/src/lib/api/packages.ts` | Package fetch helpers (detail, index, search, related) |
+| `frontend/src/lib/api/blogs.ts` | Blog fetch helpers (listing, detail, featured packages) |
+| `frontend/src/lib/api/gallery.ts` | Gallery fetch helper (`getGalleryItems()`) |
 
 ### Mapper inventory
 
@@ -70,6 +79,8 @@ Six section `[slug]` routes re-export a single implementation at `frontend/src/a
 | `package-metadata.ts` | Package SEO → Next.js `Metadata` |
 | `section-metadata.ts` | Section SEO → Next.js `Metadata` |
 | `related-packages.ts` | Summary → minimal `Package` for related cards |
+| `blogs.ts` | `BlogSummary` / `BlogDetail` → `Blog` (listing + detail) |
+| `gallery.ts` | `GalleryApiItem[]` → `GalleryItem[]` |
 
 ---
 
@@ -85,8 +96,9 @@ These remain hardcoded by design. Do not assume they reflect admin CRUD changes.
 | Section headers / copy | Various homepage components (e.g. Gateway hero image) | Hardcoded marketing copy |
 | `navbarDestinations` | `navigation.ts` | Used as `/packages` filter tabs (title substring match) |
 | `navigationLinks` | `navigation.ts` | Navbar menu structure |
-| Blogs | `blogsData.ts` | No blog CMS API yet |
-| Gallery | `gallery.ts` | No gallery CMS API yet |
+| Blog listing page metadata | `app/blogs/page.tsx` | Static `export const metadata` — no blog SEO API yet (detail uses `generateMetadata` from API title + excerpt) |
+| Gallery filter tabs | `gallery.ts` (`galleryCategories`) | UI-only `ALL` tab + fixed category order; not from API |
+| Gallery page metadata | `app/gallery/page.tsx` | Static `export const metadata` — no gallery SEO API yet |
 | About, Contact | `app/about/`, `app/contact/` | Static placeholder/content pages |
 | Policy pages | `cancellation-policy`, `payment-policy` | Static legal content |
 | `/destinations` | `app/destinations/page.tsx` | Placeholder stub — not built |
@@ -220,8 +232,11 @@ Do not commit `.env` files. Do not put secrets in documentation.
    | Package detail | http://localhost:3000/packages/kashmir-paradise |
    | Packages index | http://localhost:3000/packages |
    | Search | http://localhost:3000/search?q=kashmir |
+   | Blogs listing | http://localhost:3000/blogs |
+   | Blog detail | http://localhost:3000/blogs/story-behind-sunbird-vacations |
+   | Gallery | http://localhost:3000/gallery |
 
-5. **Optional:** Run backend API tests: `php artisan test --filter=Api`
+5. **Optional:** Run backend API tests: `php artisan test --filter=Api` (347+ tests as of Phase 7)
 
 ---
 
@@ -251,7 +266,11 @@ Do not commit `.env` files. Do not put secrets in documentation.
 - [ ] One listing page (e.g. `/popular-destinations`) shows packages
 - [ ] Package detail: `/packages/kashmir-paradise`
 - [ ] Search: `/search?q=kashmir`
-- [ ] Sitemap: `GET https://your-frontend.com/sitemap.xml` (valid XML, `<loc>` from backend `FRONTEND_URL`)
+- [ ] Blogs listing: `/blogs`
+- [ ] Blog detail: `/blogs/story-behind-sunbird-vacations`
+- [ ] Gallery: `/gallery` (22 items, category filters work)
+- [ ] Sitemap: `GET https://your-frontend.com/sitemap.xml` (valid XML, `<loc>` from backend `FRONTEND_URL`; includes `/blogs` listing + at least one `/blogs/{slug}` post URL)
+- [ ] Sitemap blog URLs: `curl https://your-frontend.com/sitemap.xml | grep blogs/` (listing + post slug)
 - [ ] Robots: `GET https://your-frontend.com/robots.txt` → `Sitemap: https://your-frontend.com/sitemap.xml`
 - [ ] Admin CRUD changes appear on frontend within **5 minutes** (ISR revalidate) or immediately after redeploy
 
@@ -261,7 +280,7 @@ Do not commit `.env` files. Do not put secrets in documentation.
 |-------|--------|-------|
 | Frontend `/sitemap.xml` | Proxies backend `GET /api/sitemap.xml` | 1-hour cache; minimal homepage-only fallback on API error |
 | Frontend `/robots.txt` | Generated on frontend | `Sitemap:` uses `getSiteUrl()` / `NEXT_PUBLIC_SITE_URL`, not API domain |
-| Backend `/api/sitemap.xml` | Laravel `SitemapGenerator` | `<loc>` values use `FRONTEND_URL` |
+| Backend `/api/sitemap.xml` | Laravel `SitemapGenerator` | `<loc>` values use `FRONTEND_URL`; includes active blog posts at `/blogs/{slug}`; `/gallery` listing has dynamic `<lastmod>` from active gallery items (70 URLs with default seed; no per-item gallery URLs) |
 | Backend `/api/robots.txt` | Laravel `RobotsController` | Still references API sitemap URL — use frontend `/robots.txt` in production |
 
 ---
@@ -270,9 +289,9 @@ Do not commit `.env` files. Do not put secrets in documentation.
 
 | Priority | Item | Notes |
 |----------|------|-------|
-| 1 | Blogs CMS | Replace `blogsData.ts` with API |
-| 2 | Gallery CMS | Replace `gallery.ts` with API |
-| 3 | Homepage metadata from CMS | Replace `siteConfig` / layout defaults |
+| 1 | Homepage metadata from CMS | Replace `siteConfig` / layout defaults |
+| 2 | Blog SEO admin fields | `meta_title`, `canonical_url`, `is_indexable` on blogs (detail metadata partially API-driven today via title + excerpt only) |
+| 3 | Gallery page metadata from API | Optional `generateMetadata` for `/gallery` (listing metadata still static) |
 | 4 | `/destinations` page | Build out placeholder route |
 | 5 | Optional static data cleanup | Remove duplicate listing fallback files only after fallbacks are redesigned (e.g. empty-state strategy) |
 
@@ -281,6 +300,26 @@ Do not commit `.env` files. Do not put secrets in documentation.
 - **Step 2 — Frontend `/sitemap.xml`** — proxies backend XML (`revalidate: 3600`); minimal homepage fallback on error
 - **Step 2 — Frontend `/robots.txt`** — generated on frontend with `Sitemap: {getSiteUrl()}/sitemap.xml` (not proxied from backend)
 - **Step 3 — Env-driven site URL** — `NEXT_PUBLIC_SITE_URL` via `getSiteUrl()` in `lib/utils.ts`; defaults to `https://sunbirdvacations.com`
+
+### Completed (Phase 7 — Blogs)
+
+| Step | Scope | Status |
+|------|-------|--------|
+| 1 | Backend public API (`GET /api/blogs`, `GET /api/blogs/{slug}`) | Complete |
+| 2 | Admin CRUD (`/api/admin/blogs`) | Complete |
+| 3 | Frontend listing (`/blogs` → API + fallback) | Complete |
+| 4 | Frontend detail (`/blogs/[slug]` → API + fallback + featured packages; dynamic route) | Complete |
+| 5 | Sitemap blog post URLs (active blogs at `/blogs/{slug}`) | Complete |
+| 6 | Integration documentation update | Complete |
+
+### Completed (Phase 8 — Gallery)
+
+| Step | Scope | Status |
+|------|-------|--------|
+| 1 | Backend public API (`GET /api/gallery`) | Complete |
+| 2 | Admin CRUD (`/api/admin/gallery-items`) | Complete |
+| 3 | Frontend integration (`/gallery` → API + fallback) | Complete |
+| 4 | Sitemap `/gallery` dynamic `lastmod` + documentation | Complete |
 
 ---
 
@@ -312,13 +351,19 @@ Do not delete these files without a replacement fallback strategy:
 - `frontend/src/data/wildlife-packages.ts`
 - `frontend/src/data/hill-destinations.ts`
 
+**Blog fallbacks (Phase 7 — do not delete):**
+
+- `frontend/src/data/blogsData.ts` — fallback only for `/blogs` and `/blogs/[slug]` when API is unavailable
+
+**Gallery fallbacks (Phase 8 — do not delete):**
+
+- `frontend/src/data/gallery.ts` — fallback for `/gallery` items when API is unavailable; `galleryCategories` still used for filter tabs (includes UI-only `ALL`)
+
 **Always-static data (not fallbacks, but still in use):**
 
 - `frontend/src/data/navigation.ts`
 - `frontend/src/data/customer-promises.ts`
-- `frontend/src/data/blogsData.ts`
-- `frontend/src/data/gallery.ts`
 
 ---
 
-*Last updated: Phase 6 Step 3 — env-driven site URL (`NEXT_PUBLIC_SITE_URL`).*
+*Last updated: Phase 8 Step 4 — gallery sitemap `lastmod` + Phase 8 documentation complete.*

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             SectionStatSeeder::class,
             PackageDetailSeeder::class,
             BlogSeeder::class,
+            GallerySeeder::class,
             AdminSeeder::class,
         ]);
     }
