@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Blog;
 use App\Models\Package;
 use App\Models\Section;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -69,6 +70,10 @@ class RouteServiceProvider extends ServiceProvider
             }
 
             return Package::where('slug', $value)->active()->firstOrFail();
+        });
+
+        Route::bind('blog', function (string $value) {
+            return Blog::where('slug', $value)->active()->firstOrFail();
         });
     }
 }

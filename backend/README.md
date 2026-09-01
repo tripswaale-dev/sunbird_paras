@@ -1,8 +1,8 @@
 # Sunbird Vacations — Backend API
 
-Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin management. The Next.js frontend remains untouched.
+Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin management. **Frontend integration complete (Phase 5)** — the Next.js app at `../frontend/` consumes the public read API with static fallbacks.
 
-**Current scope:** Admin sections + core packages CRUD + package details + itinerary + FAQ + image CRUD + package SEO + public sitemap/robots — no frontend integration yet.
+See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and environment variable reference.
 
 ## Requirements
 
@@ -16,13 +16,13 @@ Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin 
 
 - **PHP:** 8.1.10 (Laragon)
 - **Laravel:** 10.x (framework v10.50.3)
-- **Frontend (separate):** Next.js 16 at `../frontend/` — not modified in Phase 1
+- **Frontend (separate):** Next.js 16 at `../frontend/` — Phase 5 API integration complete
 
 ## Project Structure
 
 ```
 Sunbird_by_Paras/
-├── frontend/     ← Next.js (static, untouched)
+├── frontend/     ← Next.js (Phase 5 API integration)
 └── backend/      ← Laravel API (this project)
 ```
 
@@ -125,15 +125,17 @@ FRONTEND_URL=http://localhost:3000
 
 For production, replace with your real domain (e.g. `https://sunbirdvacations.com`). Do not use wildcard `*` in production.
 
-## Future Frontend Connection (Phase 2+)
+**`FRONTEND_URL` is required in production** — it drives CORS `allowed_origins` in `config/cors.php` and sitemap `<loc>` canonical URLs (Phase 4D).
 
-The Next.js app in `../frontend/` will eventually call this API using an environment variable such as:
+## Frontend Integration (Phase 5 — complete)
+
+The Next.js app in `../frontend/` calls this API using:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-No frontend changes have been made yet.
+See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and production env pairing (`FRONTEND_URL` ↔ CORS ↔ sitemap).
 
 ## Phase 2 — Database Schema
 
@@ -234,6 +236,8 @@ Package::where('slug','kashmir-paradise')->first()->itineraryDays()->count(); //
 | GET | `/api/sections/{slug}/packages` | Section packages (`?category=` optional) |
 | GET | `/api/packages` | Paginated packages (`?category=`, `?search=`, `?page=`, `?per_page=`) |
 | GET | `/api/packages/{slug}` | Full package detail |
+| GET | `/api/blogs` | Active blogs ordered by `published_at` desc |
+| GET | `/api/blogs/{slug}` | Full blog detail with content |
 
 ### Example Requests
 
@@ -243,16 +247,21 @@ curl http://localhost:8000/api/sections/popular-destinations
 curl http://localhost:8000/api/sections/best-of-india/packages?category=North
 curl http://localhost:8000/api/packages?search=kashmir
 curl http://localhost:8000/api/packages/kashmir-paradise
+curl http://localhost:8000/api/blogs
+curl http://localhost:8000/api/blogs/story-behind-sunbird-vacations
 ```
 
 ### API Structure
 
 ```
 app/Http/Controllers/Api/
+├── BlogController.php
 ├── SectionController.php
 └── PackageController.php
 
 app/Http/Resources/
+├── BlogSummaryResource.php
+├── BlogDetailResource.php
 ├── SectionResource.php
 ├── SectionDetailResource.php
 ├── SectionCategoryResource.php
@@ -343,6 +352,29 @@ Delete returns `409 Conflict` when section has packages, categories, or stats. U
 | DELETE | `/api/admin/packages/{id}` | Delete (409 if dependencies exist) |
 
 Delete returns `409 Conflict` when package has section assignments, details, itinerary, FAQs, or images.
+
+### Admin Blogs CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/blogs` | Paginated list (`?search=`, `?is_active=`, `?page=`, `?per_page=`) |
+| POST | `/api/admin/blogs` | Create blog |
+| GET | `/api/admin/blogs/{id}` | Blog detail by numeric ID |
+| PUT | `/api/admin/blogs/{id}` | Full update |
+| PATCH | `/api/admin/blogs/{id}` | Partial update |
+| DELETE | `/api/admin/blogs/{id}` | Delete blog |
+
+```bash
+curl http://localhost:8000/api/admin/blogs \
+  -H "Authorization: Bearer {token}"
+
+curl -X POST http://localhost:8000/api/admin/blogs \
+  -H "Authorization: Bearer {token}" \
+  -H "Content-Type: application/json" \
+  -d '{"slug":"my-travel-story","title":"My Travel Story","excerpt":"...","content":"...","author":"Admin","category":"Story","image":"/images/test.jpg","published_at":"2026-08-01","read_time_label":"4 min read","is_active":true}'
+```
+
+Blogs have no dependent relations — delete is a hard delete. Use `is_active: false` to hide from public API instead.
 
 ### Admin Section ↔ Package Assignments
 
@@ -481,7 +513,7 @@ SEO columns live on the `sections` table — show always returns 200 for an exis
 | GET | `/api/sitemap.xml` | XML sitemap of frontend URLs |
 | GET | `/api/robots.txt` | Robots rules + sitemap reference |
 
-Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), and active indexable packages (`/packages/{slug}` or `canonical_url` when set). Excludes inactive sections/packages and `is_indexable = false` sections/packages. No section-scoped package URLs or blog post URLs.
+Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). **`FRONTEND_URL` must be set correctly in production** for canonical URLs. Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), and active indexable packages (`/packages/{slug}` or `canonical_url` when set). Excludes inactive sections/packages and `is_indexable = false` sections/packages. No section-scoped package URLs or blog post URLs.
 
 Robots `Sitemap:` line points to `{APP_URL}/api/sitemap.xml`.
 
@@ -496,13 +528,11 @@ Robots `Sitemap:` line points to `{APP_URL}/api/sitemap.xml`.
 
 - Image upload
 - Admin dashboard / Next.js UI
-- Frontend integration
 
 ## Phase 4D — What's NOT Included (yet)
 
 - Structured data / JSON-LD endpoints
 - Admin dashboard / Next.js UI
-- Frontend integration
 
 ## Phase 4B — What's NOT Included (yet)
 

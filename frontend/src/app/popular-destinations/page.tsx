@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { popularPackages } from '@/data/popularDestinationsData';
+import {
+  getPopularDestinationsListingPackages,
+  getSectionListingMetadata,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Popular Destinations | Sunbird Vacations',
-  description: 'Explore the most popular travel destinations and curated packages for an unforgettable experience.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('popular-destinations');
+}
 
-export default function PopularDestinationsPage() {
+export default async function PopularDestinationsPage() {
+  const packages = await getPopularDestinationsListingPackages();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function PopularDestinationsPage() {
         title="Popular Destinations"
         subtitle="Explore the most loved destinations and curated packages."
       />
-      <PackageList packages={popularPackages} baseRoute="/popular-destinations" />
+      <PackageList packages={packages} baseRoute="/popular-destinations" />
     </>
   );
 }

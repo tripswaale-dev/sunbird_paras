@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { spiritualDestinationsPackages } from '@/data/spiritualDestinationsData';
+import {
+  getSectionListingMetadata,
+  getSpiritualDestinationsListingPackages,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Spiritual Destinations | Sunbird Vacations',
-  description: 'Embark on a spiritual journey to sacred destinations and find inner peace.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('spiritual-destinations');
+}
 
-export default function SpiritualDestinationsPage() {
+export default async function SpiritualDestinationsPage() {
+  const packages = await getSpiritualDestinationsListingPackages();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function SpiritualDestinationsPage() {
         title="Spiritual Destinations"
         subtitle="Embark on a soulful journey to sacred destinations."
       />
-      <PackageList packages={spiritualDestinationsPackages} baseRoute="/spiritual-destinations" />
+      <PackageList packages={packages} baseRoute="/spiritual-destinations" />
     </>
   );
 }

@@ -1,4 +1,12 @@
-export const bestOfIndiaDestinations = [
+export interface BestOfIndiaDestination {
+  title: string;
+  subtitle: string;
+  duration: string;
+  image: string;
+  href: string;
+}
+
+export const bestOfIndiaDestinations: BestOfIndiaDestination[] = [
   {
     title: "Golden Triangle",
     subtitle: "Starts at ₹18,999",

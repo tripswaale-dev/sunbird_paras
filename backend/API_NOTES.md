@@ -37,6 +37,8 @@ Validation errors (422) include an `errors` object.
 | GET | `/api/sections/{slug}/packages` | Section packages with optional `?category=` filter |
 | GET | `/api/packages` | Paginated active packages with optional `?category=`, `?search=`, `?page=`, `?per_page=` |
 | GET | `/api/packages/{slug}` | Full package detail with SEO, itinerary, FAQs, images |
+| GET | `/api/blogs` | Active blogs ordered by `published_at` desc (plain array, no pagination) |
+| GET | `/api/blogs/{slug}` | Full blog detail with content |
 
 ## Query Parameters
 
@@ -61,8 +63,56 @@ Public API returns **404** for:
 - Unknown slugs
 - Inactive sections (`is_active = false`)
 - Inactive packages (`is_active = false`)
+- Inactive blogs (`is_active = false`)
 
 Inactive categories are excluded from section responses.
+
+## Blog Responses
+
+**Summary** (`GET /api/blogs`, used for list cards):
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "slug": "story-behind-sunbird-vacations",
+      "title": "The Story Behind Sunbird Vacations",
+      "excerpt": "\"Travel isn't just about reaching a destination...\"",
+      "author": "Shwetangi",
+      "date": "July 13, 2026",
+      "category": "Story",
+      "image": "/images/destinations/ladakh.jpg",
+      "readTime": "3 min read"
+    }
+  ]
+}
+```
+
+**Detail** (`GET /api/blogs/{slug}`) — same fields plus `content` (full article body).
+
+JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Individual blog post URLs are **not** included in the sitemap (only `/blogs` listing).
+
+## Admin Blogs
+
+All require `Authorization: Bearer {token}` and admin privileges.
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/blogs` | Paginated list (`?search=`, `?is_active=`, `?page=`, `?per_page=`) |
+| POST | `/api/admin/blogs` | Create blog |
+| GET | `/api/admin/blogs/{id}` | Blog detail by numeric ID (includes `content`) |
+| PUT | `/api/admin/blogs/{id}` | Full update |
+| PATCH | `/api/admin/blogs/{id}` | Partial update |
+| DELETE | `/api/admin/blogs/{id}` | Hard delete |
+
+Admin responses use snake_case DB field names (`read_time_label`, `published_at`) unlike the public API camelCase (`readTime`, `date`).
+
+**Public API side effects:**
+
+- New active blogs appear in `GET /api/blogs` and `GET /api/blogs/{slug}`
+- `is_active: false` excludes blog from public index and show (404)
+- Deleted blogs return 404 on public show
 
 ## Category Filter Values
 

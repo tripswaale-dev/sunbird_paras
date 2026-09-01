@@ -6,18 +6,21 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { Carousel } from '@/components/common/Carousel';
 import { PackageCard } from '@/components/common/PackageCard';
 import { Button } from '@/components/ui/button';
-import { spiritualPackages } from '@/data/spiritual-packages';
+import type { SpiritualPackage } from '@/data/spiritual-packages';
 
 // ===========================================
 // Spiritual Destinations Section
 // ===========================================
 
+interface SpiritualDestinationsProps {
+  packages: SpiritualPackage[];
+}
 
-export function SpiritualDestinations() {
+export function SpiritualDestinations({ packages }: SpiritualDestinationsProps) {
   return (
     <Section bg="bg-surface-alt">
       <Carousel
-        items={spiritualPackages}
+        items={packages}
         visibleCount={3}
         getKey={(pkg, i) => `${pkg.title}-${i}`}
         renderHeader={() => (
@@ -35,6 +38,7 @@ export function SpiritualDestinations() {
             price={pkg.price}
             location={pkg.location}
             tag={pkg.tag}
+            href={pkg.href}
           />
         )}
       />

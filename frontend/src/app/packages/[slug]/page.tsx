@@ -4,7 +4,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { getPackageBySlug, getRelatedPackages } from "@/data/packages";
+import {
+  getPackageBySlug as fetchPackageBySlug,
+  getPackageMetadata,
+  getRelatedPackages,
+} from "@/lib/api/packages";
 import { Container } from "@/components/ui/container";
 import { PackageHero } from "@/components/package/PackageHero";
 import { PackageInfo } from "@/components/package/PackageInfo";
@@ -17,29 +21,18 @@ import { Accordion } from "@/components/ui/accordion";
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
-  const pkg = getPackageBySlug(params.slug);
-
-  if (!pkg) {
-    return {
-      title: "Package Not Found | Sunbird Vacations",
-    };
-  }
-
-  return {
-    title: `${pkg.title} Tour Package | Sunbird Vacations`,
-    description: pkg.overview.slice(0, 160) + "...",
-  };
+  return getPackageMetadata(params.slug);
 }
 
 export default async function PackageDetailsPage(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
-  const pkg = getPackageBySlug(params.slug);
+  const pkg = await fetchPackageBySlug(params.slug);
 
   if (!pkg) {
     notFound();
   }
 
-  const relatedPackages = getRelatedPackages(pkg.slug, 3);
+  const relatedPackages = await getRelatedPackages(pkg.slug, 3);
 
   const faqItems = pkg.faqs.map((faq, index) => ({
     id: `faq-${index}`,

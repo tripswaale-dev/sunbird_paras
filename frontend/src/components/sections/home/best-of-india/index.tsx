@@ -7,30 +7,34 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
 import { CarouselButton } from '@/components/ui/carousel-button';
 import { Button } from '@/components/ui/button';
-import { bestOfIndiaDestinations, bestOfIndiaGridClasses } from '@/data/best-of-india';
+import { bestOfIndiaGridClasses } from '@/data/best-of-india';
+import type { BestOfIndiaDestination } from '@/data/best-of-india';
 
 // ===========================================
 // Best Of India Section
 // ===========================================
 
+interface BestOfIndiaProps {
+  destinations: BestOfIndiaDestination[];
+}
 
-export function BestOfIndia() {
+export function BestOfIndia({ destinations }: BestOfIndiaProps) {
   const [startIndex, setStartIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
 
   const nextSlide = () => {
     setDirection(1);
-    setStartIndex((prev) => (prev + 5) % bestOfIndiaDestinations.length);
+    setStartIndex((prev) => (prev + 5) % destinations.length);
   };
 
   const prevSlide = () => {
     setDirection(-1);
-    const len = bestOfIndiaDestinations.length;
+    const len = destinations.length;
     setStartIndex((prev) => (((prev - 5) % len) + len) % len);
   };
 
   const visibleDestinations = Array.from({ length: 5 }).map((_, i) => {
-    return bestOfIndiaDestinations[(startIndex + i) % bestOfIndiaDestinations.length];
+    return destinations[(startIndex + i) % destinations.length];
   });
 
   return (

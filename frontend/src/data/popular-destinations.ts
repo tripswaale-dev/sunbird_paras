@@ -1,4 +1,17 @@
-export const popularDestinations = [
+export interface PopularDestination {
+  name: string;
+  location: string;
+  duration: string;
+  imageSrc: string;
+  href: string;
+}
+
+export interface PopularStat {
+  value: string;
+  label: string;
+}
+
+export const popularDestinations: PopularDestination[] = [
   { name: 'Spiti Valley', location: 'Starts at ₹28,999', duration: '6N / 7D', imageSrc: '/images/destinations/spiti.jpg', href: '/packages/spiti-valley' },
   { name: 'Heavenly Kashmir', location: 'Starts at ₹24,999', duration: '5N / 6D', imageSrc: '/images/india/kashmir.jpg', href: '/packages/heavenly-kashmir' },
   { name: 'Secret Himachal', location: 'Starts at ₹19,999', duration: '4N / 5D', imageSrc: '/images/hills/himalayas.jpg', href: '/packages/secret-himachal' },
@@ -21,7 +34,7 @@ export const popularDestinationsGridSlots = [
   { colSpan: 'col-span-12 md:col-span-6 lg:col-span-3', rowSpan: 'lg:row-span-1', height: 'h-[250px] lg:h-[200px]' },
 ];
 
-export const popularStats = [
+export const popularStats: PopularStat[] = [
   { value: '2+', label: 'years of experience' },
   { value: '90+', label: 'happy travellers' },
   { value: '50+', label: 'curated travel packages' },

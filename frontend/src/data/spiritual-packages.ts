@@ -1,4 +1,13 @@
-export const spiritualPackages = [
+export interface SpiritualPackage {
+  title: string;
+  location: string;
+  image: string;
+  price: string;
+  tag: string;
+  href: string;
+}
+
+export const spiritualPackages: SpiritualPackage[] = [
   {
     title: "Char Dham Yatra",
     location: "Uttarakhand, India",

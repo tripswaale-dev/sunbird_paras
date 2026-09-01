@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { exploreWildPackages } from '@/data/exploreWildData';
+import {
+  getExploreWildIndiaListingPackages,
+  getSectionListingMetadata,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Explore the WILD | Sunbird Vacations',
-  description: 'Discover the untamed beauty of nature with our wildlife safari packages.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('explore-wild-india');
+}
 
-export default function ExploreWildIndiaPage() {
+export default async function ExploreWildIndiaPage() {
+  const packages = await getExploreWildIndiaListingPackages();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function ExploreWildIndiaPage() {
         title="Explore the WILD"
         subtitle="Discover the untamed beauty of nature with our wildlife safaris."
       />
-      <PackageList packages={exploreWildPackages} baseRoute="/explore-wild-india" />
+      <PackageList packages={packages} baseRoute="/explore-wild-india" />
     </>
   );
 }

@@ -1,7 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
-import { allTravelPackages } from "@/data/packages";
 import { navbarDestinations } from "@/data/navigation";
+import { getPackagesIndexListingPackages } from "@/lib/api/packages";
 import { PackageList } from "@/components/sections/packages/PackageList";
 import { HeroBanner } from "@/components/common/HeroBanner";
 
@@ -10,7 +10,9 @@ export const metadata: Metadata = {
   description: "Explore our premium tour packages to beautiful destinations including Kashmir, Kerala, Ladakh, and more.",
 };
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const packages = await getPackagesIndexListingPackages();
+
   return (
     <>
       <HeroBanner
@@ -20,7 +22,7 @@ export default function PackagesPage() {
       />
       
       <PackageList
-        packages={allTravelPackages}
+        packages={packages}
         categories={navbarDestinations}
         baseRoute="/packages"
       />

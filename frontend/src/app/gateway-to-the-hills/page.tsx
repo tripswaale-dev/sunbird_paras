@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { hillPackages, hillCategories } from '@/data/hillPackages';
+import {
+  getGatewayToHillsListingData,
+  getSectionListingMetadata,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Gateway to the Hills | Sunbird Vacations',
-  description: 'Escape to the serene and majestic mountains. Discover curated hill station packages tailored to your travel style.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('gateway-to-the-hills');
+}
 
-export default function GatewayToHillsPage() {
+export default async function GatewayToHillsPage() {
+  const { packages, categories } = await getGatewayToHillsListingData();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function GatewayToHillsPage() {
         title="Gateway to the Hills"
         subtitle="Escape to the serene and majestic mountains with our curated packages."
       />
-      <PackageList packages={hillPackages} categories={hillCategories} baseRoute="/gateway-to-the-hills" variant="horizontal" />
+      <PackageList packages={packages} categories={categories} baseRoute="/gateway-to-the-hills" variant="horizontal" />
     </>
   );
 }

@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { acrossBoundariesPackages } from '@/data/acrossBoundariesData';
+import {
+  getAcrossBoundariesListingPackages,
+  getSectionListingMetadata,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Across Boundaries | Sunbird Vacations',
-  description: 'Discover international travel packages and experiences beyond borders.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('across-boundaries');
+}
 
-export default function AcrossBoundariesPage() {
+export default async function AcrossBoundariesPage() {
+  const packages = await getAcrossBoundariesListingPackages();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function AcrossBoundariesPage() {
         title="Across Boundaries"
         subtitle="Discover incredible international destinations and experiences."
       />
-      <PackageList packages={acrossBoundariesPackages} baseRoute="/across-boundaries" />
+      <PackageList packages={packages} baseRoute="/across-boundaries" />
     </>
   );
 }

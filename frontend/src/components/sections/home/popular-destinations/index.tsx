@@ -7,34 +7,35 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
 import { CarouselButton } from '@/components/ui/carousel-button';
 import { StatsCard } from '@/components/shared/stats-card';
-import {
+import { popularDestinationsGridSlots } from '@/data/popular-destinations';
+import type { PopularDestination, PopularStat } from '@/data/popular-destinations';
 
 // ===========================================
 // Popular Destinations Section
 // ===========================================
 
-  popularDestinations,
-  popularDestinationsGridSlots,
-  popularStats,
-} from '@/data/popular-destinations';
+interface PopularDestinationsProps {
+  destinations: PopularDestination[];
+  stats: PopularStat[];
+}
 
-export function PopularDestinations() {
+export function PopularDestinations({ destinations, stats }: PopularDestinationsProps) {
   const [startIndex, setStartIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
 
   const nextSlide = () => {
     setDirection(1);
-    setStartIndex((prev) => (prev + 5) % popularDestinations.length);
+    setStartIndex((prev) => (prev + 5) % destinations.length);
   };
 
   const prevSlide = () => {
     setDirection(-1);
-    const len = popularDestinations.length;
+    const len = destinations.length;
     setStartIndex((prev) => (((prev - 5) % len) + len) % len);
   };
 
   const visibleDestinations = Array.from({ length: 5 }).map((_, i) => {
-    return popularDestinations[(startIndex + i) % popularDestinations.length];
+    return destinations[(startIndex + i) % destinations.length];
   });
 
   return (
@@ -116,7 +117,7 @@ export function PopularDestinations() {
         />
       </div>
 
-      <StatsCard stats={popularStats} />
+      <StatsCard stats={stats} />
     </Section>
   );
 }

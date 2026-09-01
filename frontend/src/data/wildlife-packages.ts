@@ -1,4 +1,16 @@
-export const wildlifePackages = [
+export interface WildlifePackage {
+  title: string;
+  location: string;
+  duration: string;
+  category: string;
+  price: string;
+  image: string;
+  href: string;
+  rating?: number;
+  reviews?: number;
+}
+
+export const wildlifePackages: WildlifePackage[] = [
   {
     title: "Leopard Land - Jawai",
     location: "JAWAI",

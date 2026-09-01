@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             SectionCategorySeeder::class,
             SectionStatSeeder::class,
             PackageDetailSeeder::class,
+            BlogSeeder::class,
             AdminSeeder::class,
         ]);
     }

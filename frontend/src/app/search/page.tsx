@@ -1,6 +1,7 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { Metadata } from 'next';
 import { HeroBanner } from '@/components/common/HeroBanner';
+import { getSearchPackages } from '@/lib/api/packages';
 import { SearchResults } from './SearchResults';
 
 export const metadata: Metadata = {
@@ -8,7 +9,17 @@ export const metadata: Metadata = {
   description: 'Search for your next dream vacation package across India and beyond.',
 };
 
-export default function SearchPage() {
+interface SearchPageProps {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+}
+
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const params = await searchParams;
+  const query = params.q ?? '';
+  const packages = await getSearchPackages(query);
+
   return (
     <>
       <HeroBanner
@@ -16,9 +27,7 @@ export default function SearchPage() {
         title="Find Your Adventure"
         subtitle="Explore our curated collection of packages"
       />
-      <Suspense fallback={<div className="py-20 text-center bg-gray-50 text-gray-500">Loading search results...</div>}>
-        <SearchResults />
-      </Suspense>
+      <SearchResults query={query} packages={packages} />
     </>
   );
 }

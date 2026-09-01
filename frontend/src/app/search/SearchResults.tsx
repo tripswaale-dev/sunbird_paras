@@ -1,19 +1,13 @@
-'use client';
-
-import { useSearchParams } from 'next/navigation';
-import { allTravelPackages } from '@/data/packages';
 import { PackageList } from '@/components/sections/packages/PackageList';
 import { Container } from '@/components/ui/container';
+import type { TravelPackage } from '@/data/travelPackages';
 
-export function SearchResults() {
-  const searchParams = useSearchParams();
-  const query = searchParams.get('q') || '';
-  
-  const filteredPackages = allTravelPackages.filter(pkg => {
-    const searchString = `${pkg.title} ${pkg.category} ${pkg.duration}`.toLowerCase();
-    return searchString.includes(query.toLowerCase());
-  });
+interface SearchResultsProps {
+  query: string;
+  packages: TravelPackage[];
+}
 
+export function SearchResults({ query, packages }: SearchResultsProps) {
   return (
     <>
       <section className="bg-gray-50 pt-16 pb-6">
@@ -22,13 +16,13 @@ export function SearchResults() {
              Search Results
            </h2>
            <p className="text-gray-600 text-lg">
-             {filteredPackages.length} {filteredPackages.length === 1 ? 'result' : 'results'} found for &quot;{query}&quot;
+             {packages.length} {packages.length === 1 ? 'result' : 'results'} found for &quot;{query}&quot;
            </p>
         </Container>
       </section>
       
-      {filteredPackages.length > 0 ? (
-        <PackageList packages={filteredPackages} baseRoute="/packages" />
+      {packages.length > 0 ? (
+        <PackageList packages={packages} baseRoute="/packages" />
       ) : (
         <section className="bg-gray-50 pb-32">
           <Container>

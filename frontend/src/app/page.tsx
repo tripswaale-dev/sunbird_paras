@@ -9,29 +9,47 @@ import { SpiritualDestinations } from '@/components/sections/home/spiritual-dest
 import { ExploreWildIndia } from '@/components/sections/home/explore-wild-india';
 import {
   getAcrossBoundariesPackages,
+  getBestOfIndiaDestinations,
+  getExploreWildIndiaPackages,
   getGatewayToHillsCategories,
+  getPopularDestinationsSection,
+  getSpiritualDestinationsPackages,
   getTravelYourWayCategories,
 } from '@/lib/api/sections';
 
 export default async function Home() {
-  const [travelYourWayCategories, acrossBoundariesPackages, gatewayToHillsCategories] =
-    await Promise.all([
-      getTravelYourWayCategories(),
-      getAcrossBoundariesPackages(),
-      getGatewayToHillsCategories(),
-    ]);
+  const [
+    popularDestinationsSection,
+    travelYourWayCategories,
+    acrossBoundariesPackages,
+    gatewayToHillsCategories,
+    spiritualDestinationsPackages,
+    exploreWildIndiaPackages,
+    bestOfIndiaDestinations,
+  ] = await Promise.all([
+    getPopularDestinationsSection(),
+    getTravelYourWayCategories(),
+    getAcrossBoundariesPackages(),
+    getGatewayToHillsCategories(),
+    getSpiritualDestinationsPackages(),
+    getExploreWildIndiaPackages(),
+    getBestOfIndiaDestinations(),
+  ]);
 
   return (
     <>
       <Hero />
-      <PopularDestinations />
+      <PopularDestinations
+        destinations={popularDestinationsSection.destinations}
+        stats={popularDestinationsSection.stats}
+      />
       <ChooseYourJourney categories={travelYourWayCategories} />
       <AcrossBoundaries packages={acrossBoundariesPackages} />
       <GatewayToHills categories={gatewayToHillsCategories} />
-      <BestOfIndia />
+      <BestOfIndia destinations={bestOfIndiaDestinations} />
       <CustomerPromise />
-      <SpiritualDestinations />
-      <ExploreWildIndia />
+      <SpiritualDestinations packages={spiritualDestinationsPackages} />
+      <ExploreWildIndia packages={exploreWildIndiaPackages} />
     </>
   );
 }

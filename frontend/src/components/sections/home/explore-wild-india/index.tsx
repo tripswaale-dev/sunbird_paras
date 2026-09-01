@@ -5,18 +5,21 @@ import { Section } from '@/components/common/Section';
 import { Carousel } from '@/components/common/Carousel';
 import { PackageCard } from '@/components/common/PackageCard';
 import { Button } from '@/components/ui/button';
-import { wildlifePackages } from '@/data/wildlife-packages';
+import type { WildlifePackage } from '@/data/wildlife-packages';
 
 // ===========================================
 // Explore Wild India Section
 // ===========================================
 
+interface ExploreWildIndiaProps {
+  packages: WildlifePackage[];
+}
 
-export function ExploreWildIndia() {
+export function ExploreWildIndia({ packages }: ExploreWildIndiaProps) {
   return (
     <Section>
       <Carousel
-        items={wildlifePackages}
+        items={packages}
         visibleCount={3}
         getKey={(pkg, i) => `${pkg.title}-${i}`}
         renderHeader={() => (
@@ -49,6 +52,7 @@ export function ExploreWildIndia() {
             reviews={pkg.reviews}
             accentColor="var(--color-primary)"
             priceSuffix="/person"
+            href={pkg.href}
           />
         )}
       />

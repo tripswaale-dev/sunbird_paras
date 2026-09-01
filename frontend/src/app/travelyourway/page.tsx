@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { travelPackages, travelCategories } from '@/data/travelPackages';
+import {
+  getSectionListingMetadata,
+  getTravelYourWayListingData,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Travel Your Way | Sunbird Vacations',
-  description: 'Discover curated travel experiences tailored to your travel style. Browse pocket-friendly, adventure, wildlife, spiritual, and luxury holiday packages.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('travel-your-way');
+}
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  const { packages, categories } = await getTravelYourWayListingData();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function PackagesPage() {
         title="Choose your journey"
         subtitle="Discover curated experiences tailored to your travel style."
       />
-      <PackageList packages={travelPackages} categories={travelCategories} baseRoute="/travelyourway" variant="horizontal" />
+      <PackageList packages={packages} categories={categories} baseRoute="/travelyourway" variant="horizontal" />
     </>
   );
 }

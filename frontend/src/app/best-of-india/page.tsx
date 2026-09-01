@@ -1,13 +1,17 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { PackageList } from '@/components/sections/packages/PackageList';
-import { bestOfIndiaPackages } from '@/data/bestOfIndiaData';
+import {
+  getBestOfIndiaListingPackages,
+  getSectionListingMetadata,
+} from '@/lib/api/sections';
 
-export const metadata = {
-  title: 'Best of India | Sunbird Vacations',
-  description: 'Experience the diverse and incredible beauty of India with our curated travel packages.',
-};
+export async function generateMetadata() {
+  return getSectionListingMetadata('best-of-india');
+}
 
-export default function BestOfIndiaPage() {
+export default async function BestOfIndiaPage() {
+  const packages = await getBestOfIndiaListingPackages();
+
   return (
     <>
       <HeroBanner
@@ -15,7 +19,7 @@ export default function BestOfIndiaPage() {
         title="Best of India"
         subtitle="Experience the diverse and incredible beauty of India."
       />
-      <PackageList packages={bestOfIndiaPackages} baseRoute="/best-of-india" />
+      <PackageList packages={packages} baseRoute="/best-of-india" />
     </>
   );
 }
