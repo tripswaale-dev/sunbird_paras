@@ -1,11 +1,10 @@
 import React from 'react';
-import { Metadata } from 'next';
 import { Container } from '@/components/ui/container';
+import { getPaymentPolicyMetadata } from '@/lib/api/page-seo';
 
-export const metadata: Metadata = {
-  title: 'Payment Policy | Sunbird Vacations',
-  description: 'Learn about our payment policies and terms for your bookings with Sunbird Vacations.',
-};
+export async function generateMetadata() {
+  return getPaymentPolicyMetadata();
+}
 
 export default function PaymentPolicyPage() {
   return (

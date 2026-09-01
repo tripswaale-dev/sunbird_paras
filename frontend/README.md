@@ -37,13 +37,15 @@ NEXT_PUBLIC_SITE_URL=https://sunbirdvacations.com
 
 When unset, defaults to `https://sunbirdvacations.com`.
 
-## API Integration (Phase 5 + Phase 7 + Phase 8)
+## API Integration (Phase 5 + Phase 7 + Phase 8 + Phase 9)
 
 **Phase 5 complete** — all core package/section flows are API-driven with static fallbacks.
 
 **Phase 7 complete** — blogs listing and detail are API-driven with static fallbacks.
 
 **Phase 8 (Step 3) complete** — gallery page items are API-driven with static fallback.
+
+**Phase 9 complete** — blog detail and listing metadata are API-driven via `seo` and `page_seo`.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and known data mismatches.
 
@@ -56,7 +58,9 @@ The frontend reads section data from the Laravel API at `NEXT_PUBLIC_API_URL` (d
 | Types | `src/lib/api/types.ts` | Typed API response models |
 | Sections | `src/lib/api/sections.ts` | Section fetch helpers |
 | Packages | `src/lib/api/packages.ts` | Package fetch helpers |
-| Blogs | `src/lib/api/blogs.ts` | Blog fetch helpers (listing, detail, featured packages) |
+| Blogs | `src/lib/api/blogs.ts` | Blog fetch helpers (listing, detail, featured packages, detail metadata) |
+| Page SEO | `src/lib/api/page-seo.ts` | Page-level SEO (`getPageMetadata()`, per-route helpers) |
+| Page content | `src/lib/api/page-content.ts` | About/contact content (`getAboutPageContent()`, `getContactPageContent()`) |
 | Gallery | `src/lib/api/gallery.ts` | Gallery fetch helper (`getGalleryItems()`) |
 | Mappers | `src/lib/mappers/` | API → existing component prop shapes |
 
@@ -123,15 +127,28 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 | `/blogs/[slug]` | `GET /api/blogs/{slug}` | `getBlogBySlug()` | `blogsData.find()` |
 | Featured packages (blog detail) | `GET /api/packages?per_page=3` | `getBlogFeaturedPackages()` | `travelPackages.slice(0, 3)` |
 
-**Listing** (`/blogs`) — `GET /api/blogs` via `getBlogsListing()` → `Blog[]` via `mapBlogSummariesToBlogs()` in `src/lib/mappers/blogs.ts`. Static fallback: `blogsData` in `src/data/blogsData.ts`. Page `metadata` remains a static export (no blog SEO API yet).
+**Listing** (`/blogs`) — `GET /api/blogs` via `getBlogsListing()` → `Blog[]` via `mapBlogSummariesToBlogs()` in `src/lib/mappers/blogs.ts`. Static fallback: `blogsData` in `src/data/blogsData.ts`. `generateMetadata` via `getBlogListingMetadata()` → `GET /api/page-seo/blogs` with static title/description fallback.
 
-**Detail** (`/blogs/[slug]`) — `GET /api/blogs/{slug}` via `getBlogBySlug()` → `Blog` via `mapBlogDetailToBlog()`. Static fallback: `blogsData.find()`. Dynamic route — `generateStaticParams` removed so admin-created blogs work without rebuild. `generateMetadata` uses API title + excerpt via `getBlogBySlug()`.
+**Detail** (`/blogs/[slug]`) — `GET /api/blogs/{slug}` via `getBlogBySlug()` → `Blog` via `mapBlogDetailToBlog()`. Static fallback: `blogsData.find()`. Dynamic route — `generateStaticParams` removed so admin-created blogs work without rebuild. `generateMetadata` via `getBlogMetadata()` → `mapBlogDetailToMetadata()` using API `seo` fields (`meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`); static fallback uses title + excerpt.
 
 **Featured packages** — `getBlogFeaturedPackages()` fetches three packages for the detail page sidebar; fallback `travelPackages.slice(0, 3)`.
 
 **Sitemap** — no frontend changes required; `/sitemap.xml` proxy picks up backend blog post URLs automatically.
 
 **Do not delete** `src/data/blogsData.ts` — required for API-offline fallback.
+
+## Phase 9 — Blog SEO (complete)
+
+| Route | Metadata API | Helper | Fallback |
+|-------|--------------|--------|----------|
+| `/blogs` | `GET /api/page-seo/blogs` | `getBlogListingMetadata()` | Static title + description |
+| `/blogs/[slug]` | `GET /api/blogs/{slug}` → `seo` | `getBlogMetadata()` | Title + excerpt from `blogsData` |
+
+**Listing metadata** — `mapPageSeoToMetadata()` in `src/lib/mappers/blog-metadata.ts`. Supports `meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`. OG image fallback: `/images/destinations/ladakh.jpg` (matches hero banner).
+
+**Detail metadata** — `mapBlogDetailToMetadata()` using blog `seo` fields from detail API. Static fallback when API unavailable.
+
+**Admin:** Blog post SEO via `/api/admin/blogs/{id}`; listing SEO via `/api/admin/page-seo/blogs`. Sitemap respects `is_indexable` and `canonical_url` on both blog posts and `/blogs` listing.
 
 ## Phase 8 — Gallery (Step 3 complete)
 
@@ -144,6 +161,19 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 **Gallery page** (`/gallery`) — `GET /api/gallery` via `getGalleryItems()` → `GalleryItem[]` via `mapGalleryApiItemsToGalleryItems()` in `src/lib/mappers/gallery.ts`. Static fallback: `galleryItems` in `src/data/gallery.ts`. Filter tabs remain static `galleryCategories` (includes UI-only `ALL`); client-side filtering unchanged in `gallery-client.tsx`. Page `metadata` remains static.
 
 **Do not delete** `src/data/gallery.ts` — required for fallback items and filter tab labels.
+
+## Phase 11 — About + Contact page content (Step 2 complete)
+
+| Route | Content API | Helper | Metadata | Fallback |
+|-------|-------------|--------|----------|----------|
+| `/about` | `GET /api/page-content/about` | `getAboutPageContent()` | `getAboutMetadata()` → `page_seo` | `src/data/about.ts` |
+| `/contact` | `GET /api/page-content/contact` | `getContactPageContent()` | `getContactMetadata()` → `page_seo` | `src/data/contact.ts` |
+
+**About** — HeroBanner + founder story body (`\n\n` paragraphs, drop cap on first paragraph, `heroSubtitle` as quote block). Separate from `page_seo` metadata.
+
+**Contact** — HeroBanner + `ContactForm` props (`introText`, `contactPhone`, `contactEmail`, `contactAddress`, `workingHours`). Form submit remains fake (`setTimeout`). Layout/classes unchanged.
+
+**Do not delete** `src/data/about.ts` or `src/data/contact.ts` — required for API-offline fallback.
 
 ## Learn More
 

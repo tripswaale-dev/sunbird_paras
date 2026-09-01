@@ -1,14 +1,13 @@
 import React from "react";
-import { Metadata } from "next";
 import { navbarDestinations } from "@/data/navigation";
 import { getPackagesIndexListingPackages } from "@/lib/api/packages";
+import { getPackagesMetadata } from "@/lib/api/page-seo";
 import { PackageList } from "@/components/sections/packages/PackageList";
 import { HeroBanner } from "@/components/common/HeroBanner";
 
-export const metadata: Metadata = {
-  title: "Tour Packages | Sunbird Vacations",
-  description: "Explore our premium tour packages to beautiful destinations including Kashmir, Kerala, Ladakh, and more.",
-};
+export async function generateMetadata() {
+  return getPackagesMetadata();
+}
 
 export default async function PackagesPage() {
   const packages = await getPackagesIndexListingPackages();

@@ -89,9 +89,15 @@ Inactive categories are excluded from section responses.
 }
 ```
 
-**Detail** (`GET /api/blogs/{slug}`) — same fields plus `content` (full article body).
+**Detail** (`GET /api/blogs/{slug}`) — same fields plus `content` (full article body) and a nested `seo` object (`meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`). Listing (`GET /api/blogs`) does not include `seo`.
 
-JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Active blog post URLs are included in the sitemap at `/blogs/{slug}`.
+**Page SEO** (`GET /api/page-seo/{page_key}`) — page-level SEO for static routes. Seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`. Shape: `{ page_key, seo: { ... } }`. Sitemap URLs for managed static paths respect `page_seo` canonical/`is_indexable` (`search` is API-only).
+
+**Page Content** (`GET /api/page-content/{page_key}`) — page body/hero/contact fields for `about` and `contact`. Separate from `page_seo`. Public response uses camelCase (`pageKey`, `heroImage`, `heroTitle`, `heroSubtitle`, `introText`, `body`, `contactPhone`, `contactEmail`, `contactAddress`, `workingHours`). Returns 404 when `is_active` is false. Admin: `GET/PATCH /api/admin/page-content/{page_key}` (snake_case fields).
+
+**Contact Inquiries** (`POST /api/contact-inquiries`) — public form submission (no auth). Body: `firstName`, `lastName`, `phone`, `subject` (`general` \| `booking` \| `custom` \| `support`), `message`. Returns `201` with `{ id, message }`. Throttled 10/min per IP. Admin: `GET /api/admin/contact-inquiries`, `GET /api/admin/contact-inquiries/{id}` (paginated list with optional `?search=` and `?subject=`).
+
+JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Active indexable blog post URLs are included in the sitemap at `/blogs/{slug}` (or `canonical_url` when set). Managed static listing URLs (`/`, `/about`, `/contact`, `/packages`, `/gallery`, `/blogs`, `/payment-policy`, `/cancellation-policy`) use `page_seo` canonical/`is_indexable` when configured.
 
 ## Admin Blogs
 
@@ -106,12 +112,13 @@ All require `Authorization: Bearer {token}` and admin privileges.
 | PATCH | `/api/admin/blogs/{id}` | Partial update |
 | DELETE | `/api/admin/blogs/{id}` | Hard delete |
 
-Admin responses use snake_case DB field names (`read_time_label`, `published_at`) unlike the public API camelCase (`readTime`, `date`).
+Admin responses use snake_case DB field names (`read_time_label`, `published_at`, SEO fields) unlike the public API camelCase (`readTime`, `date`). SEO fields are managed on the main blog create/update endpoints (no separate SEO route).
 
 **Public API side effects:**
 
 - New active blogs appear in `GET /api/blogs` and `GET /api/blogs/{slug}`
 - `is_active: false` excludes blog from public index and show (404)
+- `is_indexable: false` excludes blog post URL from sitemap; public show still returns 200 when active
 - Deleted blogs return 404 on public show
 
 ## Category Filter Values
@@ -132,11 +139,11 @@ Filter param `?category=` must use the exact `packages.category` value, not sect
 
 - **`GET /api/sitemap.xml`** — `application/xml`; `<loc>` values use `FRONTEND_URL` from `.env`.
 - **`GET /api/robots.txt`** — `text/plain`; includes `Sitemap: {APP_URL}/api/sitemap.xml`.
-- **Included:** static frontend paths (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, policy pages), active indexable section `view_all_path` URLs, active indexable package URLs, active blog post URLs at `/blogs/{slug}`.
+- **Included:** static frontend paths (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, policy pages), active indexable section `view_all_path` URLs, active indexable package URLs, active indexable blog post URLs at `/blogs/{slug}` (or `canonical_url` when set).
 - **Section URL:** `canonical_url` when set, otherwise `{FRONTEND_URL}{view_all_path}`.
 - **Package URL:** `canonical_url` when set, otherwise `{FRONTEND_URL}/packages/{slug}`.
 - **Gallery listing:** `/gallery` only (no per-item gallery URLs); `<lastmod>` from latest `updated_at` among active gallery items.
-- **Excluded:** inactive sections/packages/blogs/gallery items, `is_indexable = false` sections/packages, section-scoped package paths.
+- **Excluded:** inactive sections/packages/blogs/gallery items, `is_indexable = false` sections/packages/blogs, section-scoped package paths.
 
 ## Section Detail
 

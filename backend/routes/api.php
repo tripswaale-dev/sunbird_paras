@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\ContactInquiryController as AdminContactInquiryController;
 use App\Http\Controllers\Api\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\Admin\GalleryItemController as AdminGalleryItemController;
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
@@ -7,6 +8,8 @@ use App\Http\Controllers\Api\Admin\PackageDetailController as AdminPackageDetail
 use App\Http\Controllers\Api\Admin\PackageItineraryDayController as AdminPackageItineraryDayController;
 use App\Http\Controllers\Api\Admin\PackageFaqController as AdminPackageFaqController;
 use App\Http\Controllers\Api\Admin\PackageImageController as AdminPackageImageController;
+use App\Http\Controllers\Api\Admin\PageContentController as AdminPageContentController;
+use App\Http\Controllers\Api\Admin\PageSeoController as AdminPageSeoController;
 use App\Http\Controllers\Api\Admin\PackageSeoController as AdminPackageSeoController;
 use App\Http\Controllers\Api\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Api\Admin\SectionStatController as AdminSectionStatController;
@@ -15,8 +18,11 @@ use App\Http\Controllers\Api\Admin\SectionPackageController as AdminSectionPacka
 use App\Http\Controllers\Api\Admin\SectionController as AdminSectionController;
 use App\Http\Controllers\Api\Admin\SectionSeoController as AdminSectionSeoController;
 use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\ContactInquiryController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\PackageController;
+use App\Http\Controllers\Api\PageContentController;
+use App\Http\Controllers\Api\PageSeoController;
 use App\Http\Controllers\Api\RobotsController;
 use App\Http\Controllers\Api\SectionController;
 use App\Http\Controllers\Api\SitemapController;
@@ -54,6 +60,11 @@ Route::get('/packages/{package:slug}', [PackageController::class, 'show']);
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/{blog:slug}', [BlogController::class, 'show']);
 Route::get('/gallery', [GalleryController::class, 'index']);
+Route::get('/page-seo/{pageKey}', [PageSeoController::class, 'show']);
+Route::get('/page-content/{pageKey}', [PageContentController::class, 'show']);
+
+Route::post('/contact-inquiries', [ContactInquiryController::class, 'store'])
+    ->middleware('throttle:10,1');
 
 Route::post('/admin/login', [AdminAuthController::class, 'login'])
     ->middleware('throttle:admin-login');
@@ -143,6 +154,17 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/gallery-items/{id}', [AdminGalleryItemController::class, 'update'])->whereNumber('id');
     Route::patch('/gallery-items/{id}', [AdminGalleryItemController::class, 'update'])->whereNumber('id');
     Route::delete('/gallery-items/{id}', [AdminGalleryItemController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('/page-seo/{pageKey}', [AdminPageSeoController::class, 'show']);
+    Route::put('/page-seo/{pageKey}', [AdminPageSeoController::class, 'update']);
+    Route::patch('/page-seo/{pageKey}', [AdminPageSeoController::class, 'update']);
+
+    Route::get('/page-content/{pageKey}', [AdminPageContentController::class, 'show']);
+    Route::put('/page-content/{pageKey}', [AdminPageContentController::class, 'update']);
+    Route::patch('/page-content/{pageKey}', [AdminPageContentController::class, 'update']);
+
+    Route::get('/contact-inquiries', [AdminContactInquiryController::class, 'index']);
+    Route::get('/contact-inquiries/{id}', [AdminContactInquiryController::class, 'show'])->whereNumber('id');
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

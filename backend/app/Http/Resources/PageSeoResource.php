@@ -3,13 +3,14 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class BlogDetailResource extends BlogSummaryResource
+class PageSeoResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        return array_merge(parent::toArray($request), [
-            'content' => $this->content,
+        return [
+            'page_key' => $this->page_key,
             'seo' => [
                 'meta_title' => $this->meta_title,
                 'meta_description' => $this->meta_description,
@@ -17,6 +18,6 @@ class BlogDetailResource extends BlogSummaryResource
                 'og_image' => $this->og_image,
                 'is_indexable' => $this->is_indexable,
             ],
-        ]);
+        ];
     }
 }

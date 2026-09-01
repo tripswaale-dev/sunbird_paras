@@ -5,7 +5,60 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Send, MapPin, Phone, Mail, Clock } from 'lucide-react';
 
-export function ContactForm() {
+export interface ContactFormProps {
+  introText: string;
+  contactPhone: string;
+  contactEmail: string;
+  contactAddress: string;
+  workingHours: string;
+}
+
+function renderContactAddress(address: string) {
+  if (address.includes('\n')) {
+    return (
+      <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+        {address}
+      </p>
+    );
+  }
+
+  const parts = address.split(', ');
+
+  if (parts.length > 2) {
+    const midpoint = Math.ceil(parts.length / 2);
+    const line1 = parts.slice(0, midpoint).join(', ');
+    const line2 = parts.slice(midpoint).join(', ');
+
+    return (
+      <p className="text-gray-600 leading-relaxed">
+        {line1},<br />
+        {line2}
+      </p>
+    );
+  }
+
+  return <p className="text-gray-600 leading-relaxed">{address}</p>;
+}
+
+function renderWorkingHours(workingHours: string) {
+  if (workingHours.includes('\n')) {
+    return (
+      <p className="text-gray-600 whitespace-pre-line">
+        {workingHours}
+      </p>
+    );
+  }
+
+  return <p className="text-gray-600">{workingHours}</p>;
+}
+
+export function ContactForm({
+  introText,
+  contactPhone,
+  contactEmail,
+  contactAddress,
+  workingHours,
+}: ContactFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -23,7 +76,7 @@ export function ContactForm() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
       {/* Contact Information */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, x: -30 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
@@ -33,8 +86,7 @@ export function ContactForm() {
           Get in Touch
         </h2>
         <p className="text-gray-600 mb-10 text-lg leading-relaxed">
-          Planning your next dream vacation? Have questions about our packages? 
-          Our travel experts are here to help you design the perfect itinerary.
+          {introText}
         </p>
 
         <div className="space-y-8 grow">
@@ -44,10 +96,7 @@ export function ContactForm() {
             </div>
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-1">Office Location</h4>
-              <p className="text-gray-600 leading-relaxed">
-                A-709, Krish elite, S P ring road- service road,<br />
-                Nikol- Ahmedabad, Gujarat 382350
-              </p>
+              {renderContactAddress(contactAddress)}
             </div>
           </div>
 
@@ -58,7 +107,7 @@ export function ContactForm() {
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-1">Phone Number</h4>
               <p className="text-gray-600">
-                +91 81412 67610
+                {contactPhone}
               </p>
             </div>
           </div>
@@ -70,7 +119,7 @@ export function ContactForm() {
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-1">Email Address</h4>
               <p className="text-gray-600">
-                vacations.sunbird@gmail.com
+                {contactEmail}
               </p>
             </div>
           </div>
@@ -81,10 +130,7 @@ export function ContactForm() {
             </div>
             <div>
               <h4 className="text-lg font-bold text-gray-900 mb-1">Working Hours</h4>
-              <p className="text-gray-600">
-                Monday - Saturday: 10:00 AM - 7:00 PM<br />
-                Sunday: Closed
-              </p>
+              {renderWorkingHours(workingHours)}
             </div>
           </div>
         </div>
@@ -116,9 +162,9 @@ export function ContactForm() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</label>
-                <input 
-                  type="text" 
-                  id="firstName" 
+                <input
+                  type="text"
+                  id="firstName"
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   placeholder="John"
@@ -126,9 +172,9 @@ export function ContactForm() {
               </div>
               <div className="space-y-2">
                 <label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</label>
-                <input 
-                  type="text" 
-                  id="lastName" 
+                <input
+                  type="text"
+                  id="lastName"
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   placeholder="Doe"
@@ -138,9 +184,9 @@ export function ContactForm() {
 
             <div className="space-y-2">
               <label htmlFor="phone" className="text-sm font-medium text-gray-700">Phone Number</label>
-              <input 
-                type="tel" 
-                id="phone" 
+              <input
+                type="tel"
+                id="phone"
                 required
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 placeholder="+91 12345 67890"
@@ -149,7 +195,7 @@ export function ContactForm() {
 
             <div className="space-y-2">
               <label htmlFor="subject" className="text-sm font-medium text-gray-700">Subject</label>
-              <select 
+              <select
                 id="subject"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-white"
               >
@@ -162,8 +208,8 @@ export function ContactForm() {
 
             <div className="space-y-2">
               <label htmlFor="message" className="text-sm font-medium text-gray-700">Your Message</label>
-              <textarea 
-                id="message" 
+              <textarea
+                id="message"
                 required
                 rows={4}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none"
@@ -171,9 +217,9 @@ export function ContactForm() {
               />
             </div>
 
-            <Button 
-              type="submit" 
-              variant="pill-teal" 
+            <Button
+              type="submit"
+              variant="pill-teal"
               className="w-full py-4 text-lg"
               disabled={isSubmitting}
             >

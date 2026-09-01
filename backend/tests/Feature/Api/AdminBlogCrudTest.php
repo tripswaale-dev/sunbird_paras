@@ -141,6 +141,11 @@ class AdminBlogCrudTest extends TestCase
                     'published_at',
                     'read_time_label',
                     'is_active',
+                    'meta_title',
+                    'meta_description',
+                    'canonical_url',
+                    'og_image',
+                    'is_indexable',
                     'created_at',
                     'updated_at',
                 ],
@@ -157,6 +162,52 @@ class AdminBlogCrudTest extends TestCase
             ->assertJsonPath('data.read_time_label', '5 min read');
 
         $this->assertDatabaseHas('blogs', ['slug' => 'test-blog-post']);
+    }
+
+    public function test_admin_can_create_blog_with_seo_fields(): void
+    {
+        $this->withHeaders($this->adminHeaders())
+            ->postJson('/api/admin/blogs', $this->validBlogPayload([
+                'slug' => 'seo-blog-post',
+                'meta_title' => 'SEO Blog Title',
+                'meta_description' => 'SEO blog description.',
+                'canonical_url' => 'https://example.com/blogs/seo-blog-post',
+                'og_image' => '/images/seo-og.jpg',
+                'is_indexable' => false,
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.meta_title', 'SEO Blog Title')
+            ->assertJsonPath('data.is_indexable', false);
+
+        $this->assertDatabaseHas('blogs', [
+            'slug' => 'seo-blog-post',
+            'meta_title' => 'SEO Blog Title',
+            'is_indexable' => false,
+        ]);
+    }
+
+    public function test_create_fails_with_invalid_canonical_url(): void
+    {
+        $this->withHeaders($this->adminHeaders())
+            ->postJson('/api/admin/blogs', $this->validBlogPayload([
+                'canonical_url' => 'not-a-valid-url',
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['canonical_url']);
+    }
+
+    public function test_admin_can_update_blog_seo_fields_with_patch(): void
+    {
+        $blog = Blog::where('slug', 'story-behind-sunbird-vacations')->first();
+
+        $this->withHeaders($this->adminHeaders())
+            ->patchJson("/api/admin/blogs/{$blog->id}", [
+                'meta_title' => 'Updated SEO Title',
+                'is_indexable' => false,
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.meta_title', 'Updated SEO Title')
+            ->assertJsonPath('data.is_indexable', false);
     }
 
     public function test_create_fails_with_missing_required_fields(): void
@@ -253,6 +304,21 @@ class AdminBlogCrudTest extends TestCase
 
         $this->assertNotContains('story-behind-sunbird-vacations', $publicSlugs);
         $this->getJson('/api/blogs/story-behind-sunbird-vacations')->assertNotFound();
+    }
+
+    public function test_non_indexable_blog_is_excluded_from_sitemap_but_still_public(): void
+    {
+        $blog = Blog::where('slug', 'story-behind-sunbird-vacations')->first();
+        $headers = $this->adminHeaders($this->createAdmin());
+
+        $this->withHeaders($headers)
+            ->patchJson("/api/admin/blogs/{$blog->id}", ['is_indexable' => false])
+            ->assertOk();
+
+        $content = $this->get('/api/sitemap.xml')->getContent();
+
+        $this->assertStringNotContainsString('<loc>https://frontend.test/blogs/story-behind-sunbird-vacations</loc>', $content);
+        $this->getJson('/api/blogs/story-behind-sunbird-vacations')->assertOk();
     }
 
     public function test_deleted_blog_returns_404_on_public_show(): void

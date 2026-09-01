@@ -1,10 +1,12 @@
 import { apiGet } from '@/lib/api/client';
 import type { BlogDetail, BlogSummary } from '@/lib/api/types';
 import { fetchPackages } from '@/lib/api/packages';
+import { mapBlogDetailToMetadata, mapStaticBlogToMetadata } from '@/lib/mappers/blog-metadata';
 import { mapBlogDetailToBlog, mapBlogSummariesToBlogs } from '@/lib/mappers/blogs';
 import { mapPackageSummariesToTravelPackages } from '@/lib/mappers/travel-packages';
 import { blogsData, type Blog } from '@/data/blogsData';
 import { travelPackages, type TravelPackage } from '@/data/travelPackages';
+import type { Metadata } from 'next';
 
 export async function fetchBlogs(): Promise<BlogSummary[]> {
   return apiGet<BlogSummary[]>('/blogs');
@@ -43,6 +45,31 @@ export async function getBlogBySlug(slug: string): Promise<Blog | undefined> {
     }
 
     return blogsData.find((blog) => blog.slug === slug);
+  }
+}
+
+export async function getBlogMetadata(slug: string): Promise<Metadata> {
+  try {
+    const detail = await fetchBlog(slug);
+
+    return mapBlogDetailToMetadata(detail);
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        `Failed to fetch blog metadata for "${slug}"; using static fallback.`,
+        error
+      );
+    }
+
+    const blog = blogsData.find((item) => item.slug === slug);
+
+    if (!blog) {
+      return {
+        title: 'Blog Not Found | Sunbird Vacations',
+      };
+    }
+
+    return mapStaticBlogToMetadata(blog);
   }
 }
 

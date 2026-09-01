@@ -1,11 +1,10 @@
 import React from 'react';
-import { Metadata } from 'next';
 import { Container } from '@/components/ui/container';
+import { getCancellationPolicyMetadata } from '@/lib/api/page-seo';
 
-export const metadata: Metadata = {
-  title: 'Cancellation & Refund Policy | Sunbird Vacations',
-  description: 'Learn about our cancellation, refund, and payment policies for your bookings with Sunbird Vacations.',
-};
+export async function generateMetadata() {
+  return getCancellationPolicyMetadata();
+}
 
 export default function CancellationPolicyPage() {
   return (

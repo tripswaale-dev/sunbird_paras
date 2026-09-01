@@ -1,11 +1,10 @@
-import { Metadata } from 'next';
+import { getGalleryMetadata } from '@/lib/api/page-seo';
 import { getGalleryItems } from '@/lib/api/gallery';
 import { GalleryClient } from './gallery-client';
 
-export const metadata: Metadata = {
-  title: 'Gallery',
-  description: 'Explore our curated collection of stunning travel moments and beautiful destinations.',
-};
+export async function generateMetadata() {
+  return getGalleryMetadata();
+}
 
 export default async function GalleryPage() {
   const items = await getGalleryItems();

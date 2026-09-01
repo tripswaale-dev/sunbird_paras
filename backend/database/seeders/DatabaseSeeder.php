@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             PackageDetailSeeder::class,
             BlogSeeder::class,
             GallerySeeder::class,
+            PageSeoSeeder::class,
+            PageContentSeeder::class,
             AdminSeeder::class,
         ]);
     }

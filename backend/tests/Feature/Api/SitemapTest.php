@@ -148,6 +148,28 @@ class SitemapTest extends TestCase
         $this->assertStringNotContainsString('<loc>https://frontend.test/blogs/story-behind-sunbird-vacations</loc>', $content);
     }
 
+    public function test_sitemap_excludes_non_indexable_blogs(): void
+    {
+        Blog::where('slug', 'story-behind-sunbird-vacations')->update(['is_indexable' => false]);
+
+        $content = $this->get('/api/sitemap.xml')->getContent();
+
+        $this->assertStringContainsString('<loc>https://frontend.test/blogs</loc>', $content);
+        $this->assertStringNotContainsString('<loc>https://frontend.test/blogs/story-behind-sunbird-vacations</loc>', $content);
+    }
+
+    public function test_sitemap_uses_blog_canonical_url_when_set(): void
+    {
+        Blog::where('slug', 'story-behind-sunbird-vacations')->update([
+            'canonical_url' => 'https://frontend.test/custom/story-behind-sunbird-vacations',
+        ]);
+
+        $content = $this->get('/api/sitemap.xml')->getContent();
+
+        $this->assertStringContainsString('<loc>https://frontend.test/custom/story-behind-sunbird-vacations</loc>', $content);
+        $this->assertStringNotContainsString('<loc>https://frontend.test/blogs/story-behind-sunbird-vacations</loc>', $content);
+    }
+
     public function test_sitemap_includes_gallery_listing_url(): void
     {
         $content = $this->get('/api/sitemap.xml')->getContent();

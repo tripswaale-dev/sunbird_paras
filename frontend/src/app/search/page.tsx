@@ -1,13 +1,12 @@
 import React from 'react';
-import { Metadata } from 'next';
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { getSearchPackages } from '@/lib/api/packages';
+import { getSearchMetadata } from '@/lib/api/page-seo';
 import { SearchResults } from './SearchResults';
 
-export const metadata: Metadata = {
-  title: 'Search Results | Sunbird Vacations',
-  description: 'Search for your next dream vacation package across India and beyond.',
-};
+export async function generateMetadata() {
+  return getSearchMetadata();
+}
 
 interface SearchPageProps {
   searchParams: Promise<{

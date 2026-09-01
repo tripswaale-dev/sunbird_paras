@@ -70,6 +70,52 @@ class BlogApiTest extends TestCase
         $this->assertStringContainsString('Welcome to Sunbird Vacations-', $content);
     }
 
+    public function test_blog_show_includes_seo_object(): void
+    {
+        $response = $this->getJson('/api/blogs/story-behind-sunbird-vacations');
+
+        $response->assertOk()
+            ->assertJsonStructure([
+                'data' => [
+                    'seo' => [
+                        'meta_title',
+                        'meta_description',
+                        'canonical_url',
+                        'og_image',
+                        'is_indexable',
+                    ],
+                ],
+            ])
+            ->assertJsonPath('data.seo.is_indexable', true)
+            ->assertJsonMissingPath('data.0.seo');
+    }
+
+    public function test_blog_show_seo_reflects_admin_updates(): void
+    {
+        Blog::where('slug', 'story-behind-sunbird-vacations')->update([
+            'meta_title' => 'Custom Blog SEO Title',
+            'meta_description' => 'Custom blog meta description.',
+            'canonical_url' => 'https://frontend.test/custom/blog-post',
+            'og_image' => '/images/custom-og.jpg',
+            'is_indexable' => false,
+        ]);
+
+        $this->getJson('/api/blogs/story-behind-sunbird-vacations')
+            ->assertOk()
+            ->assertJsonPath('data.seo.meta_title', 'Custom Blog SEO Title')
+            ->assertJsonPath('data.seo.meta_description', 'Custom blog meta description.')
+            ->assertJsonPath('data.seo.canonical_url', 'https://frontend.test/custom/blog-post')
+            ->assertJsonPath('data.seo.og_image', '/images/custom-og.jpg')
+            ->assertJsonPath('data.seo.is_indexable', false);
+    }
+
+    public function test_blogs_index_does_not_include_seo(): void
+    {
+        $this->getJson('/api/blogs')
+            ->assertOk()
+            ->assertJsonMissingPath('data.0.seo');
+    }
+
     public function test_invalid_blog_slug_returns_404(): void
     {
         $this->getJson('/api/blogs/does-not-exist')

@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Blog;
 use App\Models\GalleryItem;
 use App\Models\Package;
+use App\Models\PageSeo;
 use App\Models\Section;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -28,8 +29,36 @@ class SitemapGenerator
         $baseUrl = config('frontend.url');
         $entries = collect();
         $galleryLastmod = $this->galleryListingLastmod();
+        $pageSeoByKey = PageSeo::query()
+            ->whereIn('page_key', array_values(PageSeo::SITEMAP_PATH_TO_PAGE_KEY))
+            ->get()
+            ->keyBy('page_key');
 
         foreach (self::STATIC_PATHS as $path => $meta) {
+            $pageKey = PageSeo::SITEMAP_PATH_TO_PAGE_KEY[$path] ?? null;
+
+            if ($pageKey !== null) {
+                $pageSeo = $pageSeoByKey->get($pageKey);
+
+                if ($pageSeo && $pageSeo->is_indexable === false) {
+                    continue;
+                }
+
+                $defaultLoc = $path === '/' ? $baseUrl.'/' : $baseUrl.$path;
+                $lastmod = $path === '/gallery'
+                    ? $galleryLastmod
+                    : $pageSeo?->updated_at?->toDateString();
+
+                $entries->push($this->entry(
+                    filled($pageSeo?->canonical_url) ? $pageSeo->canonical_url : $defaultLoc,
+                    $lastmod,
+                    $meta['changefreq'],
+                    $meta['priority']
+                ));
+
+                continue;
+            }
+
             $entries->push($this->entry(
                 $path === '/' ? $baseUrl.'/' : $baseUrl.$path,
                 $path === '/gallery' ? $galleryLastmod : null,
@@ -76,11 +105,16 @@ class SitemapGenerator
 
         Blog::query()
             ->active()
+            ->where('is_indexable', true)
             ->orderByDesc('published_at')
-            ->get(['slug', 'updated_at'])
+            ->get(['slug', 'canonical_url', 'updated_at'])
             ->each(function (Blog $blog) use ($entries, $baseUrl) {
+                $loc = filled($blog->canonical_url)
+                    ? $blog->canonical_url
+                    : $baseUrl.'/blogs/'.$blog->slug;
+
                 $entries->push($this->entry(
-                    $baseUrl.'/blogs/'.$blog->slug,
+                    $loc,
                     $blog->updated_at?->toDateString(),
                     'monthly',
                     '0.6'

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Calendar, Clock, User } from 'lucide-react';
 import { Container } from '@/components/ui/container';
 import { HeroBanner } from '@/components/common/HeroBanner';
-import { getBlogBySlug, getBlogFeaturedPackages } from '@/lib/api/blogs';
+import { getBlogBySlug, getBlogFeaturedPackages, getBlogMetadata } from '@/lib/api/blogs';
 import { PackageList } from '@/components/sections/packages/PackageList';
 
 interface PageProps {
@@ -14,18 +14,8 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
-  const blog = await getBlogBySlug(slug);
 
-  if (!blog) {
-    return {
-      title: 'Blog Not Found | Sunbird Vacations',
-    };
-  }
-
-  return {
-    title: `${blog.title} | Sunbird Vacations Blogs`,
-    description: blog.excerpt,
-  };
+  return getBlogMetadata(slug);
 }
 
 export default async function BlogDetailsPage({ params }: PageProps) {

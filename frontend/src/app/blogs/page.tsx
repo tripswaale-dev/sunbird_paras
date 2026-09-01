@@ -1,11 +1,11 @@
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { BlogList } from '@/components/sections/blogs/BlogList';
 import { getBlogsListing } from '@/lib/api/blogs';
+import { getBlogListingMetadata } from '@/lib/api/page-seo';
 
-export const metadata = {
-  title: 'Travel Blogs | Sunbird Vacations',
-  description: 'Read the latest travel tips, destination guides, and stories from Sunbird Vacations.',
-};
+export async function generateMetadata() {
+  return getBlogListingMetadata();
+}
 
 export default async function BlogsPage() {
   const blogs = await getBlogsListing();

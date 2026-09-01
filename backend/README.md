@@ -147,7 +147,7 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 
 Frontend consumes blogs via `frontend/src/lib/api/blogs.ts` and `frontend/src/lib/mappers/blogs.ts`. Sitemap is proxied by frontend `/sitemap.xml` — no frontend sitemap code changes needed for blog URLs.
 
-Run API tests: `php artisan test --filter=Api` (**347+ tests** as of Phase 7, including `BlogApiTest`, `AdminBlogCrudTest`, and updated `SitemapTest`).
+Run API tests: `php artisan test --filter=Api` (**441+ tests** as of Phase 11 Step 3, including `ContactInquiryApiTest` and `AdminContactInquiryTest`).
 
 ## Phase 2 — Database Schema
 
@@ -251,6 +251,9 @@ Package::where('slug','kashmir-paradise')->first()->itineraryDays()->count(); //
 | GET | `/api/blogs` | Active blogs ordered by `published_at` desc |
 | GET | `/api/blogs/{slug}` | Full blog detail with content |
 | GET | `/api/gallery` | Active gallery items + filter category codes (excludes UI-only `ALL`) |
+| GET | `/api/page-seo/{page_key}` | Page-level SEO (9 seeded keys — see Admin Page SEO) |
+| GET | `/api/page-content/{page_key}` | Page content for `about` and `contact` (camelCase JSON) |
+| POST | `/api/contact-inquiries` | Submit contact form (rate-limited: 10/min per IP) |
 
 ### Example Requests
 
@@ -263,6 +266,21 @@ curl http://localhost:8000/api/packages/kashmir-paradise
 curl http://localhost:8000/api/blogs
 curl http://localhost:8000/api/blogs/story-behind-sunbird-vacations
 curl http://localhost:8000/api/gallery
+curl http://localhost:8000/api/page-seo/home
+curl http://localhost:8000/api/page-seo/gallery
+curl http://localhost:8000/api/page-seo/packages
+curl http://localhost:8000/api/page-seo/search
+curl http://localhost:8000/api/page-seo/blogs
+curl http://localhost:8000/api/page-seo/about
+curl http://localhost:8000/api/page-seo/contact
+curl http://localhost:8000/api/page-seo/payment-policy
+curl http://localhost:8000/api/page-seo/cancellation-policy
+curl http://localhost:8000/api/page-content/about
+curl http://localhost:8000/api/page-content/contact
+
+curl -X POST http://localhost:8000/api/contact-inquiries \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"John","lastName":"Doe","phone":"+91 98765 43210","subject":"general","message":"I would like to know more about your packages."}'
 ```
 
 ### API Structure
@@ -380,6 +398,8 @@ Delete returns `409 Conflict` when package has section assignments, details, iti
 | PATCH | `/api/admin/blogs/{id}` | Partial update |
 | DELETE | `/api/admin/blogs/{id}` | Delete blog |
 
+**SEO fields** (on create/update): `meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable` (default `true`). Public `GET /api/blogs/{slug}` returns a nested `seo` object on detail only.
+
 ```bash
 curl http://localhost:8000/api/admin/blogs \
   -H "Authorization: Bearer {token}"
@@ -391,6 +411,39 @@ curl -X POST http://localhost:8000/api/admin/blogs \
 ```
 
 Blogs have no dependent relations — delete is a hard delete. Use `is_active: false` to hide from public API instead.
+
+### Admin Page SEO
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/page-seo/{page_key}` | Show SEO fields for a static page (seeded keys only) |
+| PUT | `/api/admin/page-seo/{page_key}` | Full SEO update |
+| PATCH | `/api/admin/page-seo/{page_key}` | Partial SEO update |
+
+**Fields:** `meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`. No create/delete of page keys — seeded keys only.
+
+Public `GET /api/page-seo/{page_key}` returns `{ page_key, seo: { ... } }`. Seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`. Sitemap respects `canonical_url` and `is_indexable` for managed listing URLs (`search` is API-only — not in sitemap).
+
+### Admin Page Content
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/page-content/{page_key}` | Show content fields (`about`, `contact` only) |
+| PUT | `/api/admin/page-content/{page_key}` | Full content update |
+| PATCH | `/api/admin/page-content/{page_key}` | Partial content update |
+
+**Fields:** `hero_image`, `hero_title`, `hero_subtitle`, `intro_text`, `body`, `contact_phone`, `contact_email`, `contact_address`, `working_hours`, `is_active`. No create/delete of page keys — seeded keys only. Separate from `page_seo` (metadata vs content).
+
+Public `GET /api/page-content/{page_key}` returns camelCase JSON (`pageKey`, `heroImage`, `heroTitle`, etc.). Returns 404 when `is_active` is false.
+
+### Admin Contact Inquiries
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/contact-inquiries` | Paginated list (`?search=`, `?subject=`, `?page=`, `?per_page=`) |
+| GET | `/api/admin/contact-inquiries/{id}` | Inquiry detail |
+
+Public `POST /api/contact-inquiries` accepts `firstName`/`lastName` (or `first_name`/`last_name`), `phone`, `subject` (`general` \| `booking` \| `custom` \| `support`), `message`. Returns `201` with `{ id, message }`. Rate-limited to 10 requests/minute per IP. Stores `ip_address` and `user_agent`. No email notifications yet.
 
 ### Admin Gallery Items CRUD
 
@@ -552,7 +605,7 @@ SEO columns live on the `sections` table — show always returns 200 for an exis
 | GET | `/api/sitemap.xml` | XML sitemap of frontend URLs |
 | GET | `/api/robots.txt` | Robots rules + sitemap reference |
 
-Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). **`FRONTEND_URL` must be set correctly in production** for canonical URLs. Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), active indexable packages (`/packages/{slug}` or `canonical_url` when set), and active blog post URLs (`/blogs/{slug}`, `changefreq: monthly`, `priority: 0.6`). The `/gallery` listing URL uses dynamic `<lastmod>` from the latest active gallery item `updated_at` (no per-item gallery URLs). Excludes inactive sections/packages/blogs/gallery items and `is_indexable = false` sections/packages. No section-scoped package URLs. No blog `canonical_url` / `is_indexable` (future SEO step).
+Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). **`FRONTEND_URL` must be set correctly in production** for canonical URLs. Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), active indexable packages (`/packages/{slug}` or `canonical_url` when set), and active indexable blog post URLs (`/blogs/{slug}` or `canonical_url` when set; `changefreq: monthly`, `priority: 0.6`). Listing URLs for `/`, `/about`, `/contact`, `/packages`, `/gallery`, `/blogs`, `/payment-policy`, and `/cancellation-policy` use `page_seo` canonical when set, dynamic `lastmod` from `page_seo.updated_at` (gallery listing also uses latest active gallery item `updated_at` for `lastmod`), and are excluded when `page_seo.is_indexable` is false. `/search` and `/destinations` are not managed via `page_seo` in the sitemap (`/search` is API-only; `/destinations` has no `page_seo` key yet). Excludes inactive sections/packages/blogs/gallery items and `is_indexable = false` sections/packages/blogs. No section-scoped package URLs.
 
 Robots `Sitemap:` line points to `{APP_URL}/api/sitemap.xml`.
 

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Outfit } from 'next/font/google';
 import '@/styles/globals.css';
-import { siteConfig } from '@/lib/utils';
+import { getHomeLayoutMetadata } from '@/lib/api/page-seo';
 import { Navbar } from '@/components/layout/navbar/navbar';
 import { Footer } from '@/components/layout/footer/footer';
 import { LenisProvider } from '@/components/providers/LenisProvider';
@@ -20,43 +20,9 @@ const outfit = Outfit({
   weight: ['300', '400', '500', '600', '700'],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: `${siteConfig.name} — ${siteConfig.tagline}`,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  keywords: [
-    'travel',
-    'India tourism',
-    'tour packages',
-    'vacation',
-    'holiday',
-    'Sunbird Vacations',
-    'destinations',
-    'adventure',
-    'spiritual tours',
-    'hill stations',
-  ],
-  authors: [{ name: siteConfig.name }],
-  openGraph: {
-    type: 'website',
-    locale: 'en_IN',
-    url: siteConfig.url,
-    siteName: siteConfig.name,
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: `${siteConfig.name} — ${siteConfig.tagline}`,
-    description: siteConfig.description,
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  return getHomeLayoutMetadata();
+}
 
 export default function RootLayout({
   children,

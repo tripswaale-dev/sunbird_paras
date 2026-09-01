@@ -24,6 +24,11 @@ class StoreBlogRequest extends FormRequest
             'published_at' => ['required', 'date'],
             'read_time_label' => ['required', 'string', 'max:50'],
             'is_active' => ['sometimes', 'boolean'],
+            'meta_title' => ['nullable', 'string', 'max:255'],
+            'meta_description' => ['nullable', 'string'],
+            'canonical_url' => ['nullable', 'url', 'max:500'],
+            'og_image' => ['nullable', 'string', 'max:500'],
+            'is_indexable' => ['sometimes', 'boolean'],
         ];
     }
 }

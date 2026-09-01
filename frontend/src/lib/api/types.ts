@@ -160,8 +160,35 @@ export interface BlogSummary {
   readTime: string;
 }
 
+export interface BlogSeo {
+  meta_title: string | null;
+  meta_description: string | null;
+  canonical_url: string | null;
+  og_image: string | null;
+  is_indexable: boolean;
+}
+
 export interface BlogDetail extends BlogSummary {
   content: string;
+  seo: BlogSeo;
+}
+
+export interface PageSeoResponse {
+  page_key: string;
+  seo: BlogSeo;
+}
+
+export interface PageContentResponse {
+  pageKey: string;
+  heroImage: string;
+  heroTitle: string;
+  heroSubtitle: string | null;
+  introText: string | null;
+  body: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  contactAddress: string | null;
+  workingHours: string | null;
 }
 
 export interface GalleryApiItem {
