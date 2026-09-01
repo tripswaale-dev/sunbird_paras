@@ -1,8 +1,8 @@
 # Sunbird Vacations — Backend API
 
-Phase 4C adds admin Sections and Packages CRUD. The Next.js frontend remains untouched.
+Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin management. The Next.js frontend remains untouched.
 
-**Current scope:** Admin sections + core packages CRUD — no details/itinerary/images CRUD or frontend integration yet.
+**Current scope:** Admin sections + core packages CRUD + package details + itinerary + FAQ + image CRUD + package SEO + public sitemap/robots — no frontend integration yet.
 
 ## Requirements
 
@@ -403,6 +403,88 @@ Admin APIs work for inactive sections and packages; public APIs continue to hide
 
 `package_id` comes from the route only. One detail per package — duplicate POST returns `422`. Deleting detail does not remove itinerary, FAQs, or images.
 
+### Admin Package Itinerary CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/packages/{id}/itinerary` | List all itinerary days for package |
+| POST | `/api/admin/packages/{id}/itinerary` | Create itinerary day |
+| GET | `/api/admin/packages/{id}/itinerary/{itinerary}` | Itinerary day detail (scoped to package) |
+| PUT | `/api/admin/packages/{id}/itinerary/{itinerary}` | Full update |
+| PATCH | `/api/admin/packages/{id}/itinerary/{itinerary}` | Partial update |
+| DELETE | `/api/admin/packages/{id}/itinerary/{itinerary}` | Delete itinerary day only |
+
+**Fields:** `day` (1–65535), `title`, `description`, `stay_information` (max 500, nullable), `notes` (nullable), `images` (string array, nullable), `sort_order` (0–65535).
+
+`package_id` comes from the route only — not accepted in request body. Duplicate `day` number within a package returns `422`. Deleting an itinerary day does not remove the package, details, FAQs, or images.
+
+### Admin Package FAQs CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/packages/{id}/faqs` | List all FAQs for package |
+| POST | `/api/admin/packages/{id}/faqs` | Create FAQ |
+| GET | `/api/admin/packages/{id}/faqs/{faq}` | FAQ detail (scoped to package) |
+| PUT | `/api/admin/packages/{id}/faqs/{faq}` | Full update |
+| PATCH | `/api/admin/packages/{id}/faqs/{faq}` | Partial update |
+| DELETE | `/api/admin/packages/{id}/faqs/{faq}` | Delete FAQ only |
+
+**Fields:** `question` (max 500), `answer` (text), `sort_order` (0–65535).
+
+`package_id` comes from the route only — not accepted in request body. Duplicate `question` within a package returns `422`. Deleting an FAQ does not remove the package, details, itinerary, or images.
+
+### Admin Package Images CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/packages/{id}/images` | List all images for package |
+| POST | `/api/admin/packages/{id}/images` | Create image path record |
+| GET | `/api/admin/packages/{id}/images/{image}` | Image detail (scoped to package) |
+| PUT | `/api/admin/packages/{id}/images/{image}` | Full update |
+| PATCH | `/api/admin/packages/{id}/images/{image}` | Partial update |
+| DELETE | `/api/admin/packages/{id}/images/{image}` | Delete image record only |
+
+**Fields:** `path` (max 500, path/URL string — no file upload), `type` (`hero` or `gallery`), `alt_text` (max 255, nullable), `sort_order` (0–65535).
+
+`package_id` comes from the route only — not accepted in request body. Duplicate `path` within a package returns `422`. Deleting an image does not remove the package, details, itinerary, or FAQs.
+
+## Phase 4D — Package SEO Admin
+
+### Admin Package SEO
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/packages/{id}/seo` | Show SEO fields for package |
+| PUT | `/api/admin/packages/{id}/seo` | Full SEO update |
+| PATCH | `/api/admin/packages/{id}/seo` | Partial SEO update |
+
+**Fields:** `meta_title` (max 255, nullable), `meta_description` (nullable), `canonical_url` (max 500, nullable), `og_image` (max 500, path/URL string, nullable), `is_indexable` (boolean).
+
+SEO columns live on the `packages` table — show always returns 200 for an existing package (fields may be null). No POST/DELETE endpoints. Core package CRUD does not manage SEO fields.
+
+### Admin Section SEO
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/sections/{section}/seo` | Show SEO fields for section |
+| PUT | `/api/admin/sections/{section}/seo` | Full SEO update |
+| PATCH | `/api/admin/sections/{section}/seo` | Partial SEO update |
+
+**Fields:** `meta_title` (max 255, nullable), `meta_description` (nullable), `canonical_url` (max 500, nullable), `og_image` (max 500, path/URL string, nullable), `is_indexable` (boolean).
+
+SEO columns live on the `sections` table — show always returns 200 for an existing section (fields may be null). No POST/DELETE endpoints. Core section CRUD does not manage SEO fields. Public `GET /api/sections/{slug}` includes a `seo` object on section detail only (not the index).
+
+### Public Sitemap & Robots
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/sitemap.xml` | XML sitemap of frontend URLs |
+| GET | `/api/robots.txt` | Robots rules + sitemap reference |
+
+Sitemap `<loc>` values use `FRONTEND_URL` (from `.env`). Includes static frontend paths, active indexable section `view_all_path` listings (or `canonical_url` when set), and active indexable packages (`/packages/{slug}` or `canonical_url` when set). Excludes inactive sections/packages and `is_indexable = false` sections/packages. No section-scoped package URLs or blog post URLs.
+
+Robots `Sitemap:` line points to `{APP_URL}/api/sitemap.xml`.
+
 ## Phase 1 — What's Included
 
 - Laravel 10 application scaffold
@@ -412,8 +494,13 @@ Admin APIs work for inactive sections and packages; public APIs continue to hide
 
 ## Phase 4C — What's NOT Included (yet)
 
-- Itinerary, FAQ, image CRUD
-- Image upload / SEO management
+- Image upload
+- Admin dashboard / Next.js UI
+- Frontend integration
+
+## Phase 4D — What's NOT Included (yet)
+
+- Structured data / JSON-LD endpoints
 - Admin dashboard / Next.js UI
 - Frontend integration
 

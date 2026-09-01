@@ -5,14 +5,17 @@ import { motion } from 'framer-motion';
 import { Section } from '@/components/common/Section';
 import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
 import { Button } from '@/components/ui/button';
-import { journeyCategories } from '@/data/journey-categories';
+import type { JourneyCategory } from '@/data/journey-categories';
 
 // ===========================================
 // Travel Your Way Section
 // ===========================================
 
+interface ChooseYourJourneyProps {
+  categories: JourneyCategory[];
+}
 
-export function ChooseYourJourney() {
+export function ChooseYourJourney({ categories }: ChooseYourJourneyProps) {
   return (
     <Section animate={false}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-16 items-center">
@@ -47,7 +50,7 @@ export function ChooseYourJourney() {
 
         {/* Right Activity Grid */}
         <div className="grid grid-cols-2 gap-4 lg:gap-5">
-          {journeyCategories.map((journey, index) => (
+          {categories.map((journey, index) => (
             <motion.div
               key={journey.title}
               initial={{ opacity: 0, y: 30 }}

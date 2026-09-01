@@ -30,8 +30,10 @@ Validation errors (422) include an `errors` object.
 | Method | URL | Purpose |
 |--------|-----|---------|
 | GET | `/api/health` | Health check (unchanged from Phase 1) |
+| GET | `/api/sitemap.xml` | XML sitemap of frontend URLs (`FRONTEND_URL` + DB content) |
+| GET | `/api/robots.txt` | Plain-text robots rules referencing the sitemap |
 | GET | `/api/sections` | Active sections ordered by `sort_order` |
-| GET | `/api/sections/{slug}` | Section detail with categories, stats, packages |
+| GET | `/api/sections/{slug}` | Section detail with categories, stats, packages, SEO |
 | GET | `/api/sections/{slug}/packages` | Section packages with optional `?category=` filter |
 | GET | `/api/packages` | Paginated active packages with optional `?category=`, `?search=`, `?page=`, `?per_page=` |
 | GET | `/api/packages/{slug}` | Full package detail with SEO, itinerary, FAQs, images |
@@ -75,6 +77,19 @@ The API returns canonical **database** values. Known mismatches with frontend st
 | Best of India `East` tab | Seeded in DB; missing from frontend static filter array |
 
 Filter param `?category=` must use the exact `packages.category` value, not section category titles.
+
+## Sitemap & Robots
+
+- **`GET /api/sitemap.xml`** — `application/xml`; `<loc>` values use `FRONTEND_URL` from `.env`.
+- **`GET /api/robots.txt`** — `text/plain`; includes `Sitemap: {APP_URL}/api/sitemap.xml`.
+- **Included:** static frontend paths (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, policy pages), active indexable section `view_all_path` URLs, active indexable package URLs.
+- **Section URL:** `canonical_url` when set, otherwise `{FRONTEND_URL}{view_all_path}`.
+- **Package URL:** `canonical_url` when set, otherwise `{FRONTEND_URL}/packages/{slug}`.
+- **Excluded:** inactive sections/packages, `is_indexable = false` sections/packages, section-scoped package paths, individual blog post URLs.
+
+## Section Detail
+
+- `GET /api/sections/{slug}` includes a `seo` object (`meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`). Section index (`GET /api/sections`) does not include SEO fields.
 
 ## Package Detail
 

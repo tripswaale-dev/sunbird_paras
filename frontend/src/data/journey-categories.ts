@@ -1,4 +1,10 @@
-export const journeyCategories = [
+export interface JourneyCategory {
+  title: string;
+  category: string;
+  image: string;
+}
+
+export const journeyCategories: JourneyCategory[] = [
   {
     title: "Pocket-Friendly",
     category: "Pocket Friendly",

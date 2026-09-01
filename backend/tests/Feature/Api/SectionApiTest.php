@@ -35,6 +35,8 @@ class SectionApiTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.slug', 'popular-destinations')
+            ->assertJsonPath('data.seo.is_indexable', true)
+            ->assertJsonPath('data.seo.meta_title', null)
             ->assertJsonCount(12, 'data.packages')
             ->assertJsonCount(4, 'data.stats')
             ->assertJsonPath('data.packages.0.slug', 'spiti-valley');

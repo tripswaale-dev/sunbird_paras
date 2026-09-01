@@ -7,13 +7,16 @@ import { BestOfIndia } from '@/components/sections/home/best-of-india';
 import { CustomerPromise } from '@/components/sections/home/customer-promise';
 import { SpiritualDestinations } from '@/components/sections/home/spiritual-destinations';
 import { ExploreWildIndia } from '@/components/sections/home/explore-wild-india';
+import { getTravelYourWayCategories } from '@/lib/api/sections';
 
-export default function Home() {
+export default async function Home() {
+  const travelYourWayCategories = await getTravelYourWayCategories();
+
   return (
     <>
       <Hero />
       <PopularDestinations />
-      <ChooseYourJourney />
+      <ChooseYourJourney categories={travelYourWayCategories} />
       <AcrossBoundaries />
       <GatewayToHills />
       <BestOfIndia />

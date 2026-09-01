@@ -2,13 +2,20 @@
 
 use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\Api\Admin\PackageDetailController as AdminPackageDetailController;
+use App\Http\Controllers\Api\Admin\PackageItineraryDayController as AdminPackageItineraryDayController;
+use App\Http\Controllers\Api\Admin\PackageFaqController as AdminPackageFaqController;
+use App\Http\Controllers\Api\Admin\PackageImageController as AdminPackageImageController;
+use App\Http\Controllers\Api\Admin\PackageSeoController as AdminPackageSeoController;
 use App\Http\Controllers\Api\Admin\PackageController as AdminPackageController;
 use App\Http\Controllers\Api\Admin\SectionStatController as AdminSectionStatController;
 use App\Http\Controllers\Api\Admin\SectionCategoryController as AdminSectionCategoryController;
 use App\Http\Controllers\Api\Admin\SectionPackageController as AdminSectionPackageController;
 use App\Http\Controllers\Api\Admin\SectionController as AdminSectionController;
+use App\Http\Controllers\Api\Admin\SectionSeoController as AdminSectionSeoController;
 use App\Http\Controllers\Api\PackageController;
+use App\Http\Controllers\Api\RobotsController;
 use App\Http\Controllers\Api\SectionController;
+use App\Http\Controllers\Api\SitemapController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +38,9 @@ Route::get('/health', function () {
         'timestamp' => now()->toIso8601String(),
     ]);
 });
+
+Route::get('/sitemap.xml', SitemapController::class);
+Route::get('/robots.txt', RobotsController::class);
 
 Route::get('/sections', [SectionController::class, 'index']);
 Route::get('/sections/{section:slug}', [SectionController::class, 'show']);
@@ -64,6 +74,10 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::patch('/sections/{section}/packages/{package}', [AdminSectionPackageController::class, 'update'])->whereNumber(['section', 'package']);
     Route::delete('/sections/{section}/packages/{package}', [AdminSectionPackageController::class, 'destroy'])->whereNumber(['section', 'package']);
 
+    Route::get('/sections/{section}/seo', [AdminSectionSeoController::class, 'show'])->whereNumber('section');
+    Route::put('/sections/{section}/seo', [AdminSectionSeoController::class, 'update'])->whereNumber('section');
+    Route::patch('/sections/{section}/seo', [AdminSectionSeoController::class, 'update'])->whereNumber('section');
+
     Route::get('/sections', [AdminSectionController::class, 'index']);
     Route::post('/sections', [AdminSectionController::class, 'store']);
     Route::get('/sections/{id}', [AdminSectionController::class, 'show'])->whereNumber('id');
@@ -76,6 +90,31 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::put('/packages/{id}/detail', [AdminPackageDetailController::class, 'update'])->whereNumber('id');
     Route::patch('/packages/{id}/detail', [AdminPackageDetailController::class, 'update'])->whereNumber('id');
     Route::delete('/packages/{id}/detail', [AdminPackageDetailController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('/packages/{id}/itinerary', [AdminPackageItineraryDayController::class, 'index'])->whereNumber('id');
+    Route::post('/packages/{id}/itinerary', [AdminPackageItineraryDayController::class, 'store'])->whereNumber('id');
+    Route::get('/packages/{id}/itinerary/{itinerary}', [AdminPackageItineraryDayController::class, 'show'])->whereNumber(['id', 'itinerary']);
+    Route::put('/packages/{id}/itinerary/{itinerary}', [AdminPackageItineraryDayController::class, 'update'])->whereNumber(['id', 'itinerary']);
+    Route::patch('/packages/{id}/itinerary/{itinerary}', [AdminPackageItineraryDayController::class, 'update'])->whereNumber(['id', 'itinerary']);
+    Route::delete('/packages/{id}/itinerary/{itinerary}', [AdminPackageItineraryDayController::class, 'destroy'])->whereNumber(['id', 'itinerary']);
+
+    Route::get('/packages/{id}/faqs', [AdminPackageFaqController::class, 'index'])->whereNumber('id');
+    Route::post('/packages/{id}/faqs', [AdminPackageFaqController::class, 'store'])->whereNumber('id');
+    Route::get('/packages/{id}/faqs/{faq}', [AdminPackageFaqController::class, 'show'])->whereNumber(['id', 'faq']);
+    Route::put('/packages/{id}/faqs/{faq}', [AdminPackageFaqController::class, 'update'])->whereNumber(['id', 'faq']);
+    Route::patch('/packages/{id}/faqs/{faq}', [AdminPackageFaqController::class, 'update'])->whereNumber(['id', 'faq']);
+    Route::delete('/packages/{id}/faqs/{faq}', [AdminPackageFaqController::class, 'destroy'])->whereNumber(['id', 'faq']);
+
+    Route::get('/packages/{id}/images', [AdminPackageImageController::class, 'index'])->whereNumber('id');
+    Route::post('/packages/{id}/images', [AdminPackageImageController::class, 'store'])->whereNumber('id');
+    Route::get('/packages/{id}/images/{image}', [AdminPackageImageController::class, 'show'])->whereNumber(['id', 'image']);
+    Route::put('/packages/{id}/images/{image}', [AdminPackageImageController::class, 'update'])->whereNumber(['id', 'image']);
+    Route::patch('/packages/{id}/images/{image}', [AdminPackageImageController::class, 'update'])->whereNumber(['id', 'image']);
+    Route::delete('/packages/{id}/images/{image}', [AdminPackageImageController::class, 'destroy'])->whereNumber(['id', 'image']);
+
+    Route::get('/packages/{id}/seo', [AdminPackageSeoController::class, 'show'])->whereNumber('id');
+    Route::put('/packages/{id}/seo', [AdminPackageSeoController::class, 'update'])->whereNumber('id');
+    Route::patch('/packages/{id}/seo', [AdminPackageSeoController::class, 'update'])->whereNumber('id');
 
     Route::get('/packages', [AdminPackageController::class, 'index']);
     Route::post('/packages', [AdminPackageController::class, 'store']);

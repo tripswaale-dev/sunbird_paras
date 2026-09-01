@@ -17,11 +17,17 @@ class Section extends Model
         'sort_order',
         'hero_image',
         'is_active',
+        'meta_title',
+        'meta_description',
+        'canonical_url',
+        'og_image',
+        'is_indexable',
     ];
 
     protected $casts = [
         'sort_order' => 'integer',
         'is_active' => 'boolean',
+        'is_indexable' => 'boolean',
     ];
 
     public function sectionPackages(): HasMany

@@ -16,6 +16,13 @@ class SectionDetailResource extends JsonResource
             'subtitle' => $this->subtitle,
             'view_all_path' => $this->view_all_path,
             'hero_image' => $this->hero_image,
+            'seo' => [
+                'meta_title' => $this->meta_title,
+                'meta_description' => $this->meta_description,
+                'canonical_url' => $this->canonical_url,
+                'og_image' => $this->og_image,
+                'is_indexable' => $this->is_indexable,
+            ],
             'categories' => SectionCategoryResource::collection(
                 $this->whenLoaded('categories')
             ),

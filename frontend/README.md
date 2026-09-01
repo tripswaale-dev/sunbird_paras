@@ -2,23 +2,39 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+Copy the environment file and start the Laravel API (see `../backend/README.md`):
+
+```bash
+cp .env.example .env.local
+```
+
+Ensure the backend is running at `http://localhost:8000`, then start the frontend:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API Integration (Phase 5)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The frontend reads section data from the Laravel API at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000/api`).
+
+| Layer | Path | Purpose |
+|-------|------|---------|
+| Config | `src/lib/api/config.ts` | Resolves API base URL from env |
+| Client | `src/lib/api/client.ts` | `apiGet()` with envelope parsing |
+| Types | `src/lib/api/types.ts` | Typed API response models |
+| Sections | `src/lib/api/sections.ts` | Section fetch helpers |
+| Mappers | `src/lib/mappers/` | API → existing component prop shapes |
+
+**Currently dynamic:** Travel Your Way homepage section (`ChooseYourJourney`) — server-fetched on the homepage via `GET /api/sections/travel-your-way`, categories mapped to the existing `JourneyCategory` card shape (`title`, `category` ← `filter_value`, `image`). Card links remain `/travelyourway?category={filter_value}`.
+
+If the API is unavailable at build or request time, the section falls back to `src/data/journey-categories.ts` so the UI stays unchanged.
+
+**Not yet dynamic:** `/travelyourway` listing page and all other homepage sections still use static data files.
+
+Responses are cached for 5 minutes (`revalidate: 300`) via Next.js fetch.
 
 ## Learn More
 

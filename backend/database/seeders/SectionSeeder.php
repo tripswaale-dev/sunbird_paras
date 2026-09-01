@@ -71,7 +71,10 @@ class SectionSeeder extends Seeder
         foreach ($sections as $section) {
             Section::updateOrCreate(
                 ['slug' => $section['slug']],
-                array_merge($section, ['is_active' => true])
+                array_merge($section, [
+                    'is_active' => true,
+                    'is_indexable' => true,
+                ])
             );
         }
     }
