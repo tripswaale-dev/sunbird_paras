@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
             DestinationCategorySeeder::class,
             PageSeoSeeder::class,
             PageContentSeeder::class,
+            HomepageHeroSeeder::class,
+            CustomerPromiseItemSeeder::class,
             AdminSeeder::class,
         ]);
     }

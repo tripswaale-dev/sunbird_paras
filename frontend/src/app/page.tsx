@@ -16,9 +16,11 @@ import {
   getSpiritualDestinationsPackages,
   getTravelYourWayCategories,
 } from '@/lib/api/sections';
+import { getHomepage } from '@/lib/api/homepage';
 
 export default async function Home() {
   const [
+    homepage,
     popularDestinationsSection,
     travelYourWayCategories,
     acrossBoundariesPackages,
@@ -27,6 +29,7 @@ export default async function Home() {
     exploreWildIndiaPackages,
     bestOfIndiaDestinations,
   ] = await Promise.all([
+    getHomepage(),
     getPopularDestinationsSection(),
     getTravelYourWayCategories(),
     getAcrossBoundariesPackages(),
@@ -38,7 +41,7 @@ export default async function Home() {
 
   return (
     <>
-      <Hero />
+      <Hero {...homepage.hero} />
       <PopularDestinations
         destinations={popularDestinationsSection.destinations}
         stats={popularDestinationsSection.stats}
@@ -47,7 +50,7 @@ export default async function Home() {
       <AcrossBoundaries packages={acrossBoundariesPackages} />
       <GatewayToHills categories={gatewayToHillsCategories} />
       <BestOfIndia destinations={bestOfIndiaDestinations} />
-      <CustomerPromise />
+      <CustomerPromise promises={homepage.customerPromises} />
       <SpiritualDestinations packages={spiritualDestinationsPackages} />
       <ExploreWildIndia packages={exploreWildIndiaPackages} />
     </>

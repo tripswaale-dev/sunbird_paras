@@ -1,12 +1,12 @@
 # Phase 5 Integration Status & Deployment Guide
 
-Handoff document for Sunbird Vacations frontend–backend integration. **Phases 5–12 complete.**
+Handoff document for Sunbird Vacations frontend–backend integration. **Phases 5–13 complete.**
 
 ---
 
 ## 1. Executive Summary
 
-**Phase 5 scope is complete.** **Phases 6–12 are complete** (SEO crawl files, blogs CMS, gallery CMS, blog SEO, page SEO CMS, about/contact content CMS, contact form submissions, destinations hub).
+**Phase 5 scope is complete.** **Phases 6–13 are complete** (SEO crawl files, blogs CMS, gallery CMS, blog SEO, page SEO CMS, about/contact content CMS, contact form submissions, destinations hub, homepage shell CMS).
 
 All core package, section, blog, gallery, static-page, and destinations hub flows on the Next.js frontend now load data from the Laravel public API (read and write where applicable), with static fallbacks preserved for resilience. The UI and visual design were intentionally left unchanged — only the data source migrated from hardcoded `src/data/*` files to API fetch helpers in `frontend/src/lib/api/`.
 
@@ -24,8 +24,9 @@ All core package, section, blog, gallery, static-page, and destinations hub flow
 - **Phase 10 — Page SEO CMS** — `page_seo` keys for `home`, `gallery`, `packages`, `search`, `about`, `contact`, `payment-policy`, `cancellation-policy`; frontend `generateMetadata` on all wired routes; sitemap `canonical_url` / `is_indexable` for managed paths
 - **Phase 11 — About + Contact** — `page_contents` API for hero/body/contact fields; `/about` and `/contact` frontend pages; `POST /api/contact-inquiries` + admin inquiry list; real contact form submission
 - **Phase 12 — Destinations hub** — `destination_categories` config + `GET /api/destinations`; `/destinations` page with category tabs, hero, and scoped package grid; `page_seo.destinations`
+- **Phase 13 — Homepage shell CMS** — `GET /api/homepage` for hero video/chips + customer promise cards; `Hero` + `CustomerPromise` wired with static fallback
 
-**What remains static:** navigation, policy page **bodies**, homepage hero/shell components, gallery **filter tabs**, and other items in Section 3. `blogsData.ts`, `gallery.ts`, `about.ts`, `contact.ts`, and `destinations.ts` are retained as **fallback sources** — do not delete.
+**What remains static:** navigation, policy page **bodies**, gallery **filter tabs**, and other items in Section 3. `blogsData.ts`, `gallery.ts`, `about.ts`, `contact.ts`, `destinations.ts`, `homepage.ts`, and `customer-promises.ts` are retained as **fallback sources** — do not delete.
 
 ---
 
@@ -35,6 +36,8 @@ Six section `[slug]` routes re-export a single implementation at `frontend/src/a
 
 | Page / Route | API Endpoint(s) | Fetch Helper | Fallback Static Data |
 |--------------|-----------------|--------------|----------------------|
+| **Homepage** — Hero shell | `GET /api/homepage` | `getHomepage()` → `hero` props on `<Hero />` | `homepage.ts` (`staticHomepage`) |
+| **Homepage** — Customer Promise | `GET /api/homepage` | `getHomepage()` → `customerPromises` on `<CustomerPromise />` | `homepage.ts` + `customer-promises.ts` (legacy Lucide shape) |
 | **Homepage** — Popular Destinations | `GET /api/sections/popular-destinations` | `getPopularDestinationsSection()` | `popular-destinations.ts` (`popularDestinations`, `popularStats`) |
 | **Homepage** — Travel Your Way | `GET /api/sections/travel-your-way` | `getTravelYourWayCategories()` | `journey-categories.ts` |
 | **Homepage** — Across Boundaries | `GET /api/sections/across-boundaries` | `getAcrossBoundariesPackages()` | `international-packages.ts` |
@@ -82,6 +85,7 @@ Six section `[slug]` routes re-export a single implementation at `frontend/src/a
 | `frontend/src/lib/api/contact-inquiries.ts` | Contact form submission (`submitContactInquiry()`) |
 | `frontend/src/lib/api/gallery.ts` | Gallery fetch helper (`getGalleryItems()`) |
 | `frontend/src/lib/api/destinations.ts` | Destinations hub fetch helper (`getDestinationsHub()`) |
+| `frontend/src/lib/api/homepage.ts` | Homepage shell fetch helper (`getHomepage()`) |
 
 ### Mapper inventory
 
@@ -100,6 +104,7 @@ Six section `[slug]` routes re-export a single implementation at `frontend/src/a
 | `blogs.ts` | `BlogSummary` / `BlogDetail` → `Blog` (listing + detail) |
 | `blog-metadata.ts` | `BlogDetail` / `PageSeoResponse` → Next.js `Metadata` (detail + listing) |
 | `gallery.ts` | `GalleryApiItem[]` → `GalleryItem[]` |
+| `homepage-icons.ts` | API icon string keys → Lucide components (hero chips + promise cards) |
 
 ---
 
@@ -109,8 +114,6 @@ These remain hardcoded by design. Do not assume they reflect admin CRUD changes.
 
 | Item | Location | Reason |
 |------|----------|--------|
-| Hero section | `components/sections/home/hero/` | Visual/marketing shell — no API endpoint |
-| Customer Promise | `customer-promises.ts` | Static trust badges — no API endpoint |
 | Bento grid slot configs | `popular-destinations.ts` (`popularDestinationsGridSlots`), `best-of-india.ts` (`bestOfIndiaGridClasses`) | Layout CSS classes, not content |
 | Section headers / copy | Various homepage components (e.g. Gateway hero image) | Hardcoded marketing copy |
 | `navbarDestinations` | `navigation.ts` | Used as `/packages` filter tabs (title substring match) |
@@ -315,12 +318,11 @@ Do not commit `.env` files. Do not put secrets in documentation.
 
 | Priority | Item | Notes |
 |----------|------|-------|
-| 1 | Hero + Customer Promise CMS | Homepage marketing shell still hardcoded |
-| 2 | Navigation CMS | `navigationLinks` / `navbarDestinations` still static |
-| 3 | Admin dashboard UI | API-only admin today — no web UI for CRUD/SEO/inquiries |
-| 4 | Policy page body CMS | Metadata via `page_seo`; legal body HTML still static |
-| 5 | Contact form email notifications | Optional — inquiries stored in DB only today |
-| 6 | Optional static data cleanup | Remove duplicate listing fallback files only after fallbacks are redesigned |
+| 1 | Navigation CMS | `navigationLinks` / `navbarDestinations` still static |
+| 2 | Admin dashboard UI | API-only admin today — no web UI for CRUD/SEO/inquiries |
+| 3 | Policy page body CMS | Metadata via `page_seo`; legal body HTML still static |
+| 4 | Contact form email notifications | Optional — inquiries stored in DB only today |
+| 5 | Optional static data cleanup | Remove duplicate listing fallback files only after fallbacks are redesigned |
 
 ### Completed (Phase 6)
 
@@ -383,6 +385,13 @@ Do not commit `.env` files. Do not put secrets in documentation.
 | 2 | Frontend `/destinations` hub page — category tabs, hero, `PackageList` with `listingPath` | Complete |
 | 3 | `getDestinationsMetadata()` + static fallback `destinations.ts` + integration docs | Complete |
 
+### Completed (Phase 13 — Homepage shell CMS)
+
+| Step | Scope | Status |
+|------|-------|--------|
+| 1 | `homepage_hero` + `customer_promise_items` tables; `GET /api/homepage`; admin GET/PATCH | Complete |
+| 2 | Frontend `Hero` + `CustomerPromise` wired via `getHomepage()` + `homepage.ts` fallback + icon mapper | Complete |
+
 ---
 
 ## Fallback Files Preserved
@@ -430,6 +439,11 @@ Do not delete these files without a replacement fallback strategy:
 
 - `frontend/src/data/destinations.ts` — fallback for `/destinations` hub when API is unavailable; aggregates per-category packages from existing listing fallbacks
 
+**Homepage shell fallbacks (Phase 13 — do not delete):**
+
+- `frontend/src/data/homepage.ts` — fallback for hero + customer promises when `GET /api/homepage` fails or returns 404
+- `frontend/src/data/customer-promises.ts` — legacy Lucide-component shape; retained as reference/fallback source
+
 **Always-static data (not fallbacks, but still in use):**
 
 - `frontend/src/data/navigation.ts`
@@ -437,4 +451,4 @@ Do not delete these files without a replacement fallback strategy:
 
 ---
 
-*Last updated: Phase 12 — Destinations hub complete (Phases 5–12).*
+*Last updated: Phase 13 — Homepage shell CMS complete (Phases 5–13).*

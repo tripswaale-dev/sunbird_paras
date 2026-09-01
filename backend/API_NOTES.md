@@ -40,6 +40,7 @@ Validation errors (422) include an `errors` object.
 | GET | `/api/blogs` | Active blogs ordered by `published_at` desc (plain array, no pagination) |
 | GET | `/api/blogs/{slug}` | Full blog detail with content |
 | GET | `/api/destinations` | Destinations hub — categories + active category packages (`?category=`) |
+| GET | `/api/homepage` | Homepage hero config + active customer promise items |
 
 ## Query Parameters
 
@@ -107,6 +108,8 @@ Inactive categories are excluded from section responses.
 **Contact Inquiries** (`POST /api/contact-inquiries`) — public form submission (no auth). Body: `firstName`, `lastName`, `phone`, `subject` (`general` \| `booking` \| `custom` \| `support`), `message`. Returns `201` with `{ id, message }`. Throttled 10/min per IP. Admin: `GET /api/admin/contact-inquiries`, `GET /api/admin/contact-inquiries/{id}` (paginated list with optional `?search=` and `?subject=`).
 
 **Destination Categories** — pre-seeded hub config for `/destinations`. Public: `GET /api/destinations?category=`. Admin: `GET /api/admin/destination-categories`, `GET /api/admin/destination-categories/{code}`, `PATCH /api/admin/destination-categories/{code}` (display fields only — codes/section mapping are fixed).
+
+**Homepage shell** (`GET /api/homepage`) — combined hero + customer promises. Public camelCase: `hero.backgroundVideo`, `hero.chips[]`, `hero.featuredChip`, `customerPromises[]` (`id`, `title`, `description`, `icon`). Icon keys are snake-case Lucide names (`mountain`, `umbrella`, `tree-pine`, `map-pin`, `headphones`, `alarm-clock`, `handshake`, `users`). Returns 404 when hero `is_active` is false; inactive promise items excluded. Admin: `GET/PATCH /api/admin/homepage-hero` (singleton id=1); `GET /api/admin/customer-promise-items`, `GET/PATCH /api/admin/customer-promise-items/{id}` (pre-seeded ids 1–4, snake_case).
 
 JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Active indexable blog post URLs are included in the sitemap at `/blogs/{slug}` (or `canonical_url` when set). Managed static listing URLs (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, `/payment-policy`, `/cancellation-policy`) use `page_seo` canonical/`is_indexable` when configured.
 

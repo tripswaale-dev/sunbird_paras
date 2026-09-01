@@ -3,12 +3,12 @@
 import { motion } from 'framer-motion';
 import { Section } from '@/components/common/Section';
 import { PromiseCard } from '@/components/ui/promise-card';
-import { customerPromises } from '@/data/customer-promises';
+import { resolvePromiseIcon } from '@/lib/mappers/homepage-icons';
+import type { CustomerPromiseItemData } from '@/lib/api/types';
 
 // ===========================================
 // Customer Promise Section
 // ===========================================
-
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -25,7 +25,11 @@ const itemVariants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.8 } },
 };
 
-export function CustomerPromise() {
+interface CustomerPromiseProps {
+  promises: CustomerPromiseItemData[];
+}
+
+export function CustomerPromise({ promises }: CustomerPromiseProps) {
   return (
     <Section bg="bg-surface-alt" animate={false}>
       <motion.div
@@ -35,12 +39,12 @@ export function CustomerPromise() {
         viewport={{ once: true }}
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
       >
-        {customerPromises.map((promise, index) => (
-          <motion.div key={index} variants={itemVariants} className="h-full">
+        {promises.map((promise) => (
+          <motion.div key={promise.id} variants={itemVariants} className="h-full">
             <PromiseCard
               title={promise.title}
               description={promise.description}
-              icon={promise.icon}
+              icon={resolvePromiseIcon(promise.icon)}
             />
           </motion.div>
         ))}

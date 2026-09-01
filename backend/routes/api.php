@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\CustomerPromiseItemController as AdminCustomerPromiseItemController;
+use App\Http\Controllers\Api\Admin\HomepageHeroController as AdminHomepageHeroController;
 use App\Http\Controllers\Api\Admin\DestinationCategoryController as AdminDestinationCategoryController;
 use App\Http\Controllers\Api\Admin\ContactInquiryController as AdminContactInquiryController;
 use App\Http\Controllers\Api\Admin\BlogController as AdminBlogController;
@@ -19,6 +21,7 @@ use App\Http\Controllers\Api\Admin\SectionPackageController as AdminSectionPacka
 use App\Http\Controllers\Api\Admin\SectionController as AdminSectionController;
 use App\Http\Controllers\Api\Admin\SectionSeoController as AdminSectionSeoController;
 use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\HomepageController;
 use App\Http\Controllers\Api\DestinationsController;
 use App\Http\Controllers\Api\ContactInquiryController;
 use App\Http\Controllers\Api\GalleryController;
@@ -62,6 +65,7 @@ Route::get('/packages/{package:slug}', [PackageController::class, 'show']);
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/{blog:slug}', [BlogController::class, 'show']);
 Route::get('/gallery', [GalleryController::class, 'index']);
+Route::get('/homepage', [HomepageController::class, 'show']);
 Route::get('/destinations', [DestinationsController::class, 'index']);
 Route::get('/page-seo/{pageKey}', [PageSeoController::class, 'show']);
 Route::get('/page-content/{pageKey}', [PageContentController::class, 'show']);
@@ -165,6 +169,15 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/page-content/{pageKey}', [AdminPageContentController::class, 'show']);
     Route::put('/page-content/{pageKey}', [AdminPageContentController::class, 'update']);
     Route::patch('/page-content/{pageKey}', [AdminPageContentController::class, 'update']);
+
+    Route::get('/homepage-hero', [AdminHomepageHeroController::class, 'show']);
+    Route::put('/homepage-hero', [AdminHomepageHeroController::class, 'update']);
+    Route::patch('/homepage-hero', [AdminHomepageHeroController::class, 'update']);
+
+    Route::get('/customer-promise-items', [AdminCustomerPromiseItemController::class, 'index']);
+    Route::get('/customer-promise-items/{customerPromiseItem}', [AdminCustomerPromiseItemController::class, 'show'])->whereNumber('customerPromiseItem');
+    Route::put('/customer-promise-items/{customerPromiseItem}', [AdminCustomerPromiseItemController::class, 'update'])->whereNumber('customerPromiseItem');
+    Route::patch('/customer-promise-items/{customerPromiseItem}', [AdminCustomerPromiseItemController::class, 'update'])->whereNumber('customerPromiseItem');
 
     Route::get('/destination-categories', [AdminDestinationCategoryController::class, 'index']);
     Route::get('/destination-categories/{destinationCategory:code}', [AdminDestinationCategoryController::class, 'show']);

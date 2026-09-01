@@ -37,7 +37,7 @@ NEXT_PUBLIC_SITE_URL=https://sunbirdvacations.com
 
 When unset, defaults to `https://sunbirdvacations.com`.
 
-## API Integration (Phases 5–12 complete)
+## API Integration (Phases 5–13 complete)
 
 **Phase 5 complete** — all core package/section flows are API-driven with static fallbacks.
 
@@ -52,6 +52,8 @@ When unset, defaults to `https://sunbirdvacations.com`.
 **Phase 11 complete** — about/contact page content via `page_content`; contact form submits to `POST /api/contact-inquiries`.
 
 **Phase 12 complete** — `/destinations` hub page via `GET /api/destinations`; metadata via `page_seo.destinations`.
+
+**Phase 13 complete** — homepage hero + customer promise shell via `GET /api/homepage`.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and known data mismatches.
 
@@ -69,6 +71,7 @@ The frontend reads section data from the Laravel API at `NEXT_PUBLIC_API_URL` (d
 | Page content | `src/lib/api/page-content.ts` | About/contact content (`getAboutPageContent()`, `getContactPageContent()`) |
 | Contact inquiries | `src/lib/api/contact-inquiries.ts` | Contact form submit (`submitContactInquiry()`) |
 | Destinations | `src/lib/api/destinations.ts` | Destinations hub (`getDestinationsHub()`) |
+| Homepage | `src/lib/api/homepage.ts` | Homepage shell (`getHomepage()`) |
 | Gallery | `src/lib/api/gallery.ts` | Gallery fetch helper (`getGalleryItems()`) |
 | Mappers | `src/lib/mappers/` | API → existing component prop shapes |
 
@@ -209,6 +212,16 @@ Shared helper: `getPageMetadata()` in `src/lib/api/page-seo.ts`. Static fallback
 Category codes match navbar dropdown: `popular`, `hills`, `beaches`, `spiritual`, `wildlife`, `international`.
 
 **Do not delete** `src/data/destinations.ts` — required for API-offline fallback.
+
+## Phase 13 — Homepage shell CMS (complete)
+
+| Layer | API | Helper | Fallback |
+|-------|-----|--------|----------|
+| Hero + Customer Promise | `GET /api/homepage` | `getHomepage()` | `src/data/homepage.ts` |
+
+**Homepage** (`app/page.tsx`) — single `getHomepage()` in `Promise.all`. `<Hero />` receives `backgroundVideo`, `chips`, `featuredChip`. `<CustomerPromise />` receives `customerPromises` with string icon keys; maps to Lucide via `src/lib/mappers/homepage-icons.ts`. Falls back on API error or hero 404.
+
+**Do not delete** `src/data/homepage.ts` or `src/data/customer-promises.ts` — required for API-offline fallback.
 
 ## Learn More
 

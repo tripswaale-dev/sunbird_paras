@@ -1,6 +1,6 @@
 # Sunbird Vacations — Backend API
 
-Laravel 10 API for Sunbird Vacations. **Phases 5–12 (Step 1) in progress** — public read API, full admin CRUD, SEO, blogs, gallery, `page_seo`, `page_content`, contact inquiries, and destinations hub API.
+Laravel 10 API for Sunbird Vacations. **Phases 5–13 (Step 1) in progress** — public read API, full admin CRUD, SEO, blogs, gallery, `page_seo`, `page_content`, contact inquiries, destinations hub, and homepage shell CMS.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and environment variable reference.
 
@@ -137,6 +137,14 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix (packages, sections, blogs, gallery, page SEO, page content, contact form), deployment checklist, and production env pairing (`FRONTEND_URL` ↔ CORS ↔ sitemap).
 
+### Phase 13 — Homepage hero + customer promise CMS (Step 1 — backend)
+
+| Layer | Endpoints | Notes |
+|-------|-----------|-------|
+| Public homepage | `GET /api/homepage` | camelCase `hero` + `customerPromises[]`; icon string keys |
+| Admin hero | `GET/PATCH /api/admin/homepage-hero` | Singleton row id=1 |
+| Admin promises | `GET /api/admin/customer-promise-items`, `GET/PATCH /api/admin/customer-promise-items/{id}` | Pre-seeded ids 1–4 |
+
 ### Phase 12 — Destinations hub API (Step 1 — backend)
 
 | Layer | Endpoints | Notes |
@@ -162,7 +170,7 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 
 Frontend consumes blogs via `frontend/src/lib/api/blogs.ts` and `frontend/src/lib/mappers/blogs.ts`. Sitemap is proxied by frontend `/sitemap.xml` — no frontend sitemap code changes needed for blog URLs.
 
-Run API tests: `php artisan test --filter=Api` (**464** tests — run locally to confirm current count).
+Run API tests: `php artisan test --filter=Api` (**486** tests — run locally to confirm current count).
 
 ## Phase 2 — Database Schema
 
@@ -267,6 +275,7 @@ Package::where('slug','kashmir-paradise')->first()->itineraryDays()->count(); //
 | GET | `/api/blogs/{slug}` | Full blog detail with content |
 | GET | `/api/gallery` | Active gallery items + filter category codes (excludes UI-only `ALL`) |
 | GET | `/api/destinations` | Destinations hub (`?category=` optional) |
+| GET | `/api/homepage` | Homepage hero + customer promise items |
 | GET | `/api/page-seo/{page_key}` | Page-level SEO (10 seeded keys — see Admin Page SEO) |
 | GET | `/api/page-content/{page_key}` | Page content for `about` and `contact` (camelCase JSON) |
 | POST | `/api/contact-inquiries` | Submit contact form (rate-limited: 10/min per IP) |
@@ -283,6 +292,7 @@ curl http://localhost:8000/api/blogs
 curl http://localhost:8000/api/blogs/story-behind-sunbird-vacations
 curl http://localhost:8000/api/gallery
 curl http://localhost:8000/api/destinations
+curl http://localhost:8000/api/homepage
 curl "http://localhost:8000/api/destinations?category=beaches"
 curl http://localhost:8000/api/page-seo/home
 curl http://localhost:8000/api/page-seo/gallery
@@ -453,6 +463,29 @@ Public `GET /api/page-seo/{page_key}` returns `{ page_key, seo: { ... } }`. Seed
 | PATCH | `/api/admin/destination-categories/{code}` | Partial update (display fields) |
 
 **Fields:** `title`, `hero_image`, `hero_title`, `hero_subtitle`, `listing_path`, `sort_order`, `is_active`. Codes, `section_slug`, and `package_category` are fixed at seed time — no create/delete.
+
+### Admin Homepage Hero
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/homepage-hero` | Show singleton hero config (id=1) |
+| PUT | `/api/admin/homepage-hero` | Full update |
+| PATCH | `/api/admin/homepage-hero` | Partial update |
+
+**Fields:** `background_video`, `chips` (array of `{ icon, label }`), `featured_chip` (nullable `{ icon, label }`), `is_active`. Allowed chip icons: `mountain`, `umbrella`, `tree-pine`, `map-pin`. No create/delete.
+
+### Admin Customer Promise Items
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/customer-promise-items` | List all items (including inactive) |
+| GET | `/api/admin/customer-promise-items/{id}` | Show item by id (1–4) |
+| PUT | `/api/admin/customer-promise-items/{id}` | Full update |
+| PATCH | `/api/admin/customer-promise-items/{id}` | Partial update |
+
+**Fields:** `title`, `description`, `icon`, `sort_order`, `is_active`. Allowed icons: `headphones`, `alarm-clock`, `handshake`, `users`. No create/delete in this phase.
+
+Public `GET /api/homepage` returns camelCase `{ hero: { backgroundVideo, chips, featuredChip }, customerPromises: [...] }`. Returns 404 when hero is inactive.
 
 ### Admin Page Content
 

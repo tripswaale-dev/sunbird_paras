@@ -236,3 +236,26 @@ export interface DestinationsHubResponse {
   listingPath: string;
   packages: PackageSummary[];
 }
+
+export interface HomepageHeroChip {
+  icon: string;
+  label: string;
+}
+
+export interface HomepageHeroData {
+  backgroundVideo: string;
+  chips: HomepageHeroChip[];
+  featuredChip: HomepageHeroChip | null;
+}
+
+export interface CustomerPromiseItemData {
+  id: number;
+  title: string;
+  description: string;
+  icon: string;
+}
+
+export interface HomepageResponse {
+  hero: HomepageHeroData;
+  customerPromises: CustomerPromiseItemData[];
+}
