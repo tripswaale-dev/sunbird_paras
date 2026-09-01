@@ -49,6 +49,10 @@ class PageSeoSeeder extends Seeder
                 'meta_title' => 'Cancellation & Refund Policy | Sunbird Vacations',
                 'meta_description' => 'Learn about our cancellation, refund, and payment policies for your bookings with Sunbird Vacations.',
             ],
+            PageSeo::PAGE_KEY_DESTINATIONS => [
+                'meta_title' => 'Destinations | Sunbird Vacations',
+                'meta_description' => 'Explore popular destinations, hill stations, beaches, spiritual journeys, wildlife, and international getaways with Sunbird Vacations.',
+            ],
         ];
 
         foreach ($records as $pageKey => $seo) {

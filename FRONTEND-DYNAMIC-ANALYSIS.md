@@ -1,5 +1,7 @@
 # Sunbird Vacations — Frontend Dynamic Conversion Analysis
 
+> **⚠️ SUPERSEDED (2026-09):** This analysis predates Phases 5–11. For current integration status, env vars, and deployment checklist, use [`docs/PHASE5-INTEGRATION-STATUS.md`](docs/PHASE5-INTEGRATION-STATUS.md). Keep this file for historical planning reference only.
+
 > **Analysis-only document.** No code was modified. Use this to plan backend/database architecture and step-by-step dynamic conversion while keeping the existing UI 100% unchanged.
 
 ---

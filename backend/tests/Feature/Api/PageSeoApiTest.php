@@ -70,6 +70,15 @@ class PageSeoApiTest extends TestCase
             ->assertJsonPath('data.seo.meta_title', 'Search Results | Sunbird Vacations');
     }
 
+    public function test_page_seo_show_returns_destinations_seo(): void
+    {
+        $this->getJson('/api/page-seo/destinations')
+            ->assertOk()
+            ->assertJsonPath('data.page_key', 'destinations')
+            ->assertJsonPath('data.seo.meta_title', 'Destinations | Sunbird Vacations')
+            ->assertJsonPath('data.seo.is_indexable', true);
+    }
+
   /**
    * @dataProvider staticContentPageSeoProvider
    */

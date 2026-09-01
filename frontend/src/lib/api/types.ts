@@ -191,6 +191,19 @@ export interface PageContentResponse {
   workingHours: string | null;
 }
 
+export interface ContactInquiryPayload {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  subject: 'general' | 'booking' | 'custom' | 'support';
+  message: string;
+}
+
+export interface ContactInquiryResponse {
+  id: number;
+  message: string;
+}
+
 export interface GalleryApiItem {
   id: string;
   src: string;
@@ -203,4 +216,23 @@ export interface GalleryApiItem {
 export interface GalleryApiData {
   categories: string[];
   items: GalleryApiItem[];
+}
+
+export interface DestinationCategorySummary {
+  code: string;
+  title: string;
+  heroImage: string;
+  heroTitle: string;
+  heroSubtitle: string | null;
+  listingPath: string;
+}
+
+export interface DestinationsHubResponse {
+  categories: DestinationCategorySummary[];
+  activeCategory: string;
+  heroImage: string;
+  heroTitle: string;
+  heroSubtitle: string | null;
+  listingPath: string;
+  packages: PackageSummary[];
 }

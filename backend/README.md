@@ -1,6 +1,6 @@
 # Sunbird Vacations — Backend API
 
-Phase 4C adds admin Sections and Packages CRUD. Phase 4D adds package SEO admin management. **Frontend integration complete (Phase 5 + Phase 7)** — the Next.js app at `../frontend/` consumes the public read API with static fallbacks, including blogs.
+Laravel 10 API for Sunbird Vacations. **Phases 5–12 (Step 1) in progress** — public read API, full admin CRUD, SEO, blogs, gallery, `page_seo`, `page_content`, contact inquiries, and destinations hub API.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and environment variable reference.
 
@@ -16,7 +16,7 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 
 - **PHP:** 8.1.10 (Laragon)
 - **Laravel:** 10.x (framework v10.50.3)
-- **Frontend (separate):** Next.js 16 at `../frontend/` — Phase 5 + Phase 7 API integration complete
+- **Frontend (separate):** Next.js 16 at `../frontend/` — Phases 5–11 API integration complete
 
 ## Project Structure
 
@@ -127,7 +127,7 @@ For production, replace with your real domain (e.g. `https://sunbirdvacations.co
 
 **`FRONTEND_URL` is required in production** — it drives CORS `allowed_origins` in `config/cors.php` and sitemap `<loc>` canonical URLs (Phase 4D).
 
-## Frontend Integration (Phase 5 + Phase 7 — complete)
+## Frontend Integration (Phases 5–11 — complete)
 
 The Next.js app in `../frontend/` calls this API using:
 
@@ -135,7 +135,22 @@ The Next.js app in `../frontend/` calls this API using:
 NEXT_PUBLIC_API_URL=http://localhost:8000/api
 ```
 
-See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix (including blogs), deployment checklist, and production env pairing (`FRONTEND_URL` ↔ CORS ↔ sitemap).
+See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix (packages, sections, blogs, gallery, page SEO, page content, contact form), deployment checklist, and production env pairing (`FRONTEND_URL` ↔ CORS ↔ sitemap).
+
+### Phase 12 — Destinations hub API (Step 1 — backend)
+
+| Layer | Endpoints | Notes |
+|-------|-----------|-------|
+| Public hub | `GET /api/destinations?category=` | 6 pre-seeded category codes; camelCase JSON with `PackageSummaryResource` packages |
+| Admin categories | `GET /api/admin/destination-categories`, `GET/PATCH /api/admin/destination-categories/{code}` | Display fields only — codes fixed |
+| Page SEO | `page_seo.destinations` | Sitemap `/destinations` respects canonical/`is_indexable` |
+
+### Phase 11 — Page content + contact inquiries (complete)
+
+| Layer | Endpoints | Notes |
+|-------|-----------|-------|
+| Page content | `GET /api/page-content/{page_key}`, admin `GET/PATCH` | Keys: `about`, `contact` |
+| Contact inquiries | `POST /api/contact-inquiries` (public, rate-limited) | Admin `GET /api/admin/contact-inquiries`, `GET /api/admin/contact-inquiries/{id}` |
 
 ### Phase 7 — Blogs (complete)
 
@@ -147,7 +162,7 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 
 Frontend consumes blogs via `frontend/src/lib/api/blogs.ts` and `frontend/src/lib/mappers/blogs.ts`. Sitemap is proxied by frontend `/sitemap.xml` — no frontend sitemap code changes needed for blog URLs.
 
-Run API tests: `php artisan test --filter=Api` (**441+ tests** as of Phase 11 Step 3, including `ContactInquiryApiTest` and `AdminContactInquiryTest`).
+Run API tests: `php artisan test --filter=Api` (**464** tests — run locally to confirm current count).
 
 ## Phase 2 — Database Schema
 
@@ -251,7 +266,8 @@ Package::where('slug','kashmir-paradise')->first()->itineraryDays()->count(); //
 | GET | `/api/blogs` | Active blogs ordered by `published_at` desc |
 | GET | `/api/blogs/{slug}` | Full blog detail with content |
 | GET | `/api/gallery` | Active gallery items + filter category codes (excludes UI-only `ALL`) |
-| GET | `/api/page-seo/{page_key}` | Page-level SEO (9 seeded keys — see Admin Page SEO) |
+| GET | `/api/destinations` | Destinations hub (`?category=` optional) |
+| GET | `/api/page-seo/{page_key}` | Page-level SEO (10 seeded keys — see Admin Page SEO) |
 | GET | `/api/page-content/{page_key}` | Page content for `about` and `contact` (camelCase JSON) |
 | POST | `/api/contact-inquiries` | Submit contact form (rate-limited: 10/min per IP) |
 
@@ -266,6 +282,8 @@ curl http://localhost:8000/api/packages/kashmir-paradise
 curl http://localhost:8000/api/blogs
 curl http://localhost:8000/api/blogs/story-behind-sunbird-vacations
 curl http://localhost:8000/api/gallery
+curl http://localhost:8000/api/destinations
+curl "http://localhost:8000/api/destinations?category=beaches"
 curl http://localhost:8000/api/page-seo/home
 curl http://localhost:8000/api/page-seo/gallery
 curl http://localhost:8000/api/page-seo/packages
@@ -275,6 +293,7 @@ curl http://localhost:8000/api/page-seo/about
 curl http://localhost:8000/api/page-seo/contact
 curl http://localhost:8000/api/page-seo/payment-policy
 curl http://localhost:8000/api/page-seo/cancellation-policy
+curl http://localhost:8000/api/page-seo/destinations
 curl http://localhost:8000/api/page-content/about
 curl http://localhost:8000/api/page-content/contact
 
@@ -422,7 +441,18 @@ Blogs have no dependent relations — delete is a hard delete. Use `is_active: f
 
 **Fields:** `meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`. No create/delete of page keys — seeded keys only.
 
-Public `GET /api/page-seo/{page_key}` returns `{ page_key, seo: { ... } }`. Seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`. Sitemap respects `canonical_url` and `is_indexable` for managed listing URLs (`search` is API-only — not in sitemap).
+Public `GET /api/page-seo/{page_key}` returns `{ page_key, seo: { ... } }`. Seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`, `destinations`. Sitemap respects `canonical_url` and `is_indexable` for managed listing URLs (`search` is API-only — not in sitemap).
+
+### Admin Destination Categories
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/destination-categories` | List all hub categories (including inactive) |
+| GET | `/api/admin/destination-categories/{code}` | Show category by code |
+| PUT | `/api/admin/destination-categories/{code}` | Full update (display fields) |
+| PATCH | `/api/admin/destination-categories/{code}` | Partial update (display fields) |
+
+**Fields:** `title`, `hero_image`, `hero_title`, `hero_subtitle`, `listing_path`, `sort_order`, `is_active`. Codes, `section_slug`, and `package_category` are fixed at seed time — no create/delete.
 
 ### Admin Page Content
 

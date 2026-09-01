@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, Suspense, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterTabs } from '@/components/common/FilterTabs';
 import { PackageCard } from '@/components/common/PackageCard';
@@ -15,17 +15,18 @@ interface PackageListProps {
   categories?: string[];
   baseRoute?: string;
   variant?: 'grid' | 'horizontal';
+  header?: ReactNode;
 }
 
-export function PackageList({ packages, categories, baseRoute = '/packages', variant = 'grid' }: PackageListProps) {
+export function PackageList({ packages, categories, baseRoute = '/packages', variant = 'grid', header }: PackageListProps) {
   return (
     <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
-      <PackageListInner packages={packages} categories={categories} baseRoute={baseRoute} variant={variant} />
+      <PackageListInner packages={packages} categories={categories} baseRoute={baseRoute} variant={variant} header={header} />
     </Suspense>
   );
 }
 
-function PackageListInner({ packages, categories, baseRoute, variant }: PackageListProps) {
+function PackageListInner({ packages, categories, baseRoute, variant, header }: PackageListProps) {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || categories?.[0] || '';
   
@@ -52,6 +53,8 @@ function PackageListInner({ packages, categories, baseRoute, variant }: PackageL
   return (
     <section className="bg-gray-50 min-h-screen py-10">
       <Container>
+        {header}
+
         {/* Category Filters */}
         {categories && categories.length > 0 && (
           <FilterTabs

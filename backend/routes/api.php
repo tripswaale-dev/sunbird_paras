@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\DestinationCategoryController as AdminDestinationCategoryController;
 use App\Http\Controllers\Api\Admin\ContactInquiryController as AdminContactInquiryController;
 use App\Http\Controllers\Api\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Api\Admin\GalleryItemController as AdminGalleryItemController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\Api\Admin\SectionPackageController as AdminSectionPacka
 use App\Http\Controllers\Api\Admin\SectionController as AdminSectionController;
 use App\Http\Controllers\Api\Admin\SectionSeoController as AdminSectionSeoController;
 use App\Http\Controllers\Api\BlogController;
+use App\Http\Controllers\Api\DestinationsController;
 use App\Http\Controllers\Api\ContactInquiryController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\PackageController;
@@ -60,6 +62,7 @@ Route::get('/packages/{package:slug}', [PackageController::class, 'show']);
 Route::get('/blogs', [BlogController::class, 'index']);
 Route::get('/blogs/{blog:slug}', [BlogController::class, 'show']);
 Route::get('/gallery', [GalleryController::class, 'index']);
+Route::get('/destinations', [DestinationsController::class, 'index']);
 Route::get('/page-seo/{pageKey}', [PageSeoController::class, 'show']);
 Route::get('/page-content/{pageKey}', [PageContentController::class, 'show']);
 
@@ -162,6 +165,11 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
     Route::get('/page-content/{pageKey}', [AdminPageContentController::class, 'show']);
     Route::put('/page-content/{pageKey}', [AdminPageContentController::class, 'update']);
     Route::patch('/page-content/{pageKey}', [AdminPageContentController::class, 'update']);
+
+    Route::get('/destination-categories', [AdminDestinationCategoryController::class, 'index']);
+    Route::get('/destination-categories/{destinationCategory:code}', [AdminDestinationCategoryController::class, 'show']);
+    Route::put('/destination-categories/{destinationCategory:code}', [AdminDestinationCategoryController::class, 'update']);
+    Route::patch('/destination-categories/{destinationCategory:code}', [AdminDestinationCategoryController::class, 'update']);
 
     Route::get('/contact-inquiries', [AdminContactInquiryController::class, 'index']);
     Route::get('/contact-inquiries/{id}', [AdminContactInquiryController::class, 'show'])->whereNumber('id');

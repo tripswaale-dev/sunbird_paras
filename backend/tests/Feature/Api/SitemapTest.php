@@ -5,6 +5,7 @@ namespace Tests\Feature\Api;
 use App\Models\Blog;
 use App\Models\GalleryItem;
 use App\Models\Package;
+use App\Models\PageSeo;
 use App\Models\Section;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -43,6 +44,7 @@ class SitemapTest extends TestCase
         $this->assertStringContainsString('<loc>https://frontend.test/</loc>', $content);
         $this->assertStringContainsString('<loc>https://frontend.test/about</loc>', $content);
         $this->assertStringContainsString('<loc>https://frontend.test/packages</loc>', $content);
+        $this->assertStringContainsString('<loc>https://frontend.test/destinations</loc>', $content);
         $this->assertStringContainsString('<loc>https://frontend.test/blogs</loc>', $content);
     }
 
@@ -220,5 +222,30 @@ class SitemapTest extends TestCase
         $urlCount = substr_count($this->get('/api/sitemap.xml')->getContent(), '<url>');
 
         $this->assertSame(70, $urlCount);
+    }
+
+    public function test_non_indexable_destinations_is_excluded_from_sitemap(): void
+    {
+        config(['frontend.url' => 'https://frontend.test']);
+        PageSeo::where('page_key', PageSeo::PAGE_KEY_DESTINATIONS)->update(['is_indexable' => false]);
+
+        $content = $this->get('/api/sitemap.xml')->getContent();
+
+        $this->assertStringNotContainsString('<loc>https://frontend.test/destinations</loc>', $content);
+        $this->assertStringContainsString('<loc>https://frontend.test/packages</loc>', $content);
+    }
+
+    public function test_sitemap_uses_destinations_canonical_url_when_set(): void
+    {
+        config(['frontend.url' => 'https://frontend.test']);
+
+        PageSeo::where('page_key', PageSeo::PAGE_KEY_DESTINATIONS)->update([
+            'canonical_url' => 'https://frontend.test/custom/destinations',
+        ]);
+
+        $content = $this->get('/api/sitemap.xml')->getContent();
+
+        $this->assertStringContainsString('<loc>https://frontend.test/custom/destinations</loc>', $content);
+        $this->assertDoesNotMatchRegularExpression('/<loc>https:\/\/frontend\.test\/destinations<\/loc>/', $content);
     }
 }

@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             PackageDetailSeeder::class,
             BlogSeeder::class,
             GallerySeeder::class,
+            DestinationCategorySeeder::class,
             PageSeoSeeder::class,
             PageContentSeeder::class,
             AdminSeeder::class,

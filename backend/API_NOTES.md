@@ -39,6 +39,7 @@ Validation errors (422) include an `errors` object.
 | GET | `/api/packages/{slug}` | Full package detail with SEO, itinerary, FAQs, images |
 | GET | `/api/blogs` | Active blogs ordered by `published_at` desc (plain array, no pagination) |
 | GET | `/api/blogs/{slug}` | Full blog detail with content |
+| GET | `/api/destinations` | Destinations hub — categories + active category packages (`?category=`) |
 
 ## Query Parameters
 
@@ -56,6 +57,14 @@ Validation errors (422) include an `errors` object.
 | Param | Type | Notes |
 |-------|------|-------|
 | `category` | string | Exact match on `packages.category` |
+
+### `GET /api/destinations`
+
+| Param | Type | Notes |
+|-------|------|-------|
+| `category` | string | Hub category code (`popular`, `hills`, `beaches`, `spiritual`, `wildlife`, `international`). Defaults to first active category by `sort_order` when omitted or invalid/inactive. |
+
+Returns camelCase JSON: `categories[]`, `activeCategory`, hero fields, `listingPath`, and `packages[]` (`PackageSummaryResource` shape). Section-backed categories load that section's active packages; `beaches` loads global `Package::active()` where `category = Beaches`.
 
 ## Active Status
 
@@ -91,13 +100,15 @@ Inactive categories are excluded from section responses.
 
 **Detail** (`GET /api/blogs/{slug}`) — same fields plus `content` (full article body) and a nested `seo` object (`meta_title`, `meta_description`, `canonical_url`, `og_image`, `is_indexable`). Listing (`GET /api/blogs`) does not include `seo`.
 
-**Page SEO** (`GET /api/page-seo/{page_key}`) — page-level SEO for static routes. Seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`. Shape: `{ page_key, seo: { ... } }`. Sitemap URLs for managed static paths respect `page_seo` canonical/`is_indexable` (`search` is API-only).
+**Page SEO** (`GET /api/page-seo/{page_key}`) — page-level SEO for static routes. Seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`, `destinations`. Shape: `{ page_key, seo: { ... } }`. Sitemap URLs for managed static paths respect `page_seo` canonical/`is_indexable` (`search` is API-only).
 
 **Page Content** (`GET /api/page-content/{page_key}`) — page body/hero/contact fields for `about` and `contact`. Separate from `page_seo`. Public response uses camelCase (`pageKey`, `heroImage`, `heroTitle`, `heroSubtitle`, `introText`, `body`, `contactPhone`, `contactEmail`, `contactAddress`, `workingHours`). Returns 404 when `is_active` is false. Admin: `GET/PATCH /api/admin/page-content/{page_key}` (snake_case fields).
 
 **Contact Inquiries** (`POST /api/contact-inquiries`) — public form submission (no auth). Body: `firstName`, `lastName`, `phone`, `subject` (`general` \| `booking` \| `custom` \| `support`), `message`. Returns `201` with `{ id, message }`. Throttled 10/min per IP. Admin: `GET /api/admin/contact-inquiries`, `GET /api/admin/contact-inquiries/{id}` (paginated list with optional `?search=` and `?subject=`).
 
-JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Active indexable blog post URLs are included in the sitemap at `/blogs/{slug}` (or `canonical_url` when set). Managed static listing URLs (`/`, `/about`, `/contact`, `/packages`, `/gallery`, `/blogs`, `/payment-policy`, `/cancellation-policy`) use `page_seo` canonical/`is_indexable` when configured.
+**Destination Categories** — pre-seeded hub config for `/destinations`. Public: `GET /api/destinations?category=`. Admin: `GET /api/admin/destination-categories`, `GET /api/admin/destination-categories/{code}`, `PATCH /api/admin/destination-categories/{code}` (display fields only — codes/section mapping are fixed).
+
+JSON keys match the frontend `Blog` interface (`readTime`, not `read_time_label`). Active indexable blog post URLs are included in the sitemap at `/blogs/{slug}` (or `canonical_url` when set). Managed static listing URLs (`/`, `/about`, `/contact`, `/packages`, `/destinations`, `/gallery`, `/blogs`, `/payment-policy`, `/cancellation-policy`) use `page_seo` canonical/`is_indexable` when configured.
 
 ## Admin Blogs
 

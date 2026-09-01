@@ -37,15 +37,21 @@ NEXT_PUBLIC_SITE_URL=https://sunbirdvacations.com
 
 When unset, defaults to `https://sunbirdvacations.com`.
 
-## API Integration (Phase 5 + Phase 7 + Phase 8 + Phase 9)
+## API Integration (Phases 5–12 complete)
 
 **Phase 5 complete** — all core package/section flows are API-driven with static fallbacks.
 
 **Phase 7 complete** — blogs listing and detail are API-driven with static fallbacks.
 
-**Phase 8 (Step 3) complete** — gallery page items are API-driven with static fallback.
+**Phase 8 complete** — gallery page items are API-driven with static fallback.
 
 **Phase 9 complete** — blog detail and listing metadata are API-driven via `seo` and `page_seo`.
+
+**Phase 10 complete** — page metadata for home, gallery, packages, search, about, contact, and policy pages via `page_seo`.
+
+**Phase 11 complete** — about/contact page content via `page_content`; contact form submits to `POST /api/contact-inquiries`.
+
+**Phase 12 complete** — `/destinations` hub page via `GET /api/destinations`; metadata via `page_seo.destinations`.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and known data mismatches.
 
@@ -54,13 +60,15 @@ The frontend reads section data from the Laravel API at `NEXT_PUBLIC_API_URL` (d
 | Layer | Path | Purpose |
 |-------|------|---------|
 | Config | `src/lib/api/config.ts` | Resolves API base URL from env |
-| Client | `src/lib/api/client.ts` | `apiGet()` with envelope parsing |
+| Client | `src/lib/api/client.ts` | `apiGet()` with envelope parsing; `apiPost()` for mutations |
 | Types | `src/lib/api/types.ts` | Typed API response models |
 | Sections | `src/lib/api/sections.ts` | Section fetch helpers |
 | Packages | `src/lib/api/packages.ts` | Package fetch helpers |
 | Blogs | `src/lib/api/blogs.ts` | Blog fetch helpers (listing, detail, featured packages, detail metadata) |
 | Page SEO | `src/lib/api/page-seo.ts` | Page-level SEO (`getPageMetadata()`, per-route helpers) |
 | Page content | `src/lib/api/page-content.ts` | About/contact content (`getAboutPageContent()`, `getContactPageContent()`) |
+| Contact inquiries | `src/lib/api/contact-inquiries.ts` | Contact form submit (`submitContactInquiry()`) |
+| Destinations | `src/lib/api/destinations.ts` | Destinations hub (`getDestinationsHub()`) |
 | Gallery | `src/lib/api/gallery.ts` | Gallery fetch helper (`getGalleryItems()`) |
 | Mappers | `src/lib/mappers/` | API → existing component prop shapes |
 
@@ -158,11 +166,26 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 |-------|-----|--------|----------|
 | `/gallery` | `GET /api/gallery` | `getGalleryItems()` | `gallery.ts` (`galleryItems`) |
 
-**Gallery page** (`/gallery`) — `GET /api/gallery` via `getGalleryItems()` → `GalleryItem[]` via `mapGalleryApiItemsToGalleryItems()` in `src/lib/mappers/gallery.ts`. Static fallback: `galleryItems` in `src/data/gallery.ts`. Filter tabs remain static `galleryCategories` (includes UI-only `ALL`); client-side filtering unchanged in `gallery-client.tsx`. Page `metadata` remains static.
+**Gallery page** (`/gallery`) — `GET /api/gallery` via `getGalleryItems()` → `GalleryItem[]` via `mapGalleryApiItemsToGalleryItems()` in `src/lib/mappers/gallery.ts`. Static fallback: `galleryItems` in `src/data/gallery.ts`. Filter tabs remain static `galleryCategories` (includes UI-only `ALL`); client-side filtering unchanged in `gallery-client.tsx`. Metadata via `getGalleryMetadata()` → `page_seo`.
 
 **Do not delete** `src/data/gallery.ts` — required for fallback items and filter tab labels.
 
-## Phase 11 — About + Contact page content (Step 2 complete)
+## Phase 10 — Page SEO (complete)
+
+| Route | Metadata API | Helper |
+|-------|--------------|--------|
+| `/` (layout) | `GET /api/page-seo/home` | `getHomeLayoutMetadata()` |
+| `/gallery` | `GET /api/page-seo/gallery` | `getGalleryMetadata()` |
+| `/packages` | `GET /api/page-seo/packages` | `getPackagesMetadata()` |
+| `/search` | `GET /api/page-seo/search` | `getSearchMetadata()` |
+| `/about` | `GET /api/page-seo/about` | `getAboutMetadata()` |
+| `/contact` | `GET /api/page-seo/contact` | `getContactMetadata()` |
+| `/payment-policy` | `GET /api/page-seo/payment-policy` | `getPaymentPolicyMetadata()` |
+| `/cancellation-policy` | `GET /api/page-seo/cancellation-policy` | `getCancellationPolicyMetadata()` |
+
+Shared helper: `getPageMetadata()` in `src/lib/api/page-seo.ts`. Static fallbacks defined per route in the same file. Blog routes use separate blog SEO helpers (Phase 9).
+
+## Phase 11 — About + Contact (complete)
 
 | Route | Content API | Helper | Metadata | Fallback |
 |-------|-------------|--------|----------|----------|
@@ -171,9 +194,21 @@ See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md
 
 **About** — HeroBanner + founder story body (`\n\n` paragraphs, drop cap on first paragraph, `heroSubtitle` as quote block). Separate from `page_seo` metadata.
 
-**Contact** — HeroBanner + `ContactForm` props (`introText`, `contactPhone`, `contactEmail`, `contactAddress`, `workingHours`). Form submit remains fake (`setTimeout`). Layout/classes unchanged.
+**Contact** — HeroBanner + `ContactForm` props (`introText`, `contactPhone`, `contactEmail`, `contactAddress`, `workingHours`). Form submits via `POST /api/contact-inquiries` (`submitContactInquiry()`). Controlled fields; success UI unchanged; error message below submit on failure (429 → rate-limit message).
 
 **Do not delete** `src/data/about.ts` or `src/data/contact.ts` — required for API-offline fallback.
+
+## Phase 12 — Destinations hub (complete)
+
+| Route | API | Helper | Metadata | Fallback |
+|-------|-----|--------|----------|----------|
+| `/destinations` | `GET /api/destinations?category=` | `getDestinationsHub(category)` | `getDestinationsMetadata()` → `page_seo.destinations` | `src/data/destinations.ts` |
+
+**Hub page** — `HeroBanner` (active category hero from API) + `DestinationCategoryTabs` (client; `router.push` to `?category={code}`) + `PackageList` (no `categories` prop — packages pre-scoped by API). `baseRoute` from API `listingPath` (e.g. `/popular-destinations`, `/packages` for beaches).
+
+Category codes match navbar dropdown: `popular`, `hills`, `beaches`, `spiritual`, `wildlife`, `international`.
+
+**Do not delete** `src/data/destinations.ts` — required for API-offline fallback.
 
 ## Learn More
 

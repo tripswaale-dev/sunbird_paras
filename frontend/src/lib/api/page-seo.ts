@@ -60,6 +60,12 @@ const CANCELLATION_POLICY_METADATA_FALLBACK: PageMetadataFallback = {
     'Learn about our cancellation, refund, and payment policies for your bookings with Sunbird Vacations.',
 };
 
+const DESTINATIONS_METADATA_FALLBACK: PageMetadataFallback = {
+  title: 'Destinations | Sunbird Vacations',
+  description:
+    'Explore popular destinations, hill stations, beaches, spiritual journeys, wildlife, and international getaways with Sunbird Vacations.',
+};
+
 const PACKAGES_OG_IMAGE_FALLBACK = '/images/hero/travel-your-way.png';
 const SEARCH_OG_IMAGE_FALLBACK = '/images/destinations/kerala.jpg';
 
@@ -181,4 +187,8 @@ export async function getPaymentPolicyMetadata(): Promise<Metadata> {
 
 export async function getCancellationPolicyMetadata(): Promise<Metadata> {
   return getPageMetadata('cancellation-policy', CANCELLATION_POLICY_METADATA_FALLBACK);
+}
+
+export async function getDestinationsMetadata(): Promise<Metadata> {
+  return getPageMetadata('destinations', DESTINATIONS_METADATA_FALLBACK);
 }

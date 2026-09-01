@@ -24,6 +24,8 @@ class PageSeo extends Model
 
     public const PAGE_KEY_CANCELLATION_POLICY = 'cancellation-policy';
 
+    public const PAGE_KEY_DESTINATIONS = 'destinations';
+
     public const ALLOWED_PAGE_KEYS = [
         self::PAGE_KEY_HOME,
         self::PAGE_KEY_GALLERY,
@@ -34,6 +36,7 @@ class PageSeo extends Model
         self::PAGE_KEY_CONTACT,
         self::PAGE_KEY_PAYMENT_POLICY,
         self::PAGE_KEY_CANCELLATION_POLICY,
+        self::PAGE_KEY_DESTINATIONS,
     ];
 
     /**
@@ -50,6 +53,7 @@ class PageSeo extends Model
         '/blogs' => self::PAGE_KEY_BLOGS,
         '/payment-policy' => self::PAGE_KEY_PAYMENT_POLICY,
         '/cancellation-policy' => self::PAGE_KEY_CANCELLATION_POLICY,
+        '/destinations' => self::PAGE_KEY_DESTINATIONS,
     ];
 
     protected $table = 'page_seo';

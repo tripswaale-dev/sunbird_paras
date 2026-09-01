@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Send, MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { ApiError } from '@/lib/api/client';
+import { submitContactInquiry } from '@/lib/api/contact-inquiries';
+import type { ContactInquiryPayload } from '@/lib/api/types';
 
 export interface ContactFormProps {
   introText: string;
@@ -12,6 +15,14 @@ export interface ContactFormProps {
   contactAddress: string;
   workingHours: string;
 }
+
+const initialFormState: ContactInquiryPayload = {
+  firstName: '',
+  lastName: '',
+  phone: '',
+  subject: 'general',
+  message: '',
+};
 
 function renderContactAddress(address: string) {
   if (address.includes('\n')) {
@@ -59,18 +70,53 @@ export function ContactForm({
   contactAddress,
   workingHours,
 }: ContactFormProps) {
+  const [form, setForm] = useState<ContactInquiryPayload>(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const updateField = <K extends keyof ContactInquiryPayload>(
+    field: K,
+    value: ContactInquiryPayload[K]
+  ) => {
+    setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorMessage(null);
+
+    try {
+      const result = await submitContactInquiry(form);
+
+      setForm({ ...initialFormState });
+      setSuccessMessage(result.message);
       setIsSubmitted(true);
-      setTimeout(() => setIsSubmitted(false), 5000); // Reset after 5s
-    }, 1500);
+      setTimeout(() => {
+        setIsSubmitted(false);
+        setSuccessMessage(null);
+      }, 5000);
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Failed to submit contact inquiry.', error);
+      }
+
+      if (error instanceof ApiError) {
+        if (error.status === 429) {
+          setErrorMessage('Too many requests, please try again later.');
+        } else {
+          setErrorMessage(
+            error.message || 'Something went wrong. Please try again.'
+          );
+        }
+      } else {
+        setErrorMessage('Something went wrong. Please try again.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -154,7 +200,8 @@ export function ContactForm({
             </div>
             <h4 className="text-2xl font-bold text-primary mb-2">Message Sent!</h4>
             <p className="text-gray-600">
-              Thank you for reaching out. One of our travel experts will get back to you shortly.
+              {successMessage ??
+                'Thank you for reaching out. One of our travel experts will get back to you shortly.'}
             </p>
           </div>
         ) : (
@@ -165,7 +212,10 @@ export function ContactForm({
                 <input
                   type="text"
                   id="firstName"
+                  name="firstName"
                   required
+                  value={form.firstName}
+                  onChange={(e) => updateField('firstName', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   placeholder="John"
                 />
@@ -175,7 +225,10 @@ export function ContactForm({
                 <input
                   type="text"
                   id="lastName"
+                  name="lastName"
                   required
+                  value={form.lastName}
+                  onChange={(e) => updateField('lastName', e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                   placeholder="Doe"
                 />
@@ -187,7 +240,10 @@ export function ContactForm({
               <input
                 type="tel"
                 id="phone"
+                name="phone"
                 required
+                value={form.phone}
+                onChange={(e) => updateField('phone', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
                 placeholder="+91 12345 67890"
               />
@@ -197,6 +253,12 @@ export function ContactForm({
               <label htmlFor="subject" className="text-sm font-medium text-gray-700">Subject</label>
               <select
                 id="subject"
+                name="subject"
+                required
+                value={form.subject}
+                onChange={(e) =>
+                  updateField('subject', e.target.value as ContactInquiryPayload['subject'])
+                }
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors bg-white"
               >
                 <option value="general">General Inquiry</option>
@@ -210,8 +272,11 @@ export function ContactForm({
               <label htmlFor="message" className="text-sm font-medium text-gray-700">Your Message</label>
               <textarea
                 id="message"
+                name="message"
                 required
                 rows={4}
+                value={form.message}
+                onChange={(e) => updateField('message', e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors resize-none"
                 placeholder="How can we help you plan your trip?"
               />
@@ -227,6 +292,12 @@ export function ContactForm({
                 <>Send Message <Send className="w-5 h-5 ml-2" /></>
               )}
             </Button>
+
+            {errorMessage ? (
+              <p className="text-sm text-red-600 text-center" role="alert">
+                {errorMessage}
+              </p>
+            ) : null}
           </form>
         )}
       </motion.div>
