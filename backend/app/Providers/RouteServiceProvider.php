@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\Package;
+use App\Models\Section;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -25,6 +27,7 @@ class RouteServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureRateLimiting();
+        $this->configureRouteModelBinding();
 
         $this->routes(function () {
             Route::middleware('api')
@@ -43,6 +46,17 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+        });
+    }
+
+    protected function configureRouteModelBinding(): void
+    {
+        Route::bind('section', function (string $value) {
+            return Section::where('slug', $value)->active()->firstOrFail();
+        });
+
+        Route::bind('package', function (string $value) {
+            return Package::where('slug', $value)->active()->firstOrFail();
         });
     }
 }

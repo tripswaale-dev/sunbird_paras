@@ -1,0 +1,100 @@
+# API Notes — Phase 4A
+
+Public read-only REST API for Sunbird Vacations. Frontend (`../frontend/`) was **not modified**.
+
+## Response Envelope
+
+**Success (single resource or collection):**
+```json
+{ "success": true, "data": { ... } }
+```
+
+**Success (paginated):**
+```json
+{
+  "success": true,
+  "data": [ ... ],
+  "meta": { "current_page": 1, "per_page": 15, "total": 53, "last_page": 4 }
+}
+```
+
+**Error:**
+```json
+{ "success": false, "message": "Resource not found." }
+```
+
+Validation errors (422) include an `errors` object.
+
+## Endpoints
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/health` | Health check (unchanged from Phase 1) |
+| GET | `/api/sections` | Active sections ordered by `sort_order` |
+| GET | `/api/sections/{slug}` | Section detail with categories, stats, packages |
+| GET | `/api/sections/{slug}/packages` | Section packages with optional `?category=` filter |
+| GET | `/api/packages` | Paginated active packages with optional `?category=`, `?search=`, `?page=`, `?per_page=` |
+| GET | `/api/packages/{slug}` | Full package detail with SEO, itinerary, FAQs, images |
+
+## Query Parameters
+
+### `GET /api/packages`
+
+| Param | Type | Default | Notes |
+|-------|------|---------|-------|
+| `category` | string | — | Exact match on `packages.category` |
+| `search` | string | — | Searches `title`, `subtitle`, `location`, `slug` |
+| `page` | integer | 1 | Pagination page |
+| `per_page` | integer | 15 | Max 50 |
+
+### `GET /api/sections/{slug}/packages`
+
+| Param | Type | Notes |
+|-------|------|-------|
+| `category` | string | Exact match on `packages.category` |
+
+## Active Status
+
+Public API returns **404** for:
+- Unknown slugs
+- Inactive sections (`is_active = false`)
+- Inactive packages (`is_active = false`)
+
+Inactive categories are excluded from section responses.
+
+## Category Filter Values
+
+The API returns canonical **database** values. Known mismatches with frontend static data:
+
+| Issue | API behavior |
+|-------|--------------|
+| `river-retreat-haridwar-rishikesh` in spiritual section | Listed in both `best-of-india` and `spiritual-destinations`; `category` is `North` (not `Retreats`) |
+| `essence-of-nepal` in Popular Destinations | `category: "International"` — no matching filter tab in frontend |
+| `Bird Watching` tab (Explore Wild) | Tab exists in DB; zero packages with that category |
+| Gateway `"Southern Hill Escapes"` title | `filter_value` is `"Southern Hill Escape"` (singular) |
+| Best of India `East` tab | Seeded in DB; missing from frontend static filter array |
+
+Filter param `?category=` must use the exact `packages.category` value, not section category titles.
+
+## Package Detail
+
+- Only `kashmir-paradise` has full itinerary, FAQs, and images in seed data.
+- Other packages return `detail.inclusions` from amenities; itinerary/FAQs/images may be empty arrays.
+- Hero/gallery images are split by `type` in the `images` object.
+
+## N+1 Prevention
+
+Eager loading used per endpoint:
+- Section show: `categories`, `stats`, `activePackages.detail`
+- Section packages: `categories`, `activePackages.detail`
+- Package index: `detail`
+- Package show: `detail`, `itineraryDays`, `faqs`, `images`
+
+## Testing
+
+```bash
+cd backend
+php artisan test --filter=Api
+```
+
+Tests use SQLite in-memory (`phpunit.xml`).

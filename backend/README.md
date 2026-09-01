@@ -1,8 +1,8 @@
 # Sunbird Vacations — Backend API
 
-Phase 1 foundation for the Sunbird Vacations travel website. This Laravel backend will eventually power dynamic content for the Next.js frontend.
+Phase 4A adds a public read-only REST API on top of Phase 3 models and seed data. The Next.js frontend remains untouched.
 
-**Current scope:** API foundation only — no business models, migrations, admin panel, or frontend integration yet.
+**Current scope:** Public GET API endpoints — no write operations, admin panel, or frontend integration yet.
 
 ## Requirements
 
@@ -60,7 +60,26 @@ Sunbird_by_Paras/
 
    Do not commit `.env`. Secrets stay local only.
 
-4. **Database:** Config placeholders are set for Phase 2. No database or migrations are required for Phase 1.
+4. **Database:**
+
+   ```bash
+   # Create database (if not exists)
+   mysql -u root -e "CREATE DATABASE IF NOT EXISTS sunbird_vacations CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+   # Run migrations
+   php artisan migrate
+
+   # Seed canonical data from frontend static files
+   php artisan db:seed
+   ```
+
+   Or fresh migrate + seed:
+
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+
+   Database name: **`sunbird_vacations`**
 
 ## Start the Server
 
@@ -116,12 +135,158 @@ NEXT_PUBLIC_API_URL=http://localhost:8000/api
 
 No frontend changes have been made yet.
 
+## Phase 2 — Database Schema
+
+Nine business tables (plus default Laravel framework tables):
+
+| Table | Purpose |
+|-------|---------|
+| `sections` | 7 homepage sections (slug, title, subtitle, view_all_path) |
+| `packages` | Single source of truth for tour packages (price as integer INR) |
+| `section_packages` | M:N pivot — packages assigned to sections with display_order and is_featured |
+| `section_categories` | Category cards and listing filter tabs (Travel Your Way, Gateway, etc.) |
+| `section_stats` | Popular Destinations stats bar |
+| `package_details` | 1:1 extended content (overview, JSON list fields) |
+| `package_itinerary_days` | Day-by-day itinerary |
+| `package_faqs` | Package FAQs |
+| `package_images` | Hero and gallery image paths |
+
+### Relationships
+
+- `sections` → `section_packages` → `packages` (CASCADE on delete)
+- `sections` → `section_categories`, `section_stats`
+- `packages` → `package_details`, `package_itinerary_days`, `package_faqs`, `package_images`
+
+### Migration files
+
+```
+database/migrations/2026_08_31_100000_create_sections_table.php
+database/migrations/2026_08_31_100001_create_packages_table.php
+database/migrations/2026_08_31_100002_create_section_packages_table.php
+database/migrations/2026_08_31_100003_create_section_categories_table.php
+database/migrations/2026_08_31_100004_create_section_stats_table.php
+database/migrations/2026_08_31_100005_create_package_details_table.php
+database/migrations/2026_08_31_100006_create_package_itinerary_days_table.php
+database/migrations/2026_08_31_100007_create_package_faqs_table.php
+database/migrations/2026_08_31_100008_create_package_images_table.php
+```
+
+Verify migrations: `php artisan migrate:status`
+
+## Phase 3 — Eloquent Models & Seed Data
+
+Nine business models in `app/Models/`:
+
+| Model | Table |
+|-------|-------|
+| `Section` | sections |
+| `Package` | packages |
+| `SectionPackage` | section_packages |
+| `SectionCategory` | section_categories |
+| `SectionStat` | section_stats |
+| `PackageDetail` | package_details |
+| `PackageItineraryDay` | package_itinerary_days |
+| `PackageFaq` | package_faqs |
+| `PackageImage` | package_images |
+
+### Seeders
+
+```
+database/seeders/
+├── DatabaseSeeder.php
+├── SectionSeeder.php
+├── PackageSeeder.php
+├── SectionPackageSeeder.php
+├── SectionCategorySeeder.php
+├── SectionStatSeeder.php
+├── PackageDetailSeeder.php
+├── Data/PackageSeedData.php
+├── Data/KashmirParadiseDetailData.php
+└── Support/DurationParser.php
+```
+
+Seeder call order: Section → Package → SectionPackage → SectionCategory → SectionStat → PackageDetail.
+
+See [`SEEDING_NOTES.md`](SEEDING_NOTES.md) for canonical source rules, conflict resolutions, and verification queries.
+
+### Verify with Tinker
+
+```bash
+php artisan tinker
+```
+
+```php
+Package::count();                    // 53
+Section::count();                    // 7
+SectionPackage::count();             // 53
+Package::where('slug','kashmir-paradise')->first()->itineraryDays()->count(); // 7
+```
+
+## Phase 4A — Public Read-Only API
+
+### Endpoints
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/health` | Health check |
+| GET | `/api/sections` | List active sections |
+| GET | `/api/sections/{slug}` | Section detail (categories, stats, packages) |
+| GET | `/api/sections/{slug}/packages` | Section packages (`?category=` optional) |
+| GET | `/api/packages` | Paginated packages (`?category=`, `?search=`, `?page=`, `?per_page=`) |
+| GET | `/api/packages/{slug}` | Full package detail |
+
+### Example Requests
+
+```bash
+curl http://localhost:8000/api/sections
+curl http://localhost:8000/api/sections/popular-destinations
+curl http://localhost:8000/api/sections/best-of-india/packages?category=North
+curl http://localhost:8000/api/packages?search=kashmir
+curl http://localhost:8000/api/packages/kashmir-paradise
+```
+
+### API Structure
+
+```
+app/Http/Controllers/Api/
+├── SectionController.php
+└── PackageController.php
+
+app/Http/Resources/
+├── SectionResource.php
+├── SectionDetailResource.php
+├── SectionCategoryResource.php
+├── SectionStatResource.php
+├── PackageSummaryResource.php
+└── PackageDetailResource.php
+```
+
+See [`API_NOTES.md`](API_NOTES.md) for response format, category handling, and known mismatches.
+
+### Run API Tests
+
+```bash
+php artisan test --filter=Api
+```
+
+Verify routes: `php artisan route:list`
+
 ## Phase 1 — What's Included
 
 - Laravel 10 application scaffold
 - Environment configuration (`.env.example`)
 - CORS for local Next.js origin
 - `GET /api/health` status endpoint
+
+## Phase 4A — What's NOT Included (yet)
+
+- POST / PUT / PATCH / DELETE endpoints
+- Admin panel, authentication, authorization
+- CRUD UI, image upload
+- Frontend / Next.js integration
+- SEO HTML rendering
+
+## Phase 3 — What's NOT Included (yet)
 
 ## Phase 1 — What's NOT Included
 
