@@ -47,15 +47,27 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        RateLimiter::for('admin-login', function (Request $request) {
+            return Limit::perMinute(5)->by($request->ip());
+        });
     }
 
     protected function configureRouteModelBinding(): void
     {
         Route::bind('section', function (string $value) {
+            if (request()->is('api/admin/*') && ctype_digit($value)) {
+                return Section::findOrFail((int) $value);
+            }
+
             return Section::where('slug', $value)->active()->firstOrFail();
         });
 
         Route::bind('package', function (string $value) {
+            if (request()->is('api/admin/sections/*/packages/*') && ctype_digit($value)) {
+                return Package::findOrFail((int) $value);
+            }
+
             return Package::where('slug', $value)->active()->firstOrFail();
         });
     }

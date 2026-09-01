@@ -1,8 +1,8 @@
 # Sunbird Vacations — Backend API
 
-Phase 4A adds a public read-only REST API on top of Phase 3 models and seed data. The Next.js frontend remains untouched.
+Phase 4C adds admin Sections and Packages CRUD. The Next.js frontend remains untouched.
 
-**Current scope:** Public GET API endpoints — no write operations, admin panel, or frontend integration yet.
+**Current scope:** Admin sections + core packages CRUD — no details/itinerary/images CRUD or frontend integration yet.
 
 ## Requirements
 
@@ -271,12 +271,160 @@ php artisan test --filter=Api
 
 Verify routes: `php artisan route:list`
 
+## Phase 4B — Admin Authentication
+
+### Endpoints
+
+| Method | URL | Auth | Purpose |
+|--------|-----|------|---------|
+| POST | `/api/admin/login` | Public (rate-limited) | Issue Sanctum bearer token |
+| GET | `/api/admin/me` | Bearer + admin | Current admin profile |
+| POST | `/api/admin/logout` | Bearer + admin | Revoke current token |
+
+### Setup Development Admin
+
+Add to `.env`:
+
+```env
+ADMIN_NAME="Sunbird Admin"
+ADMIN_EMAIL=admin@sunbird.local
+ADMIN_PASSWORD=your-dev-password
+```
+
+```bash
+php artisan db:seed --class=AdminSeeder
+```
+
+### Example Login
+
+```bash
+curl -X POST http://localhost:8000/api/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@sunbird.local","password":"your-dev-password"}'
+```
+
+Use the returned token: `Authorization: Bearer {token}`
+
+See [`ADMIN_AUTH_NOTES.md`](ADMIN_AUTH_NOTES.md) for security details and error responses.
+
+## Phase 4C — Admin Sections CRUD
+
+### Endpoints
+
+All require `Authorization: Bearer {token}` and admin privileges.
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/sections` | List all sections (active + inactive) |
+| POST | `/api/admin/sections` | Create section |
+| GET | `/api/admin/sections/{id}` | Section detail by numeric ID |
+| PUT | `/api/admin/sections/{id}` | Full update |
+| PATCH | `/api/admin/sections/{id}` | Partial update |
+| DELETE | `/api/admin/sections/{id}` | Delete (409 if dependencies exist) |
+
+### Example
+
+```bash
+curl http://localhost:8000/api/admin/sections \
+  -H "Authorization: Bearer {token}"
+```
+
+Delete returns `409 Conflict` when section has packages, categories, or stats. Use `is_active: false` to hide from public API instead.
+
+### Admin Packages CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/packages` | Paginated list (`?search=`, `?category=`, `?is_active=`, `?page=`, `?per_page=`) |
+| POST | `/api/admin/packages` | Create package |
+| GET | `/api/admin/packages/{id}` | Package detail by numeric ID |
+| PUT | `/api/admin/packages/{id}` | Full update |
+| PATCH | `/api/admin/packages/{id}` | Partial update |
+| DELETE | `/api/admin/packages/{id}` | Delete (409 if dependencies exist) |
+
+Delete returns `409 Conflict` when package has section assignments, details, itinerary, FAQs, or images.
+
+### Admin Section ↔ Package Assignments
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/sections/{section}/packages` | List packages assigned to section (numeric section ID) |
+| POST | `/api/admin/sections/{section}/packages` | Assign package to section |
+| PATCH | `/api/admin/sections/{section}/packages/{package}` | Update `display_order` / `is_featured` |
+| DELETE | `/api/admin/sections/{section}/packages/{package}` | Remove assignment (does not delete package or section) |
+
+**Assign body:** `package_id` (required), `display_order` (required, integer ≥ 0), `is_featured` (optional boolean, default false).
+
+Duplicate `(section_id, package_id)` returns `422`. `is_featured` is stored on the pivot — the same package can be featured in one section but not another.
+
+Admin APIs work for inactive sections and packages; public APIs continue to hide inactive records.
+
+### Admin Section Categories CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/sections/{section}/categories` | List all categories for section (active + inactive) |
+| POST | `/api/admin/sections/{section}/categories` | Create category |
+| GET | `/api/admin/sections/{section}/categories/{category}` | Category detail (scoped to section) |
+| PUT | `/api/admin/sections/{section}/categories/{category}` | Full update |
+| PATCH | `/api/admin/sections/{section}/categories/{category}` | Partial update |
+| DELETE | `/api/admin/sections/{section}/categories/{category}` | Delete category record only |
+
+**Fields:** `title`, `filter_value` (nullable, exact match to `packages.category` for filtering), `image` (path string), `sort_order`, `is_featured`, `is_active`.
+
+`section_id` comes from the route only — not accepted in request body. Duplicate `title` or `filter_value` (when not null) within a section returns `422`.
+
+### Admin Section Stats CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/sections/{section}/stats` | List all stats for section |
+| POST | `/api/admin/sections/{section}/stats` | Create stat |
+| GET | `/api/admin/sections/{section}/stats/{stat}` | Stat detail (scoped to section) |
+| PUT | `/api/admin/sections/{section}/stats/{stat}` | Full update |
+| PATCH | `/api/admin/sections/{section}/stats/{stat}` | Partial update |
+| DELETE | `/api/admin/sections/{section}/stats/{stat}` | Delete stat record only |
+
+**Fields:** `value` (max 50), `label` (max 255), `sort_order` (0–255).
+
+`section_id` comes from the route only — not accepted in request body. Duplicate `value` or `label` within a section returns `422`. No `is_active` / `is_featured` on stats.
+
+### Admin Package Details CRUD
+
+| Method | URL | Purpose |
+|--------|-----|---------|
+| GET | `/api/admin/packages/{id}/detail` | Show package detail record |
+| POST | `/api/admin/packages/{id}/detail` | Create detail (one per package) |
+| PUT | `/api/admin/packages/{id}/detail` | Full update |
+| PATCH | `/api/admin/packages/{id}/detail` | Partial update |
+| DELETE | `/api/admin/packages/{id}/detail` | Delete detail record only |
+
+**Fields:** `overview` (text), `destinations`, `sightseeing`, `inclusions`, `exclusions`, `highlights` (string arrays).
+
+`package_id` comes from the route only. One detail per package — duplicate POST returns `422`. Deleting detail does not remove itinerary, FAQs, or images.
+
 ## Phase 1 — What's Included
 
 - Laravel 10 application scaffold
 - Environment configuration (`.env.example`)
 - CORS for local Next.js origin
 - `GET /api/health` status endpoint
+
+## Phase 4C — What's NOT Included (yet)
+
+- Itinerary, FAQ, image CRUD
+- Image upload / SEO management
+- Admin dashboard / Next.js UI
+- Frontend integration
+
+## Phase 4B — What's NOT Included (yet)
+
+- Admin dashboard / Next.js admin UI
+- Package, section, category CRUD
+- Image upload / media management
+- SEO management
+- Write APIs for business content
+- Role/permission system beyond `is_admin`
 
 ## Phase 4A — What's NOT Included (yet)
 

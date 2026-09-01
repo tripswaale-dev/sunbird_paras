@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use App\Http\Responses\ApiResponse;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -71,6 +72,10 @@ class Handler extends ExceptionHandler
 
             if ($e instanceof AuthenticationException) {
                 return ApiResponse::error('Unauthenticated.', 401);
+            }
+
+            if ($e instanceof AuthorizationException) {
+                return ApiResponse::error('Forbidden.', 403);
             }
 
             if ($e instanceof HttpExceptionInterface) {

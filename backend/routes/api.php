@@ -1,5 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Api\Admin\PackageDetailController as AdminPackageDetailController;
+use App\Http\Controllers\Api\Admin\PackageController as AdminPackageController;
+use App\Http\Controllers\Api\Admin\SectionStatController as AdminSectionStatController;
+use App\Http\Controllers\Api\Admin\SectionCategoryController as AdminSectionCategoryController;
+use App\Http\Controllers\Api\Admin\SectionPackageController as AdminSectionPackageController;
+use App\Http\Controllers\Api\Admin\SectionController as AdminSectionController;
 use App\Http\Controllers\Api\PackageController;
 use App\Http\Controllers\Api\SectionController;
 use Illuminate\Http\Request;
@@ -30,6 +37,53 @@ Route::get('/sections/{section:slug}', [SectionController::class, 'show']);
 Route::get('/sections/{section:slug}/packages', [SectionController::class, 'packages']);
 Route::get('/packages', [PackageController::class, 'index']);
 Route::get('/packages/{package:slug}', [PackageController::class, 'show']);
+
+Route::post('/admin/login', [AdminAuthController::class, 'login'])
+    ->middleware('throttle:admin-login');
+
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('/me', [AdminAuthController::class, 'me']);
+    Route::post('/logout', [AdminAuthController::class, 'logout']);
+
+    Route::get('/sections/{section}/stats', [AdminSectionStatController::class, 'index'])->whereNumber('section');
+    Route::post('/sections/{section}/stats', [AdminSectionStatController::class, 'store'])->whereNumber('section');
+    Route::get('/sections/{section}/stats/{stat}', [AdminSectionStatController::class, 'show'])->whereNumber(['section', 'stat']);
+    Route::put('/sections/{section}/stats/{stat}', [AdminSectionStatController::class, 'update'])->whereNumber(['section', 'stat']);
+    Route::patch('/sections/{section}/stats/{stat}', [AdminSectionStatController::class, 'update'])->whereNumber(['section', 'stat']);
+    Route::delete('/sections/{section}/stats/{stat}', [AdminSectionStatController::class, 'destroy'])->whereNumber(['section', 'stat']);
+
+    Route::get('/sections/{section}/categories', [AdminSectionCategoryController::class, 'index'])->whereNumber('section');
+    Route::post('/sections/{section}/categories', [AdminSectionCategoryController::class, 'store'])->whereNumber('section');
+    Route::get('/sections/{section}/categories/{category}', [AdminSectionCategoryController::class, 'show'])->whereNumber(['section', 'category']);
+    Route::put('/sections/{section}/categories/{category}', [AdminSectionCategoryController::class, 'update'])->whereNumber(['section', 'category']);
+    Route::patch('/sections/{section}/categories/{category}', [AdminSectionCategoryController::class, 'update'])->whereNumber(['section', 'category']);
+    Route::delete('/sections/{section}/categories/{category}', [AdminSectionCategoryController::class, 'destroy'])->whereNumber(['section', 'category']);
+
+    Route::get('/sections/{section}/packages', [AdminSectionPackageController::class, 'index'])->whereNumber('section');
+    Route::post('/sections/{section}/packages', [AdminSectionPackageController::class, 'store'])->whereNumber('section');
+    Route::patch('/sections/{section}/packages/{package}', [AdminSectionPackageController::class, 'update'])->whereNumber(['section', 'package']);
+    Route::delete('/sections/{section}/packages/{package}', [AdminSectionPackageController::class, 'destroy'])->whereNumber(['section', 'package']);
+
+    Route::get('/sections', [AdminSectionController::class, 'index']);
+    Route::post('/sections', [AdminSectionController::class, 'store']);
+    Route::get('/sections/{id}', [AdminSectionController::class, 'show'])->whereNumber('id');
+    Route::put('/sections/{id}', [AdminSectionController::class, 'update'])->whereNumber('id');
+    Route::patch('/sections/{id}', [AdminSectionController::class, 'update'])->whereNumber('id');
+    Route::delete('/sections/{id}', [AdminSectionController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('/packages/{id}/detail', [AdminPackageDetailController::class, 'show'])->whereNumber('id');
+    Route::post('/packages/{id}/detail', [AdminPackageDetailController::class, 'store'])->whereNumber('id');
+    Route::put('/packages/{id}/detail', [AdminPackageDetailController::class, 'update'])->whereNumber('id');
+    Route::patch('/packages/{id}/detail', [AdminPackageDetailController::class, 'update'])->whereNumber('id');
+    Route::delete('/packages/{id}/detail', [AdminPackageDetailController::class, 'destroy'])->whereNumber('id');
+
+    Route::get('/packages', [AdminPackageController::class, 'index']);
+    Route::post('/packages', [AdminPackageController::class, 'store']);
+    Route::get('/packages/{id}', [AdminPackageController::class, 'show'])->whereNumber('id');
+    Route::put('/packages/{id}', [AdminPackageController::class, 'update'])->whereNumber('id');
+    Route::patch('/packages/{id}', [AdminPackageController::class, 'update'])->whereNumber('id');
+    Route::delete('/packages/{id}', [AdminPackageController::class, 'destroy'])->whereNumber('id');
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
