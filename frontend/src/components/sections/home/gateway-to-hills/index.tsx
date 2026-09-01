@@ -6,14 +6,17 @@ import { Section } from '@/components/common/Section';
 import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
 import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/section-header';
-import { hillDestinations } from '@/data/hill-destinations';
+import type { HillDestination } from '@/data/hill-destinations';
 
 // ===========================================
 // Gateway To Hills Section
 // ===========================================
 
+interface GatewayToHillsProps {
+  categories: HillDestination[];
+}
 
-export function GatewayToHills() {
+export function GatewayToHills({ categories }: GatewayToHillsProps) {
   return (
     <Section bg="bg-surface" animate={false}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] items-center gap-12 lg:gap-16">
@@ -35,7 +38,7 @@ export function GatewayToHills() {
 
           {/* Destination Grid */}
           <div className="grid grid-cols-2 gap-5 mt-10">
-            {hillDestinations.map((dest, index) => (
+            {categories.map((dest, index) => (
               <ImageOverlayCard
                 key={index}
                 title={dest.title}

@@ -28,11 +28,13 @@ The frontend reads section data from the Laravel API at `NEXT_PUBLIC_API_URL` (d
 | Sections | `src/lib/api/sections.ts` | Section fetch helpers |
 | Mappers | `src/lib/mappers/` | API → existing component prop shapes |
 
-**Currently dynamic:** Travel Your Way homepage section (`ChooseYourJourney`) — server-fetched on the homepage via `GET /api/sections/travel-your-way`, categories mapped to the existing `JourneyCategory` card shape (`title`, `category` ← `filter_value`, `image`). Card links remain `/travelyourway?category={filter_value}`.
+**Currently dynamic:**
 
-If the API is unavailable at build or request time, the section falls back to `src/data/journey-categories.ts` so the UI stays unchanged.
+- **Travel Your Way** (`ChooseYourJourney`) — `GET /api/sections/travel-your-way` → `JourneyCategory` (`title`, `category` ← `filter_value`, `image`). Links: `/travelyourway?category={filter_value}`. Fallback: `src/data/journey-categories.ts`.
+- **Across Boundaries** (`AcrossBoundaries`) — `GET /api/sections/across-boundaries` → `InternationalPackage` via reusable `mapPackageSummariesToPackageCards()` (`title`, `image`, formatted `price`, `location`, `duration` ← `duration.formatted`, `href` ← `/across-boundaries/{slug}`). Fallback: `src/data/international-packages.ts`.
+- **Gateway to the Hills** (`GatewayToHills`) — `GET /api/sections/gateway-to-the-hills` → `HillDestination` (`title`, `category` ← `filter_value`, `image`, `featured` ← `is_featured`). Links: `/gateway-to-the-hills?category={filter_value}`. Right hero image and `SectionHeader` copy remain hardcoded. Fallback: `src/data/hill-destinations.ts`.
 
-**Not yet dynamic:** `/travelyourway` listing page and all other homepage sections still use static data files.
+**Not yet dynamic:** listing pages (`/travelyourway`, `/gateway-to-the-hills`, `/across-boundaries`) and remaining homepage carousel sections still use static data files.
 
 Responses are cached for 5 minutes (`revalidate: 300`) via Next.js fetch.
 

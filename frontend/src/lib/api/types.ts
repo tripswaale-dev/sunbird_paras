@@ -10,6 +10,30 @@ export interface ApiErrorResponse {
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
+export interface PackageDuration {
+  nights: number;
+  days: number;
+  formatted: string;
+  short: string;
+}
+
+export interface PackageSummary {
+  id: number;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  location: string;
+  price: number;
+  duration: PackageDuration;
+  category: string;
+  tag: string | null;
+  image: string;
+  pax: number | null;
+  display_order?: number;
+  is_featured?: boolean;
+  inclusions?: string[];
+}
+
 export interface SectionCategory {
   id: number;
   title: string;
@@ -37,5 +61,5 @@ export interface SectionDetail {
   seo: SectionSeo;
   categories: SectionCategory[];
   stats: unknown[];
-  packages: unknown[];
+  packages: PackageSummary[];
 }

@@ -1,6 +1,16 @@
 import { apiGet } from '@/lib/api/client';
 import type { SectionDetail } from '@/lib/api/types';
+import { mapSectionCategoriesToHillDestinations } from '@/lib/mappers/hill-destinations';
 import { mapSectionCategoriesToJourneyCategories } from '@/lib/mappers/journey-categories';
+import { mapPackageSummariesToPackageCards } from '@/lib/mappers/package-cards';
+import {
+  internationalPackages,
+  type InternationalPackage,
+} from '@/data/international-packages';
+import {
+  hillDestinations,
+  type HillDestination,
+} from '@/data/hill-destinations';
 import {
   journeyCategories,
   type JourneyCategory,
@@ -28,5 +38,50 @@ export async function getTravelYourWayCategories(): Promise<JourneyCategory[]> {
     }
 
     return journeyCategories;
+  }
+}
+
+export async function getGatewayToHillsCategories(): Promise<HillDestination[]> {
+  try {
+    const section = await fetchSection('gateway-to-the-hills');
+
+    if (!section.categories.length) {
+      return hillDestinations;
+    }
+
+    return mapSectionCategoriesToHillDestinations(section.categories);
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        'Failed to fetch gateway-to-the-hills categories; using static fallback.',
+        error
+      );
+    }
+
+    return hillDestinations;
+  }
+}
+
+export async function getAcrossBoundariesPackages(): Promise<InternationalPackage[]> {
+  try {
+    const section = await fetchSection('across-boundaries');
+
+    if (!section.packages.length) {
+      return internationalPackages;
+    }
+
+    return mapPackageSummariesToPackageCards(
+      section.packages,
+      '/across-boundaries'
+    );
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        'Failed to fetch across-boundaries packages; using static fallback.',
+        error
+      );
+    }
+
+    return internationalPackages;
   }
 }

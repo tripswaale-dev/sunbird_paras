@@ -6,18 +6,21 @@ import { SectionHeader } from '@/components/ui/section-header';
 import { Carousel } from '@/components/common/Carousel';
 import { PackageCard } from '@/components/common/PackageCard';
 import { Button } from '@/components/ui/button';
-import { internationalPackages } from '@/data/international-packages';
+import type { InternationalPackage } from '@/data/international-packages';
 
 // ===========================================
 // Across Boundaries Section
 // ===========================================
 
+interface AcrossBoundariesProps {
+  packages: InternationalPackage[];
+}
 
-export function AcrossBoundaries() {
+export function AcrossBoundaries({ packages }: AcrossBoundariesProps) {
   return (
     <Section>
       <Carousel
-        items={internationalPackages}
+        items={packages}
         visibleCount={3}
         getKey={(pkg, i) => `${pkg.title}-${i}`}
         renderHeader={() => (

@@ -1,4 +1,11 @@
-export const hillDestinations = [
+export interface HillDestination {
+  title: string;
+  category: string;
+  image: string;
+  featured?: boolean;
+}
+
+export const hillDestinations: HillDestination[] = [
   {
     title: "Northern Himalayas",
     category: "Northern Himalayas",

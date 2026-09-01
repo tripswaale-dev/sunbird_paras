@@ -7,18 +7,27 @@ import { BestOfIndia } from '@/components/sections/home/best-of-india';
 import { CustomerPromise } from '@/components/sections/home/customer-promise';
 import { SpiritualDestinations } from '@/components/sections/home/spiritual-destinations';
 import { ExploreWildIndia } from '@/components/sections/home/explore-wild-india';
-import { getTravelYourWayCategories } from '@/lib/api/sections';
+import {
+  getAcrossBoundariesPackages,
+  getGatewayToHillsCategories,
+  getTravelYourWayCategories,
+} from '@/lib/api/sections';
 
 export default async function Home() {
-  const travelYourWayCategories = await getTravelYourWayCategories();
+  const [travelYourWayCategories, acrossBoundariesPackages, gatewayToHillsCategories] =
+    await Promise.all([
+      getTravelYourWayCategories(),
+      getAcrossBoundariesPackages(),
+      getGatewayToHillsCategories(),
+    ]);
 
   return (
     <>
       <Hero />
       <PopularDestinations />
       <ChooseYourJourney categories={travelYourWayCategories} />
-      <AcrossBoundaries />
-      <GatewayToHills />
+      <AcrossBoundaries packages={acrossBoundariesPackages} />
+      <GatewayToHills categories={gatewayToHillsCategories} />
       <BestOfIndia />
       <CustomerPromise />
       <SpiritualDestinations />

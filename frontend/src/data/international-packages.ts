@@ -1,4 +1,15 @@
-export const internationalPackages = [
+export interface InternationalPackage {
+  title: string;
+  image: string;
+  price: string;
+  location: string;
+  duration: string;
+  href: string;
+  rating?: number;
+  reviews?: number;
+}
+
+export const internationalPackages: InternationalPackage[] = [
   {
     title: "Mesmerizing Sri Lanka",
     image: "/images/international/srilanka.jpg",
