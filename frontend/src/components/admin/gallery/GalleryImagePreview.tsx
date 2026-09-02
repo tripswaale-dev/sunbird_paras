@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { resolvePublicImageSrc } from '@/lib/media';
 import { cn } from '@/lib/utils';
 
 interface GalleryImagePreviewProps {
@@ -23,8 +24,24 @@ export function GalleryImagePreview({
 }: GalleryImagePreviewProps) {
   const [hasError, setHasError] = useState(false);
 
-  if (!src.trim()) {
-    return null;
+  useEffect(() => {
+    setHasError(false);
+  }, [src]);
+
+  const previewSrc = resolvePublicImageSrc(src);
+
+  if (!previewSrc) {
+    return (
+      <div
+        className={cn(
+          'flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-xs text-gray-500',
+          sizeClasses[size],
+          className
+        )}
+      >
+        No image
+      </div>
+    );
   }
 
   if (hasError) {
@@ -43,7 +60,7 @@ export function GalleryImagePreview({
 
   return (
     <img
-      src={src}
+      src={previewSrc}
       alt={alt}
       onError={() => setHasError(true)}
       className={cn(

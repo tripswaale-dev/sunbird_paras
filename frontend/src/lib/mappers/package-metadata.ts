@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { PackageDetailResponse } from '@/lib/api/types';
 import type { Package } from '@/types/package';
+import { resolveAbsoluteImageSrc } from '@/lib/media';
 
 function truncateDescription(text: string, maxLength = 160): string {
   if (text.length <= maxLength) {
@@ -12,20 +13,20 @@ function truncateDescription(text: string, maxLength = 160): string {
 
 function resolveOpenGraphImage(data: PackageDetailResponse): string | undefined {
   if (data.seo.og_image) {
-    return data.seo.og_image;
+    return resolveAbsoluteImageSrc(data.seo.og_image);
   }
 
   const galleryImage = data.images?.gallery?.[0]?.path;
   if (galleryImage) {
-    return galleryImage;
+    return resolveAbsoluteImageSrc(galleryImage);
   }
 
   const heroImage = data.images?.hero?.[0]?.path;
   if (heroImage) {
-    return heroImage;
+    return resolveAbsoluteImageSrc(heroImage);
   }
 
-  return data.image || undefined;
+  return data.image ? resolveAbsoluteImageSrc(data.image) : undefined;
 }
 
 function buildTitleMetadata(title: string): Metadata['title'] {

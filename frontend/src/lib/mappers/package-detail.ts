@@ -1,13 +1,14 @@
 import type { Package } from '@/types/package';
 import type { PackageDetailResponse } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 function mapImagePaths(
   images: PackageDetailResponse['images'] | undefined,
   fallbackImage: string
 ): { heroImages: string[]; gallery: string[] } {
-  const heroPaths = (images?.hero ?? []).map((image) => image.path);
-  const galleryPaths = (images?.gallery ?? []).map((image) => image.path);
-  const fallback = fallbackImage ? [fallbackImage] : [];
+  const heroPaths = (images?.hero ?? []).map((image) => resolvePublicImageSrc(image.path));
+  const galleryPaths = (images?.gallery ?? []).map((image) => resolvePublicImageSrc(image.path));
+  const fallback = fallbackImage ? [resolvePublicImageSrc(fallbackImage)] : [];
 
   const gallery =
     galleryPaths.length > 0
@@ -47,7 +48,7 @@ export function mapPackageDetailToPackage(data: PackageDetailResponse): Package 
         description: day.description,
         stayInformation: day.stay_information ?? undefined,
         notes: day.notes ?? undefined,
-        images: day.images?.length ? day.images : undefined,
+        images: day.images?.length ? day.images.map((image) => resolvePublicImageSrc(image)) : undefined,
       })),
     sightseeing: detail?.sightseeing ?? [],
     inclusions: detail?.inclusions ?? [],

@@ -1,5 +1,6 @@
 import type { JourneyCategory } from '@/data/journey-categories';
 import type { SectionCategory } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export function mapSectionCategoriesToJourneyCategories(
   categories: SectionCategory[]
@@ -9,6 +10,6 @@ export function mapSectionCategoriesToJourneyCategories(
     .map((category) => ({
       title: category.title,
       category: category.filter_value ?? category.title,
-      image: category.image ?? '',
+      image: resolvePublicImageSrc(category.image),
     }));
 }

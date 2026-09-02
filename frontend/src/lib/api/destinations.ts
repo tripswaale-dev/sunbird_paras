@@ -1,5 +1,6 @@
 import { apiGet } from '@/lib/api/client';
 import type { DestinationsHubResponse } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 import { mapPackageSummariesToTravelPackages } from '@/lib/mappers/travel-packages';
 import {
   getStaticDestinationsHub,
@@ -20,7 +21,7 @@ export async function getDestinationsHub(category?: string): Promise<Destination
     return {
       categories: data.categories,
       activeCategory: data.activeCategory,
-      heroImage: data.heroImage,
+      heroImage: resolvePublicImageSrc(data.heroImage),
       heroTitle: data.heroTitle,
       heroSubtitle: data.heroSubtitle,
       listingPath: data.listingPath,

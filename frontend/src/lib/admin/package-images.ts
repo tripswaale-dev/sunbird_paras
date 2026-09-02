@@ -67,6 +67,46 @@ export function createPackageImage(
   );
 }
 
+export function getNextPackageImageSortOrders(
+  existing: AdminPackageImage[],
+  count: number
+): number[] {
+  const maxSortOrder = existing.reduce(
+    (max, image) => Math.max(max, image.sort_order),
+    -1
+  );
+
+  return Array.from({ length: count }, (_, index) => maxSortOrder + 1 + index);
+}
+
+export interface CreatePackageImagesResult {
+  created: AdminPackageImage[];
+  failed: Array<{ payload: PackageImageApiPayload; message: string }>;
+}
+
+export async function createPackageImages(
+  packageId: number | string,
+  payloads: PackageImageApiPayload[]
+): Promise<CreatePackageImagesResult> {
+  const created: AdminPackageImage[] = [];
+  const failed: CreatePackageImagesResult['failed'] = [];
+
+  for (const payload of payloads) {
+    try {
+      const image = await createPackageImage(packageId, payload);
+      created.push(image);
+    } catch (error) {
+      failed.push({
+        payload,
+        message:
+          error instanceof Error ? error.message : 'Unable to add image. Please try again.',
+      });
+    }
+  }
+
+  return { created, failed };
+}
+
 export function updatePackageImage(
   packageId: number | string,
   imageId: number | string,

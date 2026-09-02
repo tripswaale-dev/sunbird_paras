@@ -16,7 +16,7 @@ import {
   updatePageSeo,
   type PageSeoKey,
 } from '@/lib/admin/page-seo';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -35,6 +35,7 @@ export function PageSeoForm({ pageKey, defaultValues }: PageSeoFormProps) {
     register,
     handleSubmit,
     watch,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<PageSeoFormValues>({
@@ -121,17 +122,13 @@ export function PageSeoForm({ pageKey, defaultValues }: PageSeoFormProps) {
             error={errors.canonical_url?.message}
             {...register('canonical_url')}
           />
-          <div className="space-y-3">
-            <Input
-              label="OG image path or URL"
-              placeholder="/images/..."
-              error={errors.og_image?.message}
-              {...register('og_image')}
-            />
-            {ogImage?.trim() ? (
-              <GalleryImagePreview src={ogImage} alt="OG image preview" size="md" />
-            ) : null}
-          </div>
+          <ImageUploadField
+            label="OG image"
+            value={ogImage ?? ''}
+            onChange={(path) => setValue('og_image', path, { shouldDirty: true, shouldValidate: true })}
+            error={errors.og_image?.message}
+            previewAlt="OG image preview"
+          />
           <label className="flex items-start gap-3">
             <input
               type="checkbox"

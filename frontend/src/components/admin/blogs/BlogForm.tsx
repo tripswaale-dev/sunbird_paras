@@ -16,6 +16,7 @@ import {
   blogFormSchema,
   type BlogFormValues,
 } from '@/lib/admin/blog-form-schema';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { BlogDeleteButton } from '@/components/admin/blogs/BlogDeleteButton';
 import { AccordionItem } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,8 @@ export function BlogForm({ mode, defaultValues, blogId }: BlogFormProps) {
 
   const isActive = watch('is_active');
   const slug = watch('slug');
+  const image = watch('image');
+  const ogImage = watch('og_image');
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
@@ -173,10 +176,12 @@ export function BlogForm({ mode, defaultValues, blogId }: BlogFormProps) {
             <Input label="Category" error={errors.category?.message} {...register('category')} />
           </div>
 
-          <Input
-            label="Image path or URL"
+          <ImageUploadField
+            label="Blog image"
+            value={image ?? ''}
+            onChange={(path) => setValue('image', path, { shouldDirty: true, shouldValidate: true })}
             error={errors.image?.message}
-            {...register('image')}
+            previewAlt={watch('title') || 'Blog preview'}
           />
 
           <div className="grid gap-5 sm:grid-cols-2">
@@ -230,10 +235,12 @@ export function BlogForm({ mode, defaultValues, blogId }: BlogFormProps) {
               error={errors.canonical_url?.message}
               {...register('canonical_url')}
             />
-            <Input
-              label="OG image path or URL"
+            <ImageUploadField
+              label="OG image"
+              value={ogImage ?? ''}
+              onChange={(path) => setValue('og_image', path, { shouldDirty: true, shouldValidate: true })}
               error={errors.og_image?.message}
-              {...register('og_image')}
+              previewAlt="OG image preview"
             />
             <label className="flex items-start gap-3">
               <input

@@ -1,5 +1,6 @@
 import type { Blog } from '@/data/blogsData';
 import type { BlogDetail, BlogSummary } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 function mapBlogSummaryToBlog(summary: BlogSummary): Omit<Blog, 'content'> {
   return {
@@ -10,7 +11,7 @@ function mapBlogSummaryToBlog(summary: BlogSummary): Omit<Blog, 'content'> {
     author: summary.author,
     date: summary.date,
     category: summary.category,
-    image: summary.image,
+    image: resolvePublicImageSrc(summary.image),
     readTime: summary.readTime,
   };
 }

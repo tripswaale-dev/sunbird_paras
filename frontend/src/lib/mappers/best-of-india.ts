@@ -1,5 +1,6 @@
 import type { BestOfIndiaDestination } from '@/data/best-of-india';
 import type { PackageSummary } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export function mapPackageSummariesToBestOfIndiaDestinations(
   packages: PackageSummary[]
@@ -10,7 +11,7 @@ export function mapPackageSummariesToBestOfIndiaDestinations(
       title: pkg.title,
       subtitle: `Starts at ₹${pkg.price.toLocaleString('en-IN')}`,
       duration: pkg.duration.short,
-      image: pkg.image,
+      image: resolvePublicImageSrc(pkg.image),
       href: `/packages/${pkg.slug}`,
     }));
 }

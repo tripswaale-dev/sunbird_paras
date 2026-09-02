@@ -156,6 +156,30 @@ export function adminApiPost<T, B = unknown>(
   return adminApiRequest<T>('POST', path, body, init);
 }
 
+export async function adminApiUpload<T>(path: string, file: File): Promise<T> {
+  const token = getAdminToken();
+
+  if (!token) {
+    clearAdminToken();
+    throw new ApiError('Not authenticated.', 401);
+  }
+
+  const body = new FormData();
+  body.append('file', file);
+
+  const response = await fetch(buildUrl(path), {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body,
+    cache: 'no-store',
+  });
+
+  return parseAdminResponse<T>(response);
+}
+
 export function adminApiPut<T, B = unknown>(
   path: string,
   body: B,

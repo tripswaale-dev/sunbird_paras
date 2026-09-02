@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { SectionDetail } from '@/lib/api/types';
+import { resolveAbsoluteImageSrc } from '@/lib/media';
 
 export interface StaticListingMetadataFallback {
   title: string;
@@ -12,10 +13,10 @@ function buildTitleMetadata(title: string): Metadata['title'] {
 
 function resolveOpenGraphImage(section: SectionDetail): string | undefined {
   if (section.seo.og_image) {
-    return section.seo.og_image;
+    return resolveAbsoluteImageSrc(section.seo.og_image);
   }
 
-  return section.hero_image ?? undefined;
+  return section.hero_image ? resolveAbsoluteImageSrc(section.hero_image) : undefined;
 }
 
 export function mapSectionDetailToMetadata(

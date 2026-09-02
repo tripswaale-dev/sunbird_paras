@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { Blog } from '@/data/blogsData';
 import type { BlogDetail, BlogSeo } from '@/lib/api/types';
+import { resolveAbsoluteImageSrc } from '@/lib/media';
 
 function truncateDescription(text: string, maxLength = 160): string {
   if (text.length <= maxLength) {
@@ -38,7 +39,7 @@ export function mapBlogDetailToMetadata(detail: BlogDetail): Metadata {
     };
   }
 
-  const openGraphImage = detail.seo.og_image ?? detail.image;
+  const openGraphImage = resolveAbsoluteImageSrc(detail.seo.og_image ?? detail.image);
   if (openGraphImage) {
     metadata.openGraph = {
       ...metadata.openGraph,
@@ -95,7 +96,7 @@ export function mapPageSeoToMetadata(
     };
   }
 
-  const openGraphImage = data.seo.og_image ?? ogImageFallback;
+  const openGraphImage = resolveAbsoluteImageSrc(data.seo.og_image ?? ogImageFallback);
   if (openGraphImage) {
     metadata.openGraph = {
       ...metadata.openGraph,

@@ -17,7 +17,7 @@ import {
   type AdminDestinationCategory,
   type DestinationCategoryCode,
 } from '@/lib/admin/destination-categories';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -40,6 +40,7 @@ export function DestinationCategoryForm({
     register,
     handleSubmit,
     watch,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<DestinationCategoryFormValues>({
@@ -146,17 +147,13 @@ export function DestinationCategoryForm({
         <div className="grid gap-5">
           <Input label="Title" error={errors.title?.message} {...register('title')} />
 
-          <div className="space-y-3">
-            <Input
-              label="Hero image path or URL"
-              placeholder="/images/..."
-              error={errors.hero_image?.message}
-              {...register('hero_image')}
-            />
-            {heroImage?.trim() ? (
-              <GalleryImagePreview src={heroImage} alt="Hero image preview" size="md" />
-            ) : null}
-          </div>
+          <ImageUploadField
+            label="Hero image"
+            value={heroImage ?? ''}
+            onChange={(path) => setValue('hero_image', path, { shouldDirty: true, shouldValidate: true })}
+            error={errors.hero_image?.message}
+            previewAlt="Hero image preview"
+          />
 
           <Input
             label="Hero title"

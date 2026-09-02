@@ -21,6 +21,7 @@ import {
   type AdminPackageItineraryDay,
 } from '@/lib/admin/package-itinerary';
 import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -53,17 +54,24 @@ function ImagePathsEditor({ form }: { form: UseFormReturn<PackageItineraryFormVa
       <div className="flex items-center justify-between gap-3">
         <h4 className="text-sm font-semibold text-gray-900">Images</h4>
         <Button type="button" variant="outline" size="sm" className="rounded-lg" onClick={addImagePath}>
-          Add image path
+          Add image
         </Button>
       </div>
-      <div className="space-y-2">
-        {images.map((_, index) => (
-          <div key={index} className="flex gap-2">
-            <Input
-              className="flex-1"
-              placeholder="/images/..."
-              {...form.register(`images.${index}` as Path<PackageItineraryFormValues>)}
-            />
+      <div className="space-y-4">
+        {images.map((imagePath, index) => (
+          <div key={index} className="flex flex-col gap-3 rounded-xl border border-gray-100 p-3 sm:flex-row sm:items-start">
+            <div className="min-w-0 flex-1">
+              <ImageUploadField
+                label={`Image ${index + 1}`}
+                value={imagePath}
+                onChange={(path) => {
+                  const next = [...images];
+                  next[index] = path;
+                  form.setValue('images', next, { shouldDirty: true, shouldValidate: true });
+                }}
+                previewAlt={`Itinerary image ${index + 1}`}
+              />
+            </div>
             <Button
               type="button"
               variant="outline"

@@ -2,9 +2,15 @@ import { apiGet } from '@/lib/api/client';
 import type { PageContentResponse } from '@/lib/api/types';
 import { aboutPageContent } from '@/data/about';
 import { contactPageContent } from '@/data/contact';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export async function fetchPageContent(pageKey: string): Promise<PageContentResponse> {
-  return apiGet<PageContentResponse>(`/page-content/${pageKey}`);
+  const data = await apiGet<PageContentResponse>(`/page-content/${pageKey}`);
+
+  return {
+    ...data,
+    heroImage: resolvePublicImageSrc(data.heroImage),
+  };
 }
 
 export async function getPageContent(

@@ -1,1 +1,1 @@
-export { getApiBaseUrl } from '@/lib/api/config';
+export { getApiBaseUrl, getApiOrigin } from '@/lib/api/config';

@@ -18,8 +18,8 @@ import {
   toGalleryItemPayload,
   updateGalleryItem,
 } from '@/lib/admin/gallery-items';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
 import { GalleryItemDeleteButton } from '@/components/admin/gallery/GalleryItemDeleteButton';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -158,14 +158,13 @@ export function GalleryItemForm({ mode, defaultValues, itemId }: GalleryItemForm
 
           <Input label="Subtitle" error={errors.subtitle?.message} {...register('subtitle')} />
 
-          <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-            <Input
-              label="Image path or URL"
-              error={errors.src?.message}
-              {...register('src')}
-            />
-            <GalleryImagePreview src={src} alt={title || 'Gallery preview'} size="md" />
-          </div>
+          <ImageUploadField
+            label="Image"
+            value={src ?? ''}
+            onChange={(path) => setValue('src', path, { shouldDirty: true, shouldValidate: true })}
+            error={errors.src?.message}
+            previewAlt={title || 'Gallery preview'}
+          />
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div>

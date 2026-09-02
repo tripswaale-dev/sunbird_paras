@@ -1,5 +1,6 @@
 import type { HillDestination } from '@/data/hill-destinations';
 import type { SectionCategory } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export function mapSectionCategoriesToHillDestinations(
   categories: SectionCategory[]
@@ -9,7 +10,7 @@ export function mapSectionCategoriesToHillDestinations(
     .map((category) => ({
       title: category.title,
       category: category.filter_value ?? category.title,
-      image: category.image ?? '',
+      image: resolvePublicImageSrc(category.image),
       ...(category.is_featured ? { featured: true } : {}),
     }));
 }

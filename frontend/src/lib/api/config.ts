@@ -3,3 +3,7 @@ export function getApiBaseUrl(): string {
 
   return baseUrl.replace(/\/$/, '');
 }
+
+export function getApiOrigin(): string {
+  return getApiBaseUrl().replace(/\/api\/?$/, '');
+}

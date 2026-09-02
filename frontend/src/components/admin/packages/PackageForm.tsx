@@ -16,7 +16,7 @@ import {
   packageFormSchema,
   type PackageFormValues,
 } from '@/lib/admin/package-form-schema';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { PackageDeleteButton } from '@/components/admin/packages/PackageDeleteButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -193,16 +193,13 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
             <Input label="Tag" error={errors.tag?.message} {...register('tag')} />
           </div>
 
-          <div className="space-y-3">
-            <Input
-              label="Image path or URL"
-              error={errors.image?.message}
-              {...register('image')}
-            />
-            {image ? (
-              <GalleryImagePreview src={image} alt={title || 'Package preview'} size="md" />
-            ) : null}
-          </div>
+          <ImageUploadField
+            label="Package image"
+            value={image ?? ''}
+            onChange={(path) => setValue('image', path, { shouldDirty: true, shouldValidate: true })}
+            error={errors.image?.message}
+            previewAlt={title || 'Package preview'}
+          />
 
           <label className="flex items-start gap-3">
             <input

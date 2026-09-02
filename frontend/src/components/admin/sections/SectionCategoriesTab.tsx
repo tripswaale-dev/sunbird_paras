@@ -19,7 +19,7 @@ import {
   updateSectionCategory,
   type AdminSectionCategory,
 } from '@/lib/admin/section-categories';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -369,6 +369,7 @@ interface CategoryFormFieldsProps {
 function CategoryFormFields({ form, imageValue }: CategoryFormFieldsProps) {
   const {
     register,
+    setValue,
     formState: { errors },
   } = form;
 
@@ -383,11 +384,14 @@ function CategoryFormFields({ form, imageValue }: CategoryFormFieldsProps) {
         />
         <p className="mt-1 text-xs text-gray-500">Leave empty for the &quot;All&quot; tab.</p>
       </div>
-      <div className="space-y-3 sm:col-span-2">
-        <Input label="Image path or URL" error={errors.image?.message} {...register('image')} />
-        {imageValue?.trim() ? (
-          <GalleryImagePreview src={imageValue} alt="Category image preview" size="md" />
-        ) : null}
+      <div className="sm:col-span-2">
+        <ImageUploadField
+          label="Image"
+          value={imageValue ?? ''}
+          onChange={(path) => setValue('image', path, { shouldDirty: true, shouldValidate: true })}
+          error={errors.image?.message}
+          previewAlt="Category image preview"
+        />
       </div>
       <Input
         label="Sort order"

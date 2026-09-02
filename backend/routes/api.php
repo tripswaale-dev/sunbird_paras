@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Admin\CustomerPromiseItemController as AdminCustomerPromiseItemController;
+use App\Http\Controllers\Api\Admin\MediaController as AdminMediaController;
 use App\Http\Controllers\Api\Admin\HomepageHeroController as AdminHomepageHeroController;
 use App\Http\Controllers\Api\Admin\DestinationCategoryController as AdminDestinationCategoryController;
 use App\Http\Controllers\Api\Admin\ContactInquiryController as AdminContactInquiryController;
@@ -79,6 +80,7 @@ Route::post('/admin/login', [AdminAuthController::class, 'login'])
 Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
     Route::get('/me', [AdminAuthController::class, 'me']);
     Route::post('/logout', [AdminAuthController::class, 'logout']);
+    Route::post('/media', [AdminMediaController::class, 'store'])->middleware('throttle:20,1');
 
     Route::get('/sections/{section}/stats', [AdminSectionStatController::class, 'index'])->whereNumber('section');
     Route::post('/sections/{section}/stats', [AdminSectionStatController::class, 'store'])->whereNumber('section');

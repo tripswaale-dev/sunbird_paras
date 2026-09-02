@@ -16,7 +16,7 @@ import {
   toSectionPayload,
   updateSection,
 } from '@/lib/admin/sections';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { SectionDeleteButton } from '@/components/admin/sections/SectionDeleteButton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -164,16 +164,13 @@ export function SectionForm({ mode, defaultValues, sectionId, viewAllPath }: Sec
             {...register('view_all_path')}
           />
 
-          <div className="space-y-3">
-            <Input
-              label="Hero image path or URL"
-              error={errors.hero_image?.message}
-              {...register('hero_image')}
-            />
-            {heroImage ? (
-              <GalleryImagePreview src={heroImage} alt={title || 'Hero preview'} size="md" />
-            ) : null}
-          </div>
+          <ImageUploadField
+            label="Hero image"
+            value={heroImage ?? ''}
+            onChange={(path) => setValue('hero_image', path, { shouldDirty: true, shouldValidate: true })}
+            error={errors.hero_image?.message}
+            previewAlt={title || 'Hero preview'}
+          />
 
           <Input
             label="Sort order"

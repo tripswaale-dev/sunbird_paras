@@ -1,5 +1,6 @@
 import type { TravelPackage } from '@/data/travelPackages';
 import type { PackageSummary } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export function mapPackageSummariesToTravelPackages(
   packages: PackageSummary[]
@@ -13,7 +14,7 @@ export function mapPackageSummariesToTravelPackages(
       duration: pkg.duration.formatted,
       price: pkg.price,
       pax: pkg.pax ?? 2,
-      image: pkg.image,
+      image: resolvePublicImageSrc(pkg.image),
       amenities: pkg.inclusions ?? [],
     }));
 }

@@ -1,5 +1,6 @@
 import type { PopularDestination, PopularStat } from '@/data/popular-destinations';
 import type { PackageSummary, SectionStat } from '@/lib/api/types';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export function mapPackageSummariesToPopularDestinations(
   packages: PackageSummary[]
@@ -10,7 +11,7 @@ export function mapPackageSummariesToPopularDestinations(
       name: pkg.title,
       location: `Starts at ₹${pkg.price.toLocaleString('en-IN')}`,
       duration: pkg.duration.short,
-      imageSrc: pkg.image,
+      imageSrc: resolvePublicImageSrc(pkg.image),
       href: `/packages/${pkg.slug}`,
     }));
 }

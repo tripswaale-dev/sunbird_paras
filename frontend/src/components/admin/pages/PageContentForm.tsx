@@ -18,7 +18,7 @@ import {
   updatePageContent,
   type PageContentKey,
 } from '@/lib/admin/page-content';
-import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -37,6 +37,7 @@ export function PageContentForm({ pageKey, defaultValues }: PageContentFormProps
     register,
     handleSubmit,
     watch,
+    setValue,
     setError,
     formState: { errors, isSubmitting },
   } = useForm<PageContentFormValues>({
@@ -120,17 +121,13 @@ export function PageContentForm({ pageKey, defaultValues }: PageContentFormProps
 
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div className="grid gap-5">
-          <div className="space-y-3">
-            <Input
-              label="Hero image path or URL"
-              placeholder="/images/..."
-              error={errors.hero_image?.message}
-              {...register('hero_image')}
-            />
-            {heroImage?.trim() ? (
-              <GalleryImagePreview src={heroImage} alt="Hero image preview" size="md" />
-            ) : null}
-          </div>
+          <ImageUploadField
+            label="Hero image"
+            value={heroImage ?? ''}
+            onChange={(path) => setValue('hero_image', path, { shouldDirty: true, shouldValidate: true })}
+            error={errors.hero_image?.message}
+            previewAlt="Hero image preview"
+          />
 
           <Input
             label="Hero title"

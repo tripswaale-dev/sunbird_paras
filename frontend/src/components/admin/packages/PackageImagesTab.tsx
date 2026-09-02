@@ -10,15 +10,19 @@ import {
 } from '@/lib/admin/package-image-form-schema';
 import {
   adminPackageImageToFormValues,
-  createPackageImage,
+  createPackageImages,
   deletePackageImage,
   getDefaultPackageImageFormValues,
+  getNextPackageImageSortOrders,
   getPackageImages,
   toPackageImagePayload,
   updatePackageImage,
   type AdminPackageImage,
+  type PackageImageType,
 } from '@/lib/admin/package-images';
 import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
+import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { MultiImageUploadField } from '@/components/admin/MultiImageUploadField';
 import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +31,11 @@ import { cn } from '@/lib/utils';
 interface PackageImagesTabProps {
   packageId: number;
   onSaved: (key: PackageContentSavedKey) => void;
+}
+
+interface PackageImageAddFormValues {
+  type: PackageImageType;
+  alt_text: string;
 }
 
 function sortImages(images: AdminPackageImage[]): AdminPackageImage[] {
@@ -39,6 +48,13 @@ function sortImages(images: AdminPackageImage[]): AdminPackageImage[] {
   });
 }
 
+function getDefaultAddFormValues(): PackageImageAddFormValues {
+  return {
+    type: 'gallery',
+    alt_text: '',
+  };
+}
+
 export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) {
   const [images, setImages] = useState<AdminPackageImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,16 +62,17 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
   const [editingId, setEditingId] = useState<number | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const [pendingPaths, setPendingPaths] = useState<string[]>([]);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const addForm = useForm<PackageImageFormValues>({
-    defaultValues: getDefaultPackageImageFormValues(),
+  const addForm = useForm<PackageImageAddFormValues>({
+    defaultValues: getDefaultAddFormValues(),
   });
 
   const editForm = useForm<PackageImageFormValues>({
     defaultValues: getDefaultPackageImageFormValues(),
   });
 
-  const addPath = addForm.watch('path');
   const editPath = editForm.watch('path');
 
   const loadImages = useCallback(async () => {
@@ -81,43 +98,56 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
     void loadImages();
   }, [loadImages]);
 
-  const onAddSubmit = addForm.handleSubmit(async (values) => {
+  async function handleAddImages(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setFormError(null);
 
-    const parsed = packageImageFormSchema.safeParse(values);
-
-    if (!parsed.success) {
-      for (const issue of parsed.error.issues) {
-        const field = issue.path[0];
-
-        if (typeof field === 'string') {
-          addForm.setError(field as keyof PackageImageFormValues, {
-            message: issue.message,
-          });
-        }
-      }
-
+    if (pendingPaths.length === 0) {
+      setFormError('Upload at least one image.');
       return;
     }
 
-    try {
-      const created = await createPackageImage(packageId, toPackageImagePayload(parsed.data));
-      addForm.reset(getDefaultPackageImageFormValues());
-      setImages((current) => sortImages([...current, created]));
-      onSaved('image');
-    } catch (error) {
-      if (error instanceof ApiError) {
-        if (error.status === 422) {
-          applyApiErrors(addForm.setError, error);
-        }
+    const values = addForm.getValues();
+    const sortOrders = getNextPackageImageSortOrders(images, pendingPaths.length);
+    const altText = values.alt_text.trim() || null;
 
-        setFormError(error.message);
+    const payloads = pendingPaths.map((path, index) => ({
+      path,
+      type: values.type,
+      alt_text: altText,
+      sort_order: sortOrders[index],
+    }));
+
+    setIsAdding(true);
+
+    try {
+      const { created, failed } = await createPackageImages(packageId, payloads);
+
+      if (created.length > 0) {
+        setImages((current) => sortImages([...current, ...created]));
+        onSaved('image');
+      }
+
+      if (failed.length > 0) {
+        setPendingPaths(failed.map((item) => item.payload.path));
+        setFormError(
+          `Could not add ${failed.length} image(s): ${failed.map((item) => item.payload.path).join(', ')}`
+        );
         return;
       }
 
-      setFormError('Unable to add image. Please try again.');
+      setPendingPaths([]);
+      addForm.reset(getDefaultAddFormValues());
+    } catch (error) {
+      setFormError(
+        error instanceof ApiError
+          ? error.message
+          : 'Unable to add images. Please try again.'
+      );
+    } finally {
+      setIsAdding(false);
     }
-  });
+  }
 
   function startEdit(image: AdminPackageImage) {
     setEditingId(image.id);
@@ -231,6 +261,8 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
     );
   }
 
+  const pendingCount = pendingPaths.length;
+
   return (
     <div className="space-y-6">
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
@@ -317,11 +349,17 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
           ) : null}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Input
-              label="Path"
-              error={editForm.formState.errors.path?.message}
-              {...editForm.register('path')}
-            />
+            <div className="sm:col-span-2">
+              <ImageUploadField
+                label="Image"
+                value={editPath ?? ''}
+                onChange={(path) =>
+                  editForm.setValue('path', path, { shouldDirty: true, shouldValidate: true })
+                }
+                error={editForm.formState.errors.path?.message}
+                previewAlt="Edit preview"
+              />
+            </div>
             <div>
               <label htmlFor="edit-image-type" className="mb-1.5 block text-sm font-medium text-gray-700">
                 Type
@@ -349,12 +387,6 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
             />
           </div>
 
-          {editPath ? (
-            <div className="mt-4">
-              <GalleryImagePreview src={editPath} alt="Edit preview" size="md" />
-            </div>
-          ) : null}
-
           <div className="mt-4 flex gap-3">
             <Button type="submit" className="rounded-lg" disabled={editForm.formState.isSubmitting}>
               {editForm.formState.isSubmitting ? 'Saving...' : 'Save changes'}
@@ -366,19 +398,27 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
         </form>
       ) : null}
 
-      <form onSubmit={onAddSubmit} className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900">Add image</h2>
+      <form
+        onSubmit={(event) => void handleAddImages(event)}
+        className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
+      >
+        <h2 className="text-lg font-semibold text-gray-900">Add images</h2>
+        <p className="mt-1 text-sm text-gray-600">
+          Upload multiple images at once. Sort order is assigned automatically.
+        </p>
 
         {formError ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>
         ) : null}
 
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Input
-            label="Path"
-            error={addForm.formState.errors.path?.message}
-            {...addForm.register('path')}
-          />
+          <div className="sm:col-span-2">
+            <MultiImageUploadField
+              paths={pendingPaths}
+              onChange={setPendingPaths}
+              disabled={isAdding}
+            />
+          </div>
           <div>
             <label htmlFor="add-image-type" className="mb-1.5 block text-sm font-medium text-gray-700">
               Type
@@ -386,6 +426,7 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
             <select
               id="add-image-type"
               className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              disabled={isAdding}
               {...addForm.register('type')}
             >
               <option value="hero">Hero</option>
@@ -394,26 +435,21 @@ export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) 
           </div>
           <Input
             label="Alt text"
-            error={addForm.formState.errors.alt_text?.message}
+            disabled={isAdding}
             {...addForm.register('alt_text')}
-          />
-          <Input
-            label="Sort order"
-            type="number"
-            min={0}
-            error={addForm.formState.errors.sort_order?.message}
-            {...addForm.register('sort_order', { valueAsNumber: true })}
           />
         </div>
 
-        {addPath ? (
-          <div className="mt-4">
-            <GalleryImagePreview src={addPath} alt="Add preview" size="md" />
-          </div>
-        ) : null}
-
-        <Button type="submit" className="mt-4 rounded-lg" disabled={addForm.formState.isSubmitting}>
-          {addForm.formState.isSubmitting ? 'Adding...' : 'Add image'}
+        <Button
+          type="submit"
+          className="mt-4 rounded-lg"
+          disabled={isAdding || pendingCount === 0}
+        >
+          {isAdding
+            ? 'Adding...'
+            : pendingCount === 1
+              ? 'Add 1 image'
+              : `Add ${pendingCount} images`}
         </Button>
       </form>
     </div>
