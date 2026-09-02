@@ -69,6 +69,18 @@ export interface CategoryFilteredListingData {
   categories: string[];
 }
 
+const TRAVEL_YOUR_WAY_HOME_LIMIT = 4;
+
+function selectHomepageCategories(
+  categories: SectionCategory[],
+  limit: number
+): SectionCategory[] {
+  const sorted = [...categories].sort((a, b) => a.sort_order - b.sort_order);
+  const featured = sorted.filter((category) => category.is_featured);
+
+  return (featured.length > 0 ? featured : sorted).slice(0, limit);
+}
+
 function mapSectionCategoriesToFilterTabs(categories: SectionCategory[]): string[] {
   return [...categories]
     .sort((a, b) => a.sort_order - b.sort_order)
@@ -316,10 +328,12 @@ export async function getTravelYourWayCategories(): Promise<JourneyCategory[]> {
     const section = await fetchSection('travel-your-way');
 
     if (!section.categories.length) {
-      return journeyCategories;
+      return journeyCategories.slice(0, TRAVEL_YOUR_WAY_HOME_LIMIT);
     }
 
-    return mapSectionCategoriesToJourneyCategories(section.categories);
+    return mapSectionCategoriesToJourneyCategories(
+      selectHomepageCategories(section.categories, TRAVEL_YOUR_WAY_HOME_LIMIT)
+    );
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error(
@@ -328,7 +342,7 @@ export async function getTravelYourWayCategories(): Promise<JourneyCategory[]> {
       );
     }
 
-    return journeyCategories;
+    return journeyCategories.slice(0, TRAVEL_YOUR_WAY_HOME_LIMIT);
   }
 }
 

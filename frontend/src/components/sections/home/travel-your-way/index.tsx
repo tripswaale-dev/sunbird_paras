@@ -60,7 +60,7 @@ export function ChooseYourJourney({ categories }: ChooseYourJourneyProps) {
             >
               <ImageOverlayCard
                 title={journey.title}
-                image={journey.image}
+                image={journey.image || null}
                 href={`/travelyourway?category=${encodeURIComponent(journey.category)}`}
                 overlayMode="always"
                 className="h-[150px] lg:h-[190px] rounded-[22px]"

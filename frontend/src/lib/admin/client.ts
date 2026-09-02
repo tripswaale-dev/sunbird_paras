@@ -2,6 +2,7 @@ import { ApiError } from '@/lib/api/client';
 import type { ApiResponse } from '@/lib/api/types';
 import { getApiBaseUrl } from '@/lib/admin/config';
 import type { AdminPaginatedResult, AdminPaginationMeta } from '@/lib/admin/pagination';
+import { revalidatePublicSite } from '@/lib/admin/revalidate';
 import { clearAdminToken, getAdminToken } from '@/lib/admin/token';
 
 type AdminRequestOptions = Omit<RequestInit, 'method' | 'body'>;
@@ -116,7 +117,13 @@ async function adminApiRequest<T>(
     cache: 'no-store',
   });
 
-  return parseAdminResponse<T>(response);
+  const data = await parseAdminResponse<T>(response);
+
+  if (method !== 'GET') {
+    revalidatePublicSite();
+  }
+
+  return data;
 }
 
 export function adminApiGet<T>(path: string, init?: AdminRequestOptions): Promise<T> {

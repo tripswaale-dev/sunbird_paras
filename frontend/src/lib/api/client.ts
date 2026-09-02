@@ -1,3 +1,4 @@
+import { resolvePublicCacheTags } from '@/lib/api/cache-tags';
 import { getApiBaseUrl } from '@/lib/api/config';
 import type { ApiResponse } from '@/lib/api/types';
 
@@ -23,7 +24,7 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
       Accept: 'application/json',
       ...init?.headers,
     },
-    next: { revalidate: 300 },
+    next: { revalidate: 300, tags: resolvePublicCacheTags(normalizedPath) },
   });
 
   if (!response.ok) {

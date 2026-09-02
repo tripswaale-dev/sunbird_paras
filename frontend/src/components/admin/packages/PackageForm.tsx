@@ -1,23 +1,30 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import {
+  PACKAGE_CATEGORY_OPTIONS,
+  PACKAGE_CATEGORY_OTHER,
+} from '@/lib/admin/package-categories';
+import {
   applyApiErrors,
-  createPackage,
+  createPackageWithSectionAssignments,
   slugifyTitle,
   toPackagePayload,
-  updatePackage,
+  updatePackageWithSectionAssignments,
 } from '@/lib/admin/packages';
 import {
   packageFormSchema,
   type PackageFormValues,
 } from '@/lib/admin/package-form-schema';
+import { getAssignedSectionIdsForPackage } from '@/lib/admin/section-packages';
+import { getSections, type AdminSection } from '@/lib/admin/sections';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { PackageDeleteButton } from '@/components/admin/packages/PackageDeleteButton';
+import { PackageSectionAssignField } from '@/components/admin/packages/PackageSectionAssignField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -30,7 +37,11 @@ interface PackageFormProps {
 export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps) {
   const router = useRouter();
   const slugTouchedRef = useRef(mode === 'edit');
+  const initialSectionIdsRef = useRef<number[]>(defaultValues.section_ids ?? []);
   const [formError, setFormError] = useState<string | null>(null);
+  const [sections, setSections] = useState<AdminSection[]>([]);
+  const [sectionsLoading, setSectionsLoading] = useState(true);
+  const [sectionsError, setSectionsError] = useState<string | null>(null);
 
   const {
     register,
@@ -47,6 +58,56 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
   const slug = watch('slug');
   const image = watch('image');
   const title = watch('title');
+  const categoryOption = watch('category_option');
+  const sectionIds = watch('section_ids') ?? [];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadSectionsAndAssignments() {
+      setSectionsLoading(true);
+      setSectionsError(null);
+
+      try {
+        const data = await getSections();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setSections(data);
+
+        if (mode === 'edit' && packageId) {
+          const assignedSectionIds = await getAssignedSectionIdsForPackage(packageId, data);
+
+          if (!isMounted) {
+            return;
+          }
+
+          initialSectionIdsRef.current = assignedSectionIds;
+          setValue('section_ids', assignedSectionIds, { shouldDirty: false });
+        }
+      } catch {
+        if (isMounted) {
+          setSectionsError(
+            mode === 'create'
+              ? 'Unable to load sections. You can still create the package.'
+              : 'Unable to load section assignments. You can still save package details.'
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setSectionsLoading(false);
+        }
+      }
+    }
+
+    void loadSectionsAndAssignments();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [mode, packageId, setValue]);
 
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
@@ -66,12 +127,41 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
     }
 
     const payload = toPackagePayload(parsed.data);
+    const sectionTitleMap = Object.fromEntries(sections.map((section) => [section.id, section.title]));
+    const selectedSectionIds = parsed.data.section_ids ?? [];
 
     try {
       if (mode === 'create') {
-        await createPackage(payload);
-      } else if (packageId) {
-        await updatePackage(packageId, payload);
+        const { package: created, sections: assignmentResult } =
+          await createPackageWithSectionAssignments(payload, selectedSectionIds, sectionTitleMap);
+
+        if (assignmentResult.failed.length > 0) {
+          setFormError(
+            `Package "${created.title}" was created, but could not assign to: ${assignmentResult.failed.map((failure) => failure.message).join('; ')}`
+          );
+        }
+
+        router.push('/admin/packages');
+        return;
+      }
+
+      if (packageId) {
+        const { package: updated, sections: syncResult } = await updatePackageWithSectionAssignments(
+          packageId,
+          payload,
+          selectedSectionIds,
+          initialSectionIdsRef.current,
+          sectionTitleMap
+        );
+
+        if (syncResult.failed.length > 0) {
+          setFormError(
+            `Package "${updated.title}" was saved, but section changes failed: ${syncResult.failed.map((failure) => failure.message).join('; ')}`
+          );
+        }
+
+        router.push('/admin/packages');
+        return;
       }
 
       router.push('/admin/packages');
@@ -107,7 +197,7 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           <p className="mt-1 text-sm text-gray-600">
             {mode === 'create'
               ? 'Create a new travel package for the public site.'
-              : 'Update package summary fields.'}
+              : 'Update package summary fields and homepage section assignments.'}
           </p>
         </div>
 
@@ -189,9 +279,40 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Input label="Category" error={errors.category?.message} {...register('category')} />
+            <div>
+              <label htmlFor="category_option" className="mb-1.5 block text-sm font-medium text-gray-700">
+                Category
+              </label>
+              <select
+                id="category_option"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                {...register('category_option')}
+              >
+                <option value="">Select category</option>
+                {PACKAGE_CATEGORY_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1.5 text-sm text-gray-500">
+                Use &quot;Beaches&quot; exactly for the Beaches tab on the Destinations page.
+              </p>
+              {errors.category_option ? (
+                <p className="mt-1.5 text-sm text-red-600">{errors.category_option.message}</p>
+              ) : null}
+            </div>
+
             <Input label="Tag" error={errors.tag?.message} {...register('tag')} />
           </div>
+
+          {categoryOption === PACKAGE_CATEGORY_OTHER ? (
+            <Input
+              label="Custom category"
+              error={errors.category_custom?.message}
+              {...register('category_custom')}
+            />
+          ) : null}
 
           <ImageUploadField
             label="Package image"
@@ -214,6 +335,29 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
               </span>
             </span>
           </label>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-semibold text-gray-900">Homepage &amp; listings</h2>
+        <p className="mt-1 text-sm text-gray-600">
+          {mode === 'create'
+            ? 'Optionally assign this package to homepage sections. You can change assignments later in Sections → Content → Packages.'
+            : 'Add or remove homepage section assignments for this package.'}
+        </p>
+
+        <div className="mt-6">
+          <PackageSectionAssignField
+            sections={sections}
+            selectedIds={sectionIds}
+            onChange={(ids) =>
+              setValue('section_ids', ids, { shouldDirty: true, shouldValidate: true })
+            }
+            isLoading={sectionsLoading}
+            loadError={sectionsError}
+            disabled={isSubmitting}
+            error={errors.section_ids?.message}
+          />
         </div>
       </div>
 

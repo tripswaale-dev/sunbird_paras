@@ -16,8 +16,17 @@ function isUploadPath(src: string): boolean {
   return src.startsWith('/uploads/') || src.startsWith('uploads/');
 }
 
+export function toUsableImageSrc(src: unknown): string | null {
+  if (typeof src !== 'string') {
+    return null;
+  }
+
+  const trimmed = src.trim();
+  return trimmed ? trimmed : null;
+}
+
 export function resolvePublicImageSrc(src: string | null | undefined): string {
-  if (!src) {
+  if (typeof src !== 'string' || !src.trim()) {
     return '';
   }
 
@@ -39,7 +48,7 @@ export function resolvePublicImageSrc(src: string | null | undefined): string {
 }
 
 export function resolveAbsoluteImageSrc(src: string | null | undefined): string {
-  if (!src) {
+  if (typeof src !== 'string' || !src.trim()) {
     return '';
   }
 

@@ -1,6 +1,18 @@
-import type { JourneyCategory } from '@/data/journey-categories';
+import { journeyCategories, type JourneyCategory } from '@/data/journey-categories';
 import type { SectionCategory } from '@/lib/api/types';
-import { resolvePublicImageSrc } from '@/lib/media';
+import { resolvePublicImageSrc, toUsableImageSrc } from '@/lib/media';
+
+function fallbackJourneyImage(title: string, filterValue: string | null): string {
+  const needle = (filterValue ?? title).toLowerCase();
+
+  return (
+    journeyCategories.find(
+      (item) =>
+        item.title.toLowerCase() === title.toLowerCase() ||
+        item.category.toLowerCase() === needle
+    )?.image ?? ''
+  );
+}
 
 export function mapSectionCategoriesToJourneyCategories(
   categories: SectionCategory[]
@@ -10,6 +22,8 @@ export function mapSectionCategoriesToJourneyCategories(
     .map((category) => ({
       title: category.title,
       category: category.filter_value ?? category.title,
-      image: resolvePublicImageSrc(category.image),
+      image:
+        toUsableImageSrc(resolvePublicImageSrc(category.image)) ??
+        fallbackJourneyImage(category.title, category.filter_value),
     }));
 }

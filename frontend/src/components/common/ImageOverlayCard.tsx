@@ -5,17 +5,39 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { toUsableImageSrc } from '@/lib/media';
 
 interface ImageOverlayCardProps {
   title: string;
   subtitle?: string;
   description?: string;
-  image: string;
+  image?: string | null;
   /** 'hover' shows text on hover, 'always' shows text permanently */
   overlayMode?: 'hover' | 'always';
   featured?: boolean;
   href?: string;
   className?: string;
+}
+
+function OverlayMedia({ src, alt }: { src: string | null; alt: string }) {
+  if (!src) {
+    return (
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-linear-to-br from-primary via-primary-dark to-primary-900"
+      />
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      className="object-cover transition-transform duration-700 group-hover:scale-105"
+      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+    />
+  );
 }
 
 export function ImageOverlayCard({
@@ -30,6 +52,7 @@ export function ImageOverlayCard({
 }: ImageOverlayCardProps) {
   const isHover = overlayMode === 'hover';
   const generatedHref = href || `/packages/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  const imageSrc = toUsableImageSrc(image);
 
   const CardContent = (
     <motion.div
@@ -42,13 +65,7 @@ export function ImageOverlayCard({
         className
       )}
     >
-      <Image
-        src={image}
-        alt={title}
-        fill
-        className="object-cover transition-transform duration-700 group-hover:scale-105"
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-      />
+      <OverlayMedia src={imageSrc} alt={title} />
 
       {/* Overlay gradient */}
       <div

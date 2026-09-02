@@ -1,6 +1,16 @@
 import type { PackageFormValues } from '@/lib/admin/package-form-schema';
 import { slugifyTitle } from '@/lib/admin/blogs';
 import {
+  parseCategoryToFormValues,
+  resolvePackageCategory,
+} from '@/lib/admin/package-categories';
+import {
+  assignPackageToSections,
+  syncPackageSectionAssignments,
+  type AssignPackageToSectionsResult,
+  type SyncPackageSectionAssignmentsResult,
+} from '@/lib/admin/section-packages';
+import {
   adminApiDelete,
   adminApiGet,
   adminApiGetPaginated,
@@ -60,6 +70,8 @@ export function formatPackagePrice(price: number): string {
 }
 
 export function adminPackageToFormValues(pkg: AdminPackage): PackageFormValues {
+  const categoryFields = parseCategoryToFormValues(pkg.category);
+
   return {
     slug: pkg.slug,
     title: pkg.title,
@@ -68,7 +80,9 @@ export function adminPackageToFormValues(pkg: AdminPackage): PackageFormValues {
     price: pkg.price,
     duration_nights: pkg.duration.nights,
     duration_days: pkg.duration.days,
-    category: pkg.category ?? '',
+    category_option: categoryFields.category_option,
+    category_custom: categoryFields.category_custom,
+    section_ids: [],
     tag: pkg.tag ?? '',
     image: pkg.image,
     is_active: pkg.is_active,
@@ -84,7 +98,7 @@ export function toPackagePayload(values: PackageFormValues): PackageApiPayload {
     price: values.price,
     duration_nights: values.duration_nights,
     duration_days: values.duration_days,
-    category: values.category?.trim() || null,
+    category: resolvePackageCategory(values.category_option ?? '', values.category_custom),
     tag: values.tag?.trim() || null,
     image: values.image,
     is_active: values.is_active,
@@ -100,7 +114,9 @@ export function getDefaultPackageFormValues(): PackageFormValues {
     price: 0,
     duration_nights: 0,
     duration_days: 0,
-    category: '',
+    category_option: '',
+    category_custom: '',
+    section_ids: [],
     tag: '',
     image: '',
     is_active: true,
@@ -151,6 +167,50 @@ export function getPackage(id: number | string): Promise<AdminPackage> {
 
 export function createPackage(payload: PackageApiPayload): Promise<AdminPackage> {
   return adminApiPost<AdminPackage, PackageApiPayload>('/admin/packages', payload);
+}
+
+export interface CreatePackageWithSectionsResult {
+  package: AdminPackage;
+  sections: AssignPackageToSectionsResult;
+}
+
+export async function createPackageWithSectionAssignments(
+  payload: PackageApiPayload,
+  sectionIds: number[],
+  sectionTitles: Record<number, string> = {}
+): Promise<CreatePackageWithSectionsResult> {
+  const pkg = await createPackage(payload);
+
+  if (sectionIds.length === 0) {
+    return { package: pkg, sections: { assigned: [], failed: [] } };
+  }
+
+  const sections = await assignPackageToSections(pkg.id, sectionIds, sectionTitles);
+
+  return { package: pkg, sections };
+}
+
+export interface UpdatePackageWithSectionsResult {
+  package: AdminPackage;
+  sections: SyncPackageSectionAssignmentsResult;
+}
+
+export async function updatePackageWithSectionAssignments(
+  id: number | string,
+  payload: PackageApiPayload,
+  sectionIds: number[],
+  previousSectionIds: number[],
+  sectionTitles: Record<number, string> = {}
+): Promise<UpdatePackageWithSectionsResult> {
+  const pkg = await updatePackage(id, payload);
+  const sections = await syncPackageSectionAssignments(
+    pkg.id,
+    sectionIds,
+    previousSectionIds,
+    sectionTitles
+  );
+
+  return { package: pkg, sections };
 }
 
 export function updatePackage(
