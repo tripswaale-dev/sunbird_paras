@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { applyApiErrors } from '@/lib/admin/form-errors';
@@ -15,6 +14,7 @@ import {
   toPackageSeoPayload,
   updatePackageSeo,
 } from '@/lib/admin/package-seo';
+import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
 import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,12 +22,10 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface PackageSeoTabProps {
   packageId: number;
+  onSaved: (key: PackageContentSavedKey) => void;
 }
 
-export function PackageSeoTab({ packageId }: PackageSeoTabProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export function PackageSeoTab({ packageId, onSaved }: PackageSeoTabProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -92,11 +90,7 @@ export function PackageSeoTab({ packageId }: PackageSeoTabProps) {
 
     try {
       await updatePackageSeo(packageId, toPackageSeoPayload(parsed.data));
-
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('tab', 'seo');
-      params.set('saved', 'seo');
-      router.replace(`${pathname}?${params.toString()}`);
+      onSaved('seo');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {

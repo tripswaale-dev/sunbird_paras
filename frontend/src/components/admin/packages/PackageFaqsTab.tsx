@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { applyApiErrors } from '@/lib/admin/form-errors';
@@ -19,18 +18,27 @@ import {
   updatePackageFaq,
   type AdminPackageFaq,
 } from '@/lib/admin/package-faqs';
+import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 interface PackageFaqsTabProps {
   packageId: number;
+  onSaved: (key: PackageContentSavedKey) => void;
 }
 
-export function PackageFaqsTab({ packageId }: PackageFaqsTabProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+function sortFaqs(faqs: AdminPackageFaq[]): AdminPackageFaq[] {
+  return [...faqs].sort((left, right) => {
+    if (left.sort_order !== right.sort_order) {
+      return left.sort_order - right.sort_order;
+    }
+
+    return left.id - right.id;
+  });
+}
+
+export function PackageFaqsTab({ packageId, onSaved }: PackageFaqsTabProps) {
   const [faqs, setFaqs] = useState<AdminPackageFaq[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -67,13 +75,6 @@ export function PackageFaqsTab({ packageId }: PackageFaqsTabProps) {
     void loadFaqs();
   }, [loadFaqs]);
 
-  function showSavedBanner() {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', 'faqs');
-    params.set('saved', 'faq');
-    router.replace(`${pathname}?${params.toString()}`);
-  }
-
   const onAddSubmit = addForm.handleSubmit(async (values) => {
     setFormError(null);
 
@@ -94,10 +95,10 @@ export function PackageFaqsTab({ packageId }: PackageFaqsTabProps) {
     }
 
     try {
-      await createPackageFaq(packageId, toPackageFaqPayload(parsed.data));
+      const created = await createPackageFaq(packageId, toPackageFaqPayload(parsed.data));
       addForm.reset(getDefaultPackageFaqFormValues());
-      await loadFaqs();
-      showSavedBanner();
+      setFaqs((current) => sortFaqs([...current, created]));
+      onSaved('faq');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
@@ -148,10 +149,14 @@ export function PackageFaqsTab({ packageId }: PackageFaqsTabProps) {
     }
 
     try {
-      await updatePackageFaq(packageId, editingId, toPackageFaqPayload(parsed.data));
+      const updated = await updatePackageFaq(
+        packageId,
+        editingId,
+        toPackageFaqPayload(parsed.data)
+      );
       setEditingId(null);
-      await loadFaqs();
-      showSavedBanner();
+      setFaqs((current) => sortFaqs(current.map((faq) => (faq.id === updated.id ? updated : faq))));
+      onSaved('faq');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
@@ -180,7 +185,7 @@ export function PackageFaqsTab({ packageId }: PackageFaqsTabProps) {
         cancelEdit();
       }
 
-      await loadFaqs();
+      setFaqs((current) => current.filter((item) => item.id !== faq.id));
     } catch (error) {
       setFormError(
         error instanceof ApiError ? error.message : 'Unable to delete FAQ. Please try again.'

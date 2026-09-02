@@ -1,10 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { Suspense } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useState } from 'react';
 import type { AdminPackage } from '@/lib/admin/packages';
-import { PackageContentSavedBanner } from '@/components/admin/packages/PackageContentSavedBanner';
+import {
+  PackageContentSavedBanner,
+  isValidPackageContentSavedKey,
+  type PackageContentSavedKey,
+} from '@/components/admin/packages/PackageContentSavedBanner';
 import { PackageDetailTab } from '@/components/admin/packages/PackageDetailTab';
 import { PackageFaqsTab } from '@/components/admin/packages/PackageFaqsTab';
 import { PackageImagesTab } from '@/components/admin/packages/PackageImagesTab';
@@ -26,23 +30,43 @@ function isValidTab(tab: string): tab is PackageContentTabId {
   return PACKAGE_CONTENT_TABS.some((item) => item.id === tab);
 }
 
+function writeTabToUrl(pathname: string, search: string, tab: PackageContentTabId) {
+  const params = new URLSearchParams(search);
+  params.set('tab', tab);
+  params.delete('saved');
+
+  window.history.replaceState(window.history.state, '', `${pathname}?${params.toString()}`);
+}
+
 interface PackageContentShellProps {
   pkg: AdminPackage;
 }
 
 function PackageContentShellInner({ pkg }: PackageContentShellProps) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab') ?? 'detail';
-  const activeTab: PackageContentTabId = isValidTab(tabParam) ? tabParam : 'detail';
+  const [activeTab, setActiveTab] = useState<PackageContentTabId>(
+    isValidTab(tabParam) ? tabParam : 'detail'
+  );
+  const [savedKey, setSavedKey] = useState<PackageContentSavedKey | null>(() => {
+    const initialSaved = searchParams.get('saved') ?? '';
+
+    return isValidPackageContentSavedKey(initialSaved) ? initialSaved : null;
+  });
+
+  const handleSaved = useCallback((key: PackageContentSavedKey) => {
+    setSavedKey(key);
+  }, []);
+
+  const dismissSaved = useCallback(() => {
+    setSavedKey(null);
+  }, []);
 
   function switchTab(tab: PackageContentTabId) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', tab);
-    params.delete('saved');
-
-    router.replace(`${pathname}?${params.toString()}`);
+    setSavedKey(null);
+    setActiveTab(tab);
+    writeTabToUrl(pathname, searchParams.toString(), tab);
   }
 
   return (
@@ -78,7 +102,7 @@ function PackageContentShellInner({ pkg }: PackageContentShellProps) {
         </div>
       </div>
 
-      <PackageContentSavedBanner />
+      <PackageContentSavedBanner savedKey={savedKey} onDismiss={dismissSaved} />
 
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex flex-wrap gap-1">
@@ -101,11 +125,17 @@ function PackageContentShellInner({ pkg }: PackageContentShellProps) {
       </div>
 
       <div>
-        {activeTab === 'detail' ? <PackageDetailTab packageId={pkg.id} /> : null}
-        {activeTab === 'seo' ? <PackageSeoTab packageId={pkg.id} /> : null}
-        {activeTab === 'images' ? <PackageImagesTab packageId={pkg.id} /> : null}
-        {activeTab === 'itinerary' ? <PackageItineraryTab packageId={pkg.id} /> : null}
-        {activeTab === 'faqs' ? <PackageFaqsTab packageId={pkg.id} /> : null}
+        {activeTab === 'detail' ? (
+          <PackageDetailTab packageId={pkg.id} onSaved={handleSaved} />
+        ) : null}
+        {activeTab === 'seo' ? <PackageSeoTab packageId={pkg.id} onSaved={handleSaved} /> : null}
+        {activeTab === 'images' ? (
+          <PackageImagesTab packageId={pkg.id} onSaved={handleSaved} />
+        ) : null}
+        {activeTab === 'itinerary' ? (
+          <PackageItineraryTab packageId={pkg.id} onSaved={handleSaved} />
+        ) : null}
+        {activeTab === 'faqs' ? <PackageFaqsTab packageId={pkg.id} onSaved={handleSaved} /> : null}
       </div>
     </div>
   );

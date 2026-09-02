@@ -46,6 +46,39 @@ export function getDefaultPackageItineraryFormValues(): PackageItineraryFormValu
   };
 }
 
+export function sortPackageItineraryDays(
+  days: AdminPackageItineraryDay[]
+): AdminPackageItineraryDay[] {
+  return [...days].sort((left, right) => {
+    if (left.sort_order !== right.sort_order) {
+      return left.sort_order - right.sort_order;
+    }
+
+    return left.id - right.id;
+  });
+}
+
+export function getNextPackageItineraryFormValues(
+  days: AdminPackageItineraryDay[]
+): PackageItineraryFormValues {
+  const maxDay = days.reduce((max, day) => Math.max(max, day.day), 0);
+  const maxSort = days.reduce((max, day) => Math.max(max, day.sort_order), -1);
+
+  return {
+    ...getDefaultPackageItineraryFormValues(),
+    day: maxDay + 1,
+    sort_order: maxSort + 1,
+  };
+}
+
+export function itineraryDayNumberExists(
+  days: AdminPackageItineraryDay[],
+  dayNumber: number,
+  exceptId?: number
+): boolean {
+  return days.some((day) => day.day === dayNumber && day.id !== exceptId);
+}
+
 export function adminPackageItineraryToFormValues(
   day: AdminPackageItineraryDay
 ): PackageItineraryFormValues {

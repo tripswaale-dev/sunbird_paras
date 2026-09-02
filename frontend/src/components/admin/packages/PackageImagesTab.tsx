@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { applyApiErrors } from '@/lib/admin/form-errors';
@@ -19,6 +18,7 @@ import {
   updatePackageImage,
   type AdminPackageImage,
 } from '@/lib/admin/package-images';
+import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
 import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,12 +26,20 @@ import { cn } from '@/lib/utils';
 
 interface PackageImagesTabProps {
   packageId: number;
+  onSaved: (key: PackageContentSavedKey) => void;
 }
 
-export function PackageImagesTab({ packageId }: PackageImagesTabProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+function sortImages(images: AdminPackageImage[]): AdminPackageImage[] {
+  return [...images].sort((left, right) => {
+    if (left.sort_order !== right.sort_order) {
+      return left.sort_order - right.sort_order;
+    }
+
+    return left.id - right.id;
+  });
+}
+
+export function PackageImagesTab({ packageId, onSaved }: PackageImagesTabProps) {
   const [images, setImages] = useState<AdminPackageImage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -73,13 +81,6 @@ export function PackageImagesTab({ packageId }: PackageImagesTabProps) {
     void loadImages();
   }, [loadImages]);
 
-  function showSavedBanner() {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', 'images');
-    params.set('saved', 'image');
-    router.replace(`${pathname}?${params.toString()}`);
-  }
-
   const onAddSubmit = addForm.handleSubmit(async (values) => {
     setFormError(null);
 
@@ -100,10 +101,10 @@ export function PackageImagesTab({ packageId }: PackageImagesTabProps) {
     }
 
     try {
-      await createPackageImage(packageId, toPackageImagePayload(parsed.data));
+      const created = await createPackageImage(packageId, toPackageImagePayload(parsed.data));
       addForm.reset(getDefaultPackageImageFormValues());
-      await loadImages();
-      showSavedBanner();
+      setImages((current) => sortImages([...current, created]));
+      onSaved('image');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
@@ -154,10 +155,16 @@ export function PackageImagesTab({ packageId }: PackageImagesTabProps) {
     }
 
     try {
-      await updatePackageImage(packageId, editingId, toPackageImagePayload(parsed.data));
+      const updated = await updatePackageImage(
+        packageId,
+        editingId,
+        toPackageImagePayload(parsed.data)
+      );
       setEditingId(null);
-      await loadImages();
-      showSavedBanner();
+      setImages((current) =>
+        sortImages(current.map((image) => (image.id === updated.id ? updated : image)))
+      );
+      onSaved('image');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
@@ -186,7 +193,7 @@ export function PackageImagesTab({ packageId }: PackageImagesTabProps) {
         cancelEdit();
       }
 
-      await loadImages();
+      setImages((current) => current.filter((item) => item.id !== image.id));
     } catch (error) {
       setFormError(
         error instanceof ApiError

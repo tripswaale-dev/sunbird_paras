@@ -37,31 +37,35 @@ const ARRAY_FIELDS = [
   'highlights',
 ] as const;
 
-function filterStringList(items: string[]): string[] {
-  return items.map((item) => item.trim()).filter(Boolean);
+function toListRows(items: string[]): { value: string }[] {
+  const values = items.length > 0 ? items : [''];
+
+  return values.map((value) => ({ value }));
+}
+
+function filterStringList(items: { value: string }[]): string[] {
+  return items.map((item) => item.value.trim()).filter(Boolean);
 }
 
 export function getDefaultPackageDetailFormValues(): PackageDetailFormValues {
   return {
     overview: '',
-    destinations: [''],
-    sightseeing: [''],
-    inclusions: [''],
-    exclusions: [''],
-    highlights: [''],
+    destinations: [{ value: '' }],
+    sightseeing: [{ value: '' }],
+    inclusions: [{ value: '' }],
+    exclusions: [{ value: '' }],
+    highlights: [{ value: '' }],
   };
 }
 
 export function adminPackageDetailToFormValues(detail: AdminPackageDetail): PackageDetailFormValues {
-  const toRows = (items: string[]) => (items.length > 0 ? items : ['']);
-
   return {
     overview: detail.overview ?? '',
-    destinations: toRows(detail.destinations),
-    sightseeing: toRows(detail.sightseeing),
-    inclusions: toRows(detail.inclusions),
-    exclusions: toRows(detail.exclusions),
-    highlights: toRows(detail.highlights),
+    destinations: toListRows(detail.destinations),
+    sightseeing: toListRows(detail.sightseeing),
+    inclusions: toListRows(detail.inclusions),
+    exclusions: toListRows(detail.exclusions),
+    highlights: toListRows(detail.highlights),
   };
 }
 

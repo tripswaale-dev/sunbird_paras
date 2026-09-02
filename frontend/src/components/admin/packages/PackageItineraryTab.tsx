@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useForm, type Path, type UseFormReturn } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { applyApiErrors } from '@/lib/admin/form-errors';
@@ -13,18 +12,22 @@ import {
   adminPackageItineraryToFormValues,
   createPackageItineraryDay,
   deletePackageItineraryDay,
-  getDefaultPackageItineraryFormValues,
+  getNextPackageItineraryFormValues,
   getPackageItineraryDays,
+  itineraryDayNumberExists,
+  sortPackageItineraryDays,
   toPackageItineraryPayload,
   updatePackageItineraryDay,
   type AdminPackageItineraryDay,
 } from '@/lib/admin/package-itinerary';
+import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 interface PackageItineraryTabProps {
   packageId: number;
+  onSaved: (key: PackageContentSavedKey) => void;
 }
 
 function ImagePathsEditor({ form }: { form: UseFormReturn<PackageItineraryFormValues> }) {
@@ -78,10 +81,7 @@ function ImagePathsEditor({ form }: { form: UseFormReturn<PackageItineraryFormVa
   );
 }
 
-export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export function PackageItineraryTab({ packageId, onSaved }: PackageItineraryTabProps) {
   const [days, setDays] = useState<AdminPackageItineraryDay[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -91,12 +91,14 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
   const [editError, setEditError] = useState<string | null>(null);
 
   const addForm = useForm<PackageItineraryFormValues>({
-    defaultValues: getDefaultPackageItineraryFormValues(),
+    defaultValues: getNextPackageItineraryFormValues([]),
   });
 
   const editForm = useForm<PackageItineraryFormValues>({
-    defaultValues: getDefaultPackageItineraryFormValues(),
+    defaultValues: getNextPackageItineraryFormValues([]),
   });
+
+  const resetAddForm = addForm.reset;
 
   const loadDays = useCallback(async () => {
     setIsLoading(true);
@@ -105,6 +107,7 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
     try {
       const data = await getPackageItineraryDays(packageId);
       setDays(data);
+      resetAddForm(getNextPackageItineraryFormValues(data));
     } catch (error) {
       setDays([]);
       setLoadError(
@@ -115,18 +118,11 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [packageId]);
+  }, [packageId, resetAddForm]);
 
   useEffect(() => {
     void loadDays();
   }, [loadDays]);
-
-  function showSavedBanner() {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', 'itinerary');
-    params.set('saved', 'itinerary');
-    router.replace(`${pathname}?${params.toString()}`);
-  }
 
   const onAddSubmit = addForm.handleSubmit(async (values) => {
     setFormError(null);
@@ -145,11 +141,22 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
       return;
     }
 
+    if (itineraryDayNumberExists(days, parsed.data.day)) {
+      addForm.setError('day', {
+        message: `Day ${parsed.data.day} already exists. Use the next unused day number.`,
+      });
+      return;
+    }
+
     try {
-      await createPackageItineraryDay(packageId, toPackageItineraryPayload(parsed.data));
-      addForm.reset(getDefaultPackageItineraryFormValues());
-      await loadDays();
-      showSavedBanner();
+      const created = await createPackageItineraryDay(
+        packageId,
+        toPackageItineraryPayload(parsed.data)
+      );
+      const nextDays = sortPackageItineraryDays([...days, created]);
+      setDays(nextDays);
+      addForm.reset(getNextPackageItineraryFormValues(nextDays));
+      onSaved('itinerary');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
@@ -173,7 +180,7 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
   function cancelEdit() {
     setEditingId(null);
     setEditError(null);
-    editForm.reset(getDefaultPackageItineraryFormValues());
+    editForm.reset(getNextPackageItineraryFormValues([]));
   }
 
   const onEditSubmit = editForm.handleSubmit(async (values) => {
@@ -197,11 +204,26 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
       return;
     }
 
+    if (itineraryDayNumberExists(days, parsed.data.day, editingId)) {
+      editForm.setError('day', {
+        message: `Day ${parsed.data.day} already exists. Use a different day number.`,
+      });
+      return;
+    }
+
     try {
-      await updatePackageItineraryDay(packageId, editingId, toPackageItineraryPayload(parsed.data));
+      const updated = await updatePackageItineraryDay(
+        packageId,
+        editingId,
+        toPackageItineraryPayload(parsed.data)
+      );
+      const nextDays = sortPackageItineraryDays(
+        days.map((day) => (day.id === updated.id ? updated : day))
+      );
+      setDays(nextDays);
       setEditingId(null);
-      await loadDays();
-      showSavedBanner();
+      addForm.reset(getNextPackageItineraryFormValues(nextDays));
+      onSaved('itinerary');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
@@ -230,7 +252,9 @@ export function PackageItineraryTab({ packageId }: PackageItineraryTabProps) {
         cancelEdit();
       }
 
-      await loadDays();
+      const nextDays = days.filter((item) => item.id !== day.id);
+      setDays(nextDays);
+      addForm.reset(getNextPackageItineraryFormValues(nextDays));
     } catch (error) {
       setFormError(
         error instanceof ApiError

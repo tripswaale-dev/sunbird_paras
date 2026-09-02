@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 export const PACKAGE_CONTENT_SAVED_KEYS = [
   'detail',
@@ -25,36 +24,37 @@ export function isValidPackageContentSavedKey(key: string): key is PackageConten
   return (PACKAGE_CONTENT_SAVED_KEYS as readonly string[]).includes(key);
 }
 
-export function PackageContentSavedBanner() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const savedKey = searchParams.get('saved') ?? '';
-  const showBanner = isValidPackageContentSavedKey(savedKey);
-  const [bannerVisible, setBannerVisible] = useState(showBanner);
+interface PackageContentSavedBannerProps {
+  savedKey: PackageContentSavedKey | null;
+  onDismiss: () => void;
+}
 
+export function PackageContentSavedBanner({
+  savedKey,
+  onDismiss,
+}: PackageContentSavedBannerProps) {
   useEffect(() => {
-    setBannerVisible(showBanner);
-  }, [showBanner]);
+    if (!savedKey) {
+      return;
+    }
 
-  const dismissBanner = useCallback(() => {
-    setBannerVisible(false);
+    const timeout = window.setTimeout(() => {
+      onDismiss();
+    }, 4000);
 
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('saved');
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [savedKey, onDismiss]);
 
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname);
-  }, [pathname, router, searchParams]);
-
-  if (!bannerVisible || !showBanner) {
+  if (!savedKey) {
     return null;
   }
 
   return (
     <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
       <span>{SAVED_LABELS[savedKey]}</span>
-      <button type="button" onClick={dismissBanner} className="font-medium hover:underline">
+      <button type="button" onClick={onDismiss} className="font-medium hover:underline">
         Dismiss
       </button>
     </div>

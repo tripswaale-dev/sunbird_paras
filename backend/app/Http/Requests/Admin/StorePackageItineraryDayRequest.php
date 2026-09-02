@@ -33,4 +33,11 @@ class StorePackageItineraryDayRequest extends FormRequest
             'sort_order' => ['required', 'integer', 'min:0', 'max:65535'],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'day.unique' => 'This day number already exists for this package.',
+        ];
+    }
 }

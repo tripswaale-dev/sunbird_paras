@@ -1,8 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useFieldArray, useForm, type Control, type FieldArrayPath, type Path } from 'react-hook-form';
+import { useFieldArray, useForm, type Control, type Path } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import { applyApiErrors } from '@/lib/admin/form-errors';
 import {
@@ -19,12 +18,14 @@ import {
   toPackageDetailPayload,
   updatePackageDetail,
 } from '@/lib/admin/package-detail';
+import type { PackageContentSavedKey } from '@/components/admin/packages/PackageContentSavedBanner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 interface PackageDetailTabProps {
   packageId: number;
+  onSaved: (key: PackageContentSavedKey) => void;
 }
 
 type DetailArrayField = 'destinations' | 'sightseeing' | 'inclusions' | 'exclusions' | 'highlights';
@@ -42,7 +43,7 @@ function StringListSection({
 }) {
   const { fields, append, remove } = useFieldArray({
     control,
-    name: name as FieldArrayPath<PackageDetailFormValues>,
+    name,
   });
 
   return (
@@ -54,7 +55,7 @@ function StringListSection({
           variant="outline"
           size="sm"
           className="rounded-lg"
-          onClick={() => append('' as never)}
+          onClick={() => append({ value: '' })}
         >
           Add row
         </Button>
@@ -64,7 +65,7 @@ function StringListSection({
           <div key={field.id} className="flex gap-2">
             <Input
               className="flex-1"
-              {...register(`${name}.${index}` as Path<PackageDetailFormValues>)}
+              {...register(`${name}.${index}.value` as Path<PackageDetailFormValues>)}
             />
             <Button
               type="button"
@@ -83,10 +84,7 @@ function StringListSection({
   );
 }
 
-export function PackageDetailTab({ packageId }: PackageDetailTabProps) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+export function PackageDetailTab({ packageId, onSaved }: PackageDetailTabProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -132,13 +130,6 @@ export function PackageDetailTab({ packageId }: PackageDetailTabProps) {
     void loadDetail();
   }, [loadDetail]);
 
-  function showSavedBanner() {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tab', 'detail');
-    params.set('saved', 'detail');
-    router.replace(`${pathname}?${params.toString()}`);
-  }
-
   const onSubmit = handleSubmit(async (values) => {
     setFormError(null);
 
@@ -159,14 +150,13 @@ export function PackageDetailTab({ packageId }: PackageDetailTabProps) {
     const payload = toPackageDetailPayload(parsed.data);
 
     try {
-      if (hasDetail) {
-        await updatePackageDetail(packageId, payload);
-      } else {
-        await createPackageDetail(packageId, payload);
-        setHasDetail(true);
-      }
+      const saved = hasDetail
+        ? await updatePackageDetail(packageId, payload)
+        : await createPackageDetail(packageId, payload);
 
-      showSavedBanner();
+      setHasDetail(true);
+      reset(adminPackageDetailToFormValues(saved));
+      onSaved('detail');
     } catch (error) {
       if (error instanceof ApiError) {
         if (error.status === 422) {
