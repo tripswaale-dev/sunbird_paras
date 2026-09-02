@@ -1,6 +1,6 @@
 # Phase 5 Integration Status & Deployment Guide
 
-Handoff document for Sunbird Vacations frontend–backend integration. **Phases 5–13 complete.** **Phase 14 Step 1 complete** (admin dashboard foundation).
+Handoff document for Sunbird Vacations frontend–backend integration. **Phases 5–13 complete.** **Phase 14 admin dashboard complete** (Steps 1–11: foundation through sections CRUD + content editor).
 
 ---
 
@@ -26,6 +26,16 @@ All core package, section, blog, gallery, static-page, and destinations hub flow
 - **Phase 12 — Destinations hub** — `destination_categories` config + `GET /api/destinations`; `/destinations` page with category tabs, hero, and scoped package grid; `page_seo.destinations`
 - **Phase 13 — Homepage shell CMS** — `GET /api/homepage` for hero video/chips + customer promise cards; `Hero` + `CustomerPromise` wired with static fallback
 - **Phase 14 Step 1 — Admin dashboard foundation** — `/admin/login` + protected `/admin` shell; token auth via `localStorage` (`sunbird_admin_token`); `lib/admin/*` client + `AdminAuthGuard` / `AdminShell`
+- **Phase 14 Step 2 — Contact inquiries inbox** — read-only `/admin/inquiries` list + `/admin/inquiries/[id]` detail; paginated `adminApiGetPaginated()`; search/subject/page URL filters
+- **Phase 14 Step 3 — Blogs CRUD** — `/admin/blogs` list + `/admin/blogs/new` + `/admin/blogs/[id]/edit`; `adminApiDelete()`; react-hook-form + zod; image fields as URL/path strings only
+- **Phase 14 Step 4 — Gallery CRUD** — `/admin/gallery` list + `/admin/gallery/new` + `/admin/gallery/[id]/edit`; API `/admin/gallery-items`; category/aspect_ratio filters; image thumbnails; no upload
+- **Phase 14 Step 5 — Page SEO editor** — `/admin/pages` static index + `/admin/pages/[pageKey]/seo` edit; API `/admin/page-seo/{pageKey}`; 10 seeded keys; no list/create/delete; blog post SEO remains on blog edit
+- **Phase 14 Step 6 — Page content editor** — `/admin/pages` content section + `/admin/pages/[pageKey]/content` edit; API `/admin/page-content/{pageKey}`; `about` and `contact` only; conditional form fields; `?saved=` banner
+- **Phase 14 Step 7 — Homepage CMS** — `/admin/homepage` hub + `/admin/homepage/hero` + `/admin/homepage/promises/[id]`; API `/admin/homepage-hero` + `/admin/customer-promise-items`; dynamic hero chips; no create/delete
+- **Phase 14 Step 8 — Destination categories editor** — `/admin/destinations` list + `/admin/destinations/[code]/edit`; API `/admin/destination-categories/{code}`; 6 fixed codes; read-only structural fields; `?saved=` banner
+- **Phase 14 Step 9 — Packages core CRUD** — `/admin/packages` list + `/admin/packages/new` + `/admin/packages/[id]/edit`; API `/admin/packages`; flat `duration_nights`/`duration_days` payload; nested `duration` in responses; delete 409 when dependencies exist
+- **Phase 14 Step 10 — Package content editor** — `/admin/packages/[id]/content` tabbed editor (detail, SEO, images, itinerary, FAQs); URL-synced `?tab=` + `?saved=` banners; detail 404 → create flow
+- **Phase 14 Step 11 — Sections admin** — `/admin/sections` summary CRUD + `/admin/sections/[id]/content` tabbed editor (packages, categories, stats, SEO); non-paginated list; package picker search; delete 409 when dependencies exist
 
 **What remains static:** navigation, policy page **bodies**, gallery **filter tabs**, and other items in Section 3. `blogsData.ts`, `gallery.ts`, `about.ts`, `contact.ts`, `destinations.ts`, `homepage.ts`, and `customer-promises.ts` are retained as **fallback sources** — do not delete.
 
@@ -320,10 +330,9 @@ Do not commit `.env` files. Do not put secrets in documentation.
 | Priority | Item | Notes |
 |----------|------|-------|
 | 1 | Navigation CMS | `navigationLinks` / `navbarDestinations` still static |
-| 2 | Admin dashboard UI — Step 2 (CRUD screens) | Step 1 complete: login + protected shell at `/admin`; CRUD screens for blogs, gallery, SEO, inquiries, etc. remain |
-| 3 | Policy page body CMS | Metadata via `page_seo`; legal body HTML still static |
-| 4 | Contact form email notifications | Optional — inquiries stored in DB only today |
-| 5 | Optional static data cleanup | Remove duplicate listing fallback files only after fallbacks are redesigned |
+| 2 | Policy page body CMS | Metadata via `page_seo`; legal body HTML still static |
+| 3 | Contact form email notifications | Optional — inquiries stored in DB only today |
+| 4 | Optional static data cleanup | Remove duplicate listing fallback files only after fallbacks are redesigned |
 
 ### Completed (Phase 6)
 
@@ -398,7 +407,16 @@ Do not commit `.env` files. Do not put secrets in documentation.
 | Step | Scope | Status |
 |------|-------|--------|
 | 1 | `/admin/login`, token auth (`sunbird_admin_token`), `lib/admin/*` API client, `AdminAuthGuard` + `AdminShell`, dashboard placeholder | Complete |
-| 2 | CRUD screens (blogs, gallery, page SEO, contact inquiries, homepage, destinations, etc.) | Planned |
+| 2 | Read-only contact inquiries inbox — `/admin/inquiries` list (search, subject filter, pagination) + `/admin/inquiries/[id]` detail; `adminApiGetPaginated()` | Complete |
+| 3 | Blogs CRUD — `/admin/blogs` list (search, active filter) + create/edit forms + delete; `adminApiDelete()`; zod validation | Complete |
+| 4 | Gallery CRUD — `/admin/gallery` list (search, category, active filter) + create/edit forms + delete; thumbnails; zod validation | Complete |
+| 5 | Page SEO editor — `/admin/pages` static index + `/admin/pages/[pageKey]/seo` edit; zod validation; OG image preview | Complete |
+| 6 | Page content editor — `/admin/pages` content section + `/admin/pages/[pageKey]/content` edit; About/Contact conditional fields; `?saved=` banner | Complete |
+| 7 | Homepage CMS — `/admin/homepage` hub + hero edit + promise list/edit; `useFieldArray` chips; `?saved=hero|promise` banner | Complete |
+| 8 | Destination categories editor — `/admin/destinations` list + `/admin/destinations/[code]/edit`; read-only structural fields; `?saved={code}` banner | Complete |
+| 9 | Packages core CRUD — `/admin/packages` list (search, category, active filter) + create/edit forms + delete; flat duration payload; 409 on dependency delete | Complete |
+| 10 | Package content editor — `/admin/packages/[id]/content` tabbed detail/SEO/images/itinerary/FAQs; `?tab=` + `?saved=` banners | Complete |
+| 11 | Sections admin — `/admin/sections` summary CRUD + `/admin/sections/[id]/content` tabbed packages/categories/stats/SEO; non-paginated list; 409 delete | Complete |
 
 ---
 
@@ -459,4 +477,4 @@ Do not delete these files without a replacement fallback strategy:
 
 ---
 
-*Last updated: Phase 14 Step 1 — Admin dashboard foundation (Phases 5–13 + admin shell).*
+*Last updated: Phase 14 Step 11 — Sections admin (Phases 5–13 + admin Steps 1–11 complete).*

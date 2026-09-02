@@ -55,7 +55,29 @@ When unset, defaults to `https://sunbirdvacations.com`.
 
 **Phase 13 complete** — homepage hero + customer promise shell via `GET /api/homepage`.
 
-**Phase 14 Step 1 complete** — `/admin` login, token auth, and protected dashboard shell (CRUD screens in Step 2).
+**Phase 14 Step 1 complete** — `/admin` login, token auth, and protected dashboard shell.
+
+**Phase 14 Step 2 complete** — read-only contact inquiries inbox at `/admin/inquiries`.
+
+**Phase 14 Step 3 complete** — full blogs CRUD at `/admin/blogs`.
+
+**Phase 14 Step 4 complete** — full gallery CRUD at `/admin/gallery`.
+
+**Phase 14 Step 5 complete** — page SEO editor at `/admin/pages`.
+
+**Phase 14 Step 6 complete** — page content editor for About + Contact at `/admin/pages/[pageKey]/content`.
+
+**Phase 14 Step 7 complete** — homepage CMS at `/admin/homepage` (hero + customer promises).
+
+**Phase 14 Step 8 complete** — destination categories editor at `/admin/destinations`.
+
+**Phase 14 Step 9 complete** — packages core CRUD at `/admin/packages`.
+
+**Phase 14 Step 10 complete** — package content editor at `/admin/packages/[id]/content`.
+
+**Phase 14 Step 11 complete** — sections CRUD + tabbed content editor at `/admin/sections/[id]/content`.
+
+**Phase 14 admin dashboard complete** — all 11 admin steps implemented.
 
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and known data mismatches.
 
@@ -225,12 +247,90 @@ Category codes match navbar dropdown: `popular`, `hills`, `beaches`, `spiritual`
 
 **Do not delete** `src/data/homepage.ts` or `src/data/customer-promises.ts` — required for API-offline fallback.
 
-## Phase 14 — Admin UI (Step 1 complete)
+## Phase 14 — Admin UI
+
+### Step 1 (complete)
 
 | Route | Purpose |
 |-------|---------|
 | `/admin/login` | Admin sign-in (public) |
-| `/admin` | Protected dashboard shell (placeholder) |
+| `/admin` | Protected dashboard |
+
+### Step 2 (complete) — Contact inquiries inbox (read-only)
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/inquiries` | Paginated inbox list (search, subject filter, URL state) |
+| `/admin/inquiries/[id]` | Inquiry detail view |
+
+### Step 3 (complete) — Blogs CRUD
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/blogs` | Paginated blog list (search, active filter, URL state) |
+| `/admin/blogs/new` | Create blog |
+| `/admin/blogs/[id]/edit` | Edit blog + delete + "View on site" preview |
+
+### Step 4 (complete) — Gallery CRUD
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/gallery` | Paginated gallery list (search, category, active filter, URL state) |
+| `/admin/gallery/new` | Create gallery item |
+| `/admin/gallery/[id]/edit` | Edit item + delete + "View on site" link to `/gallery` |
+
+### Step 5 (complete) — Page SEO editor
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/pages` | Static index of 10 seeded static pages (no list API) |
+| `/admin/pages/[pageKey]/seo` | Edit SEO for one page + "View on site" link |
+
+### Step 6 (complete) — Page content editor (About + Contact)
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/pages` | Extended index: Page SEO (10 rows) + Page Content (2 rows) + `?saved=` banner |
+| `/admin/pages/[pageKey]/content` | Edit About or Contact page content + "Edit SEO" + "View on site" |
+
+### Step 7 (complete) — Homepage CMS (hero + customer promises)
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/homepage` | Hub index + `?saved=hero|promise` banner |
+| `/admin/homepage/hero` | Edit singleton hero (video, chips, featured chip) |
+| `/admin/homepage/promises` | List 4 customer promise cards |
+| `/admin/homepage/promises/[id]` | Edit single promise card (ids 1–4 only) |
+
+### Step 8 (complete) — Destination categories editor
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/destinations` | List 6 destination hub categories + `?saved={code}` banner |
+| `/admin/destinations/[code]/edit` | Edit category hero/listing fields; read-only structural info |
+
+### Step 9 (complete) — Packages core CRUD
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/packages` | Paginated list + search/category/status filters + `?deleted=1` banner |
+| `/admin/packages/new` | Create package summary |
+| `/admin/packages/[id]/edit` | Edit package summary + delete (409 if dependencies exist) |
+
+### Step 10 (complete) — Package content editor
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/packages/[id]/content` | Tabbed editor: Detail, SEO, Images, Itinerary, FAQs (`?tab=` + `?saved=` banners) |
+
+### Step 11 (complete) — Sections CRUD + content editor
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/sections` | Non-paginated list of all sections (7 seeded) + `?deleted=1` banner |
+| `/admin/sections/new` | Create section summary |
+| `/admin/sections/[id]/edit` | Edit section summary + delete (409 if packages/categories/stats exist) |
+| `/admin/sections/[id]/content` | Tabbed editor: Packages, Categories, Stats, SEO (`?tab=` + `?saved=` banners) |
 
 **Auth** — Bearer token stored in `localStorage` under `sunbird_admin_token`. Client-side guard validates via `GET /api/admin/me`. Token cleared on 401.
 
@@ -238,20 +338,70 @@ Category codes match navbar dropdown: `popular`, `hills`, `beaches`, `spiritual`
 |-------|------|---------|
 | Config | `src/lib/admin/config.ts` | Re-exports `getApiBaseUrl()` |
 | Token | `src/lib/admin/token.ts` | `getAdminToken()` / `setAdminToken()` / `clearAdminToken()` |
-| Client | `src/lib/admin/client.ts` | `adminApiGet/Post/Patch/Put()` + `adminApiPostPublic()` for login |
+| Client | `src/lib/admin/client.ts` | `adminApiGet/Post/Patch/Put/Delete()`, `adminApiGetPaginated()`, `adminApiPostPublic()` |
+| Pagination | `src/lib/admin/pagination.ts` | `AdminPaginatedResult`, `AdminPaginationMeta` |
+| Form errors | `src/lib/admin/form-errors.ts` | `applyApiErrors()` for 422 field mapping |
 | Auth | `src/lib/admin/auth.ts` | `login()`, `logout()`, `getMe()` |
-| Components | `src/components/admin/` | `AdminLoginForm`, `AdminAuthGuard`, `AdminShell` |
+| Contact inquiries | `src/lib/admin/contact-inquiries.ts` | `getContactInquiries()`, `getContactInquiry()`, subject labels |
+| Blogs | `src/lib/admin/blogs.ts` | `getBlogs()`, `getBlog()`, `createBlog()`, `updateBlog()`, `deleteBlog()` |
+| Blog form schema | `src/lib/admin/blog-form-schema.ts` | Zod validation for blog form |
+| Gallery items | `src/lib/admin/gallery-items.ts` | `getGalleryItems()`, `getGalleryItem()`, CRUD helpers |
+| Gallery form schema | `src/lib/admin/gallery-item-form-schema.ts` | Zod validation for gallery form |
+| Page SEO | `src/lib/admin/page-seo.ts` | `getPageSeo()`, `updatePageSeo()` for 10 seeded page keys |
+| Page SEO form schema | `src/lib/admin/page-seo-form-schema.ts` | Zod validation for page SEO form |
+| Page content | `src/lib/admin/page-content.ts` | `getPageContent()`, `updatePageContent()` for `about` and `contact` |
+| Page content form schema | `src/lib/admin/page-content-form-schema.ts` | Per-page zod validation for content form |
+| Homepage hero | `src/lib/admin/homepage-hero.ts` | `getHomepageHero()`, `updateHomepageHero()` |
+| Homepage hero form schema | `src/lib/admin/homepage-hero-form-schema.ts` | Zod validation for hero form |
+| Customer promise items | `src/lib/admin/customer-promise-items.ts` | `getCustomerPromiseItems()`, `updateCustomerPromiseItem()` |
+| Customer promise form schema | `src/lib/admin/customer-promise-item-form-schema.ts` | Zod validation for promise form |
+| Destination categories | `src/lib/admin/destination-categories.ts` | `getDestinationCategories()`, `updateDestinationCategory()` |
+| Destination category form schema | `src/lib/admin/destination-category-form-schema.ts` | Zod validation for category form |
+| Packages | `src/lib/admin/packages.ts` | `getPackages()`, `getPackage()`, `createPackage()`, `updatePackage()`, `deletePackage()` |
+| Package form schema | `src/lib/admin/package-form-schema.ts` | Zod validation for package form |
+| Package detail | `src/lib/admin/package-detail.ts` | `getPackageDetail()`, `createPackageDetail()`, `updatePackageDetail()`, `deletePackageDetail()` |
+| Package SEO | `src/lib/admin/package-seo.ts` | `getPackageSeo()`, `updatePackageSeo()` |
+| Package images | `src/lib/admin/package-images.ts` | `getPackageImages()`, CRUD helpers |
+| Package itinerary | `src/lib/admin/package-itinerary.ts` | `getPackageItineraryDays()`, CRUD helpers |
+| Package FAQs | `src/lib/admin/package-faqs.ts` | `getPackageFaqs()`, CRUD helpers |
+| Package content schemas | `src/lib/admin/package-*-form-schema.ts` | Zod validation per content tab |
+| Sections | `src/lib/admin/sections.ts` | `getSections()`, `getSection()`, `createSection()`, `updateSection()`, `deleteSection()` |
+| Section form schema | `src/lib/admin/section-form-schema.ts` | Zod validation for section summary form |
+| Section packages | `src/lib/admin/section-packages.ts` | Assign/update/remove packages on a section |
+| Section categories | `src/lib/admin/section-categories.ts` | Full CRUD for section categories |
+| Section stats | `src/lib/admin/section-stats.ts` | Full CRUD for section stats |
+| Section SEO | `src/lib/admin/section-seo.ts` | `getSectionSeo()`, `updateSectionSeo()` |
+| Section content schemas | `src/lib/admin/section-*-form-schema.ts` | Zod validation per section content tab |
+| Components | `src/components/admin/` | `AdminLoginForm`, `AdminAuthGuard`, `AdminShell`, `inquiries/*`, `packages/*`, `sections/*`, `blogs/*`, `gallery/*`, `pages/*`, `homepage/*`, `destinations/*` |
+
+**Inbox filters** — URL search params: `?search=&subject=&page=`. Subject labels match the public contact form: General Inquiry, Package Booking, Custom Itinerary, Customer Support.
+
+**Blog filters** — URL search params: `?search=&is_active=&page=`. Image fields are URL/path text inputs only (no upload). Content uses plain textarea (no WYSIWYG).
+
+**Gallery filters** — URL search params: `?search=&category=&is_active=&page=`. API path is `/admin/gallery-items`; admin UI routes use `/admin/gallery`. Image field is path/URL only (no upload). `ALL` category remains UI-only on public `/gallery`.
+
+**Page SEO** — Static index at `/admin/pages` (10 seeded keys: `home`, `gallery`, `packages`, `search`, `blogs`, `about`, `contact`, `payment-policy`, `cancellation-policy`, `destinations`). API path is `/admin/page-seo/{pageKey}`; admin UI routes use `/admin/pages/[pageKey]/seo`. No list/create/delete endpoints. Blog post SEO remains on blog edit forms. OG image is path/URL only (no upload).
+
+**Page content** — Static index section at `/admin/pages` (2 seeded keys: `about`, `contact`). API path is `/admin/page-content/{pageKey}`; admin UI routes use `/admin/pages/[pageKey]/content`. About: hero + body; Contact: hero + intro + contact fields. `hero_image` is path/URL only (no upload). Success redirect: `/admin/pages?saved={pageKey}`.
+
+**Homepage CMS** — Hub at `/admin/homepage`. Hero API: `/admin/homepage-hero` (singleton). Promises API: `/admin/customer-promise-items` (4 fixed ids). Hero chips use `useFieldArray`; featured chip optional (`null` when disabled). Icon enums: hero `mountain|umbrella|tree-pine|map-pin`; promise `headphones|alarm-clock|handshake|users`. Video path only (no upload). Success redirect: `/admin/homepage?saved=hero|promise`.
+
+**Destination categories** — List at `/admin/destinations` (6 fixed codes: `popular`, `hills`, `beaches`, `spiritual`, `wildlife`, `international`). API path is `/admin/destination-categories/{code}`; admin UI routes use `/admin/destinations/[code]/edit`. Editable: title, hero fields, `listing_path`, `sort_order`, `is_active`. Read-only: `code`, `section_slug`, `package_category`. Success redirect: `/admin/destinations?saved={code}`.
+
+**Packages** — Full CRUD at `/admin/packages`. API path is `/admin/packages`. Create/update payload uses flat `duration_nights` / `duration_days`; API responses include nested `duration.formatted`. Filters: `?search=&category=&is_active=&page=`. Category is free-text (exact match filter). Image field is path/URL only (no upload). Delete returns 409 when package has section assignments, details, itinerary, FAQs, or images — UI shows API error message. List and edit summary link to content editor.
+
+**Package content** — Tabbed editor at `/admin/packages/[id]/content`. Tabs: `?tab=detail|seo|images|itinerary|faqs` (default `detail`). APIs: `/admin/packages/{id}/detail`, `/seo`, `/images`, `/itinerary`, `/faqs`. Detail GET 404 → create form (POST); otherwise PATCH. SEO always exists on package row. Images/itinerary/FAQs are list + add/edit/delete. Success banners: `?saved=detail|seo|image|itinerary|faq`. Image paths text-only. Package SEO `canonical_url` is plain string (max 500), not strict URL validation.
+
+**Sections** — Full CRUD at `/admin/sections`. API path is `/admin/sections`. List is non-paginated (returns all ~7 seeded sections). Content editor at `/admin/sections/[id]/content` with tabs: `?tab=packages|categories|stats|seo` (default `packages`). Sub-resources: `/admin/sections/{id}/packages`, `/categories`, `/stats`, `/seo`. Package assignments use debounced search via `getPackages({ search })`; PATCH/DELETE package routes use **package ID** (not pivot id). Delete section returns 409 when packages, categories, or stats exist. Section slug max 100 (no kebab-case regex). Section SEO `canonical_url` is plain string (max 500). Success banners: `?saved=packages|category|stat|seo`.
 
 **Local dev flow:**
 
 1. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env`, then `php artisan db:seed --class=AdminSeeder`.
 2. Ensure `NEXT_PUBLIC_API_URL` points at the Laravel API (default `http://localhost:8000/api`).
 3. Visit `/admin/login` — sign in with seeded admin credentials.
-4. `/admin` shows the dashboard placeholder; logout clears the token.
+4. `/admin` dashboard; `/admin/inquiries` inbox; `/admin/packages` travel packages; `/admin/sections` homepage sections; `/admin/blogs` blog posts; `/admin/gallery` gallery items; `/admin/homepage` hero + promises; `/admin/destinations` hub categories; `/admin/pages` page SEO and content.
 
 Admin routes render in a full-viewport overlay (`app/admin/layout.tsx`) so marketing navbar/footer are hidden without moving public routes.
-
-**Step 2 (planned):** CRUD screens for blogs, gallery, SEO, inquiries, homepage, destinations, etc.
 
 ## Learn More
 

@@ -14,6 +14,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="fixed inset-0 z-[100] overflow-auto bg-gray-50">{children}</div>
+    <div
+      className="fixed inset-0 z-[100] overflow-hidden bg-gray-50"
+      data-lenis-prevent
+    >
+      {children}
+    </div>
   );
 }
