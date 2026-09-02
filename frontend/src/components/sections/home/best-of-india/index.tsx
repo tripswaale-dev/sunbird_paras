@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Section } from '@/components/common/Section';
 import { SectionHeader } from '@/components/ui/section-header';
 import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
+import { SwipeableMotionGrid } from '@/components/common/SwipeableMotionGrid';
 import { CarouselButton } from '@/components/ui/carousel-button';
 import { Button } from '@/components/ui/button';
 import { bestOfIndiaGridClasses } from '@/data/best-of-india';
@@ -54,19 +55,10 @@ export function BestOfIndia({ destinations }: BestOfIndiaProps) {
           className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 border border-gray-100"
         />
 
-        <motion.div 
+        <SwipeableMotionGrid
           className="grid grid-cols-12 gap-5 touch-pan-y"
-          drag="x"
-          dragConstraints={{ left: 0, right: 0 }}
-          dragElastic={0.05}
-          onDragEnd={(e, { offset, velocity }) => {
-            const swipe = Math.abs(offset.x) * velocity.x;
-            if (swipe < -100 || offset.x < -50) {
-              nextSlide();
-            } else if (swipe > 100 || offset.x > 50) {
-              prevSlide();
-            }
-          }}
+          onSwipeLeft={nextSlide}
+          onSwipeRight={prevSlide}
         >
           {bestOfIndiaGridClasses.map((slotClass, i) => {
             const dest = visibleDestinations[i];
@@ -106,7 +98,7 @@ export function BestOfIndia({ destinations }: BestOfIndiaProps) {
               </div>
             );
           })}
-        </motion.div>
+        </SwipeableMotionGrid>
 
         <CarouselButton
           direction="right"

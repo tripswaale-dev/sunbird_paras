@@ -1,6 +1,6 @@
 # Phase 5 Integration Status & Deployment Guide
 
-Handoff document for Sunbird Vacations frontend–backend integration. **Phases 5–13 complete.**
+Handoff document for Sunbird Vacations frontend–backend integration. **Phases 5–13 complete.** **Phase 14 Step 1 complete** (admin dashboard foundation).
 
 ---
 
@@ -25,6 +25,7 @@ All core package, section, blog, gallery, static-page, and destinations hub flow
 - **Phase 11 — About + Contact** — `page_contents` API for hero/body/contact fields; `/about` and `/contact` frontend pages; `POST /api/contact-inquiries` + admin inquiry list; real contact form submission
 - **Phase 12 — Destinations hub** — `destination_categories` config + `GET /api/destinations`; `/destinations` page with category tabs, hero, and scoped package grid; `page_seo.destinations`
 - **Phase 13 — Homepage shell CMS** — `GET /api/homepage` for hero video/chips + customer promise cards; `Hero` + `CustomerPromise` wired with static fallback
+- **Phase 14 Step 1 — Admin dashboard foundation** — `/admin/login` + protected `/admin` shell; token auth via `localStorage` (`sunbird_admin_token`); `lib/admin/*` client + `AdminAuthGuard` / `AdminShell`
 
 **What remains static:** navigation, policy page **bodies**, gallery **filter tabs**, and other items in Section 3. `blogsData.ts`, `gallery.ts`, `about.ts`, `contact.ts`, `destinations.ts`, `homepage.ts`, and `customer-promises.ts` are retained as **fallback sources** — do not delete.
 
@@ -319,7 +320,7 @@ Do not commit `.env` files. Do not put secrets in documentation.
 | Priority | Item | Notes |
 |----------|------|-------|
 | 1 | Navigation CMS | `navigationLinks` / `navbarDestinations` still static |
-| 2 | Admin dashboard UI | API-only admin today — no web UI for CRUD/SEO/inquiries |
+| 2 | Admin dashboard UI — Step 2 (CRUD screens) | Step 1 complete: login + protected shell at `/admin`; CRUD screens for blogs, gallery, SEO, inquiries, etc. remain |
 | 3 | Policy page body CMS | Metadata via `page_seo`; legal body HTML still static |
 | 4 | Contact form email notifications | Optional — inquiries stored in DB only today |
 | 5 | Optional static data cleanup | Remove duplicate listing fallback files only after fallbacks are redesigned |
@@ -392,6 +393,13 @@ Do not commit `.env` files. Do not put secrets in documentation.
 | 1 | `homepage_hero` + `customer_promise_items` tables; `GET /api/homepage`; admin GET/PATCH | Complete |
 | 2 | Frontend `Hero` + `CustomerPromise` wired via `getHomepage()` + `homepage.ts` fallback + icon mapper | Complete |
 
+### Completed (Phase 14 — Admin dashboard UI)
+
+| Step | Scope | Status |
+|------|-------|--------|
+| 1 | `/admin/login`, token auth (`sunbird_admin_token`), `lib/admin/*` API client, `AdminAuthGuard` + `AdminShell`, dashboard placeholder | Complete |
+| 2 | CRUD screens (blogs, gallery, page SEO, contact inquiries, homepage, destinations, etc.) | Planned |
+
 ---
 
 ## Fallback Files Preserved
@@ -451,4 +459,4 @@ Do not delete these files without a replacement fallback strategy:
 
 ---
 
-*Last updated: Phase 13 — Homepage shell CMS complete (Phases 5–13).*
+*Last updated: Phase 14 Step 1 — Admin dashboard foundation (Phases 5–13 + admin shell).*

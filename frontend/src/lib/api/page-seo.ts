@@ -1,4 +1,4 @@
-import { apiGet } from '@/lib/api/client';
+import { apiGet, ApiError } from '@/lib/api/client';
 import type { PageSeoResponse } from '@/lib/api/types';
 import {
   mapPageSeoToMetadata,
@@ -84,7 +84,11 @@ export async function getPageMetadata(
     return mapPageSeoToMetadata(data, fallback, ogImageFallback);
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      console.error(`Failed to fetch page SEO for "${pageKey}"; using static fallback.`, error);
+      const detail =
+        error instanceof ApiError ? ` (${error.status})` : '';
+      console.error(
+        `Failed to fetch page SEO for "${pageKey}"${detail}; using static fallback.`
+      );
     }
 
     return {

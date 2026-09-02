@@ -55,6 +55,8 @@ When unset, defaults to `https://sunbirdvacations.com`.
 
 **Phase 13 complete** — homepage hero + customer promise shell via `GET /api/homepage`.
 
+**Phase 14 Step 1 complete** — `/admin` login, token auth, and protected dashboard shell (CRUD screens in Step 2).
+
 See [Integration status & deployment guide](../docs/PHASE5-INTEGRATION-STATUS.md) for the full dynamic pages matrix, deployment checklist, and known data mismatches.
 
 The frontend reads section data from the Laravel API at `NEXT_PUBLIC_API_URL` (default `http://localhost:8000/api`).
@@ -222,6 +224,34 @@ Category codes match navbar dropdown: `popular`, `hills`, `beaches`, `spiritual`
 **Homepage** (`app/page.tsx`) — single `getHomepage()` in `Promise.all`. `<Hero />` receives `backgroundVideo`, `chips`, `featuredChip`. `<CustomerPromise />` receives `customerPromises` with string icon keys; maps to Lucide via `src/lib/mappers/homepage-icons.ts`. Falls back on API error or hero 404.
 
 **Do not delete** `src/data/homepage.ts` or `src/data/customer-promises.ts` — required for API-offline fallback.
+
+## Phase 14 — Admin UI (Step 1 complete)
+
+| Route | Purpose |
+|-------|---------|
+| `/admin/login` | Admin sign-in (public) |
+| `/admin` | Protected dashboard shell (placeholder) |
+
+**Auth** — Bearer token stored in `localStorage` under `sunbird_admin_token`. Client-side guard validates via `GET /api/admin/me`. Token cleared on 401.
+
+| Layer | Path | Purpose |
+|-------|------|---------|
+| Config | `src/lib/admin/config.ts` | Re-exports `getApiBaseUrl()` |
+| Token | `src/lib/admin/token.ts` | `getAdminToken()` / `setAdminToken()` / `clearAdminToken()` |
+| Client | `src/lib/admin/client.ts` | `adminApiGet/Post/Patch/Put()` + `adminApiPostPublic()` for login |
+| Auth | `src/lib/admin/auth.ts` | `login()`, `logout()`, `getMe()` |
+| Components | `src/components/admin/` | `AdminLoginForm`, `AdminAuthGuard`, `AdminShell` |
+
+**Local dev flow:**
+
+1. Set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in `backend/.env`, then `php artisan db:seed --class=AdminSeeder`.
+2. Ensure `NEXT_PUBLIC_API_URL` points at the Laravel API (default `http://localhost:8000/api`).
+3. Visit `/admin/login` — sign in with seeded admin credentials.
+4. `/admin` shows the dashboard placeholder; logout clears the token.
+
+Admin routes render in a full-viewport overlay (`app/admin/layout.tsx`) so marketing navbar/footer are hidden without moving public routes.
+
+**Step 2 (planned):** CRUD screens for blogs, gallery, SEO, inquiries, homepage, destinations, etc.
 
 ## Learn More
 
