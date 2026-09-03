@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateBlogRequest;
 use App\Http\Resources\AdminBlogResource;
 use App\Http\Responses\ApiResponse;
 use App\Models\Blog;
+use App\Support\BlogContentBlocks;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -66,7 +67,7 @@ class BlogController extends Controller
 
     public function store(StoreBlogRequest $request): JsonResponse
     {
-        $blog = Blog::create($request->validated());
+        $blog = Blog::create($this->prepareBlogData($request->validated()));
 
         return ApiResponse::success(
             (new AdminBlogResource($blog))->resolve(),
@@ -78,7 +79,7 @@ class BlogController extends Controller
     public function update(UpdateBlogRequest $request, int $id): JsonResponse
     {
         $blog = Blog::findOrFail($id);
-        $blog->update($request->validated());
+        $blog->update($this->prepareBlogData($request->validated()));
 
         return ApiResponse::success(
             (new AdminBlogResource($blog->fresh()))->resolve()
@@ -91,5 +92,18 @@ class BlogController extends Controller
         $blog->delete();
 
         return ApiResponse::success(['message' => 'Blog deleted successfully.']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function prepareBlogData(array $data): array
+    {
+        if (isset($data['content_blocks']) && is_array($data['content_blocks'])) {
+            $data['content'] = BlogContentBlocks::toPlainContent($data['content_blocks']);
+        }
+
+        return $data;
     }
 }

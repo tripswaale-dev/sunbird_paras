@@ -10,6 +10,7 @@ class BlogDetailResource extends BlogSummaryResource
     {
         return array_merge(parent::toArray($request), [
             'content' => $this->content,
+            'contentBlocks' => $this->content_blocks ?? [],
             'seo' => [
                 'meta_title' => $this->meta_title,
                 'meta_description' => $this->meta_description,

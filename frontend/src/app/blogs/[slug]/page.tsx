@@ -5,6 +5,7 @@ import { Container } from '@/components/ui/container';
 import { HeroBanner } from '@/components/common/HeroBanner';
 import { getBlogBySlug, getBlogFeaturedPackages, getBlogMetadata } from '@/lib/api/blogs';
 import { PackageList } from '@/components/sections/packages/PackageList';
+import { BlogContentRenderer } from '@/components/blogs/BlogContentRenderer';
 
 interface PageProps {
   params: Promise<{
@@ -63,14 +64,25 @@ export default async function BlogDetailsPage({ params }: PageProps) {
               <p className="text-xl leading-relaxed text-primary mb-8 font-medium border-l-4 border-primary pl-6 py-2 bg-teal-50/50 rounded-r-lg whitespace-pre-line">
                 {blog.excerpt}
               </p>
-              
-              {blog.content?.split('\n').map((paragraph, idx) => (
-                paragraph.trim() ? (
-                  <p key={idx} className={idx === 0 ? "first-letter:text-6xl first-letter:font-bold first-letter:text-primary first-letter:mr-3 first-letter:float-left first-letter:leading-none pt-2 mb-6" : "mb-6 whitespace-pre-line"}>
-                    {paragraph}
-                  </p>
-                ) : null
-              ))}
+
+              {blog.contentBlocks && blog.contentBlocks.length > 0 ? (
+                <BlogContentRenderer blocks={blog.contentBlocks} />
+              ) : (
+                blog.content?.split('\n').map((paragraph, idx) =>
+                  paragraph.trim() ? (
+                    <p
+                      key={idx}
+                      className={
+                        idx === 0
+                          ? 'first-letter:text-6xl first-letter:font-bold first-letter:text-primary first-letter:mr-3 first-letter:float-left first-letter:leading-none pt-2 mb-6'
+                          : 'mb-6 whitespace-pre-line'
+                      }
+                    >
+                      {paragraph}
+                    </p>
+                  ) : null
+                )
+              )}
             </div>
           </div>
         </Container>

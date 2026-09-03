@@ -3,7 +3,7 @@
 import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, type Path } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import {
   applyApiErrors,
@@ -17,6 +17,7 @@ import {
   type BlogFormValues,
 } from '@/lib/admin/blog-form-schema';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
+import { BlogContentBlocksField } from '@/components/admin/blogs/BlogContentBlocksField';
 import { BlogDeleteButton } from '@/components/admin/blogs/BlogDeleteButton';
 import { AccordionItem } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ export function BlogForm({ mode, defaultValues, blogId }: BlogFormProps) {
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
@@ -57,10 +59,10 @@ export function BlogForm({ mode, defaultValues, blogId }: BlogFormProps) {
 
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
-        const field = issue.path[0];
+        const field = issue.path.join('.');
 
-        if (typeof field === 'string') {
-          setError(field as keyof BlogFormValues, { message: issue.message });
+        if (field) {
+          setError(field as Path<BlogFormValues>, { message: issue.message });
         }
       }
 
@@ -164,11 +166,12 @@ export function BlogForm({ mode, defaultValues, blogId }: BlogFormProps) {
             {...register('excerpt')}
           />
 
-          <Textarea
-            label="Content"
-            error={errors.content?.message}
-            rows={12}
-            {...register('content')}
+          <BlogContentBlocksField
+            control={control}
+            register={register}
+            setValue={setValue}
+            watch={watch}
+            errors={errors}
           />
 
           <div className="grid gap-5 sm:grid-cols-2">

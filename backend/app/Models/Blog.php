@@ -12,6 +12,7 @@ class Blog extends Model
         'title',
         'excerpt',
         'content',
+        'content_blocks',
         'author',
         'category',
         'image',
@@ -27,6 +28,7 @@ class Blog extends Model
 
     protected $casts = [
         'published_at' => 'datetime',
+        'content_blocks' => 'array',
         'is_active' => 'boolean',
         'is_indexable' => 'boolean',
     ];

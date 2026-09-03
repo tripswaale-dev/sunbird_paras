@@ -58,7 +58,16 @@ class AdminBlogCrudTest extends TestCase
             'slug' => 'test-blog-post',
             'title' => 'Test Blog Post',
             'excerpt' => 'A short excerpt for the test blog.',
-            'content' => 'Full blog content for testing purposes.',
+            'content_blocks' => [
+                [
+                    'type' => 'heading',
+                    'text' => 'Test heading',
+                ],
+                [
+                    'type' => 'paragraph',
+                    'text' => 'Full blog content for testing purposes.',
+                ],
+            ],
             'author' => 'Test Author',
             'category' => 'Travel',
             'image' => '/images/test.jpg',
@@ -135,6 +144,7 @@ class AdminBlogCrudTest extends TestCase
                     'title',
                     'excerpt',
                     'content',
+                    'content_blocks',
                     'author',
                     'category',
                     'image',
@@ -219,7 +229,7 @@ class AdminBlogCrudTest extends TestCase
                 'slug',
                 'title',
                 'excerpt',
-                'content',
+                'content_blocks',
                 'author',
                 'category',
                 'image',
@@ -319,6 +329,49 @@ class AdminBlogCrudTest extends TestCase
 
         $this->assertStringNotContainsString('<loc>https://frontend.test/blogs/story-behind-sunbird-vacations</loc>', $content);
         $this->getJson('/api/blogs/story-behind-sunbird-vacations')->assertOk();
+    }
+
+    public function test_create_fails_with_invalid_content_block_type(): void
+    {
+        $this->withHeaders($this->adminHeaders())
+            ->postJson('/api/admin/blogs', $this->validBlogPayload([
+                'content_blocks' => [
+                    [
+                        'type' => 'quote',
+                        'text' => 'Invalid block type.',
+                    ],
+                ],
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['content_blocks.0.type']);
+    }
+
+    public function test_admin_can_create_blog_with_image_content_block(): void
+    {
+        $this->withHeaders($this->adminHeaders())
+            ->postJson('/api/admin/blogs', $this->validBlogPayload([
+                'slug' => 'image-block-blog',
+                'content_blocks' => [
+                    [
+                        'type' => 'paragraph',
+                        'text' => 'Intro paragraph.',
+                    ],
+                    [
+                        'type' => 'image',
+                        'image' => '/images/inline.jpg',
+                        'alt' => 'Inline image',
+                        'caption' => 'Caption text',
+                    ],
+                ],
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.content_blocks.1.type', 'image')
+            ->assertJsonPath('data.content_blocks.1.image', '/images/inline.jpg');
+
+        $this->assertDatabaseHas('blogs', [
+            'slug' => 'image-block-blog',
+            'content' => "Intro paragraph.",
+        ]);
     }
 
     public function test_deleted_blog_returns_404_on_public_show(): void

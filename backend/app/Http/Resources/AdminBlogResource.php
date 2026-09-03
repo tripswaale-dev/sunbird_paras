@@ -15,6 +15,7 @@ class AdminBlogResource extends JsonResource
             'title' => $this->title,
             'excerpt' => $this->excerpt,
             'content' => $this->content,
+            'content_blocks' => $this->content_blocks ?? [],
             'author' => $this->author,
             'category' => $this->category,
             'image' => $this->image,

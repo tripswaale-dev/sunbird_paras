@@ -1,3 +1,5 @@
+import type { BlogContentBlock } from '@/lib/blog-content-blocks';
+
 export interface ApiSuccessResponse<T> {
   success: true;
   data: T;
@@ -170,6 +172,7 @@ export interface BlogSeo {
 
 export interface BlogDetail extends BlogSummary {
   content: string;
+  contentBlocks: BlogContentBlock[];
   seo: BlogSeo;
 }
 

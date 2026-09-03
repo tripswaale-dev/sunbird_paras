@@ -1,9 +1,12 @@
+import type { BlogContentBlock } from '@/lib/blog-content-blocks';
+
 export interface Blog {
   id: string;
   slug: string;
   title: string;
   excerpt: string;
   content?: string;
+  contentBlocks?: BlogContentBlock[];
   author: string;
   date: string;
   category: string;

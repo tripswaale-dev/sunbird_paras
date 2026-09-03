@@ -8,6 +8,10 @@ import {
 } from '@/lib/admin/client';
 import { applyApiErrors } from '@/lib/admin/form-errors';
 import type { AdminPaginatedResult } from '@/lib/admin/pagination';
+import {
+  contentBlocksFromLegacyContent,
+  type BlogContentBlock,
+} from '@/lib/blog-content-blocks';
 
 export interface AdminBlog {
   id: number;
@@ -15,6 +19,7 @@ export interface AdminBlog {
   title: string;
   excerpt: string;
   content: string;
+  content_blocks: BlogContentBlock[];
   author: string;
   category: string;
   image: string;
@@ -37,7 +42,10 @@ export interface BlogsListParams {
   per_page?: number;
 }
 
-export type BlogApiPayload = Omit<BlogFormValues, 'meta_title' | 'meta_description' | 'canonical_url' | 'og_image'> & {
+export type BlogApiPayload = Omit<
+  BlogFormValues,
+  'meta_title' | 'meta_description' | 'canonical_url' | 'og_image'
+> & {
   meta_title?: string | null;
   meta_description?: string | null;
   canonical_url?: string | null;
@@ -66,12 +74,20 @@ export function toDateInputValue(iso: string): string {
   return iso.slice(0, 10);
 }
 
+function resolveContentBlocks(blog: AdminBlog): BlogContentBlock[] {
+  if (blog.content_blocks?.length) {
+    return blog.content_blocks;
+  }
+
+  return contentBlocksFromLegacyContent(blog.content);
+}
+
 export function adminBlogToFormValues(blog: AdminBlog): BlogFormValues {
   return {
     slug: blog.slug,
     title: blog.title,
     excerpt: blog.excerpt,
-    content: blog.content,
+    content_blocks: resolveContentBlocks(blog),
     author: blog.author,
     category: blog.category,
     image: blog.image,
@@ -91,7 +107,21 @@ export function toBlogPayload(values: BlogFormValues): BlogApiPayload {
     slug: values.slug,
     title: values.title,
     excerpt: values.excerpt,
-    content: values.content,
+    content_blocks: values.content_blocks.map((block) => {
+      if (block.type === 'image') {
+        return {
+          type: block.type,
+          image: block.image,
+          alt: block.alt?.trim() || undefined,
+          caption: block.caption?.trim() || undefined,
+        };
+      }
+
+      return {
+        type: block.type,
+        text: block.text.trim(),
+      };
+    }),
     author: values.author,
     category: values.category,
     image: values.image,
@@ -161,7 +191,7 @@ export function getDefaultBlogFormValues(): BlogFormValues {
     slug: '',
     title: '',
     excerpt: '',
-    content: '',
+    content_blocks: [{ type: 'paragraph', text: '' }],
     author: '',
     category: '',
     image: '',
