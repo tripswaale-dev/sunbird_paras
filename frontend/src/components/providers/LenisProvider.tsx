@@ -34,6 +34,12 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       touchMultiplier: 2,
     });
 
+    const handleStop = () => lenis.stop();
+    const handleStart = () => lenis.start();
+
+    window.addEventListener('lenis:stop', handleStop);
+    window.addEventListener('lenis:start', handleStart);
+
     let rafId = 0;
 
     function raf(time: number) {
@@ -44,6 +50,8 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
     rafId = requestAnimationFrame(raf);
 
     return () => {
+      window.removeEventListener('lenis:stop', handleStop);
+      window.removeEventListener('lenis:start', handleStart);
       cancelAnimationFrame(rafId);
       lenis.destroy();
     };
