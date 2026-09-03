@@ -311,6 +311,15 @@ export function SectionPackagesTab({ sectionId }: SectionPackagesTabProps) {
 
   return (
     <div className="space-y-6">
+      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4">
+        <p className="text-sm text-gray-700">
+          <span className="font-medium text-gray-900">Tip:</span> Assign packages to multiple
+          homepage sections at once from{' '}
+          <span className="font-medium">Packages → Edit → Homepage &amp; listings</span>. Use this
+          tab to adjust display order and featured status per section.
+        </p>
+      </div>
+
       <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
         {packages.length === 0 ? (
           <p className="p-8 text-center text-sm text-gray-600">No packages assigned yet.</p>

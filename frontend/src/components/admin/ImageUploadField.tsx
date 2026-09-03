@@ -20,6 +20,7 @@ interface ImageUploadFieldProps {
   previewAlt?: string;
   placeholder?: string;
   disabled?: boolean;
+  fieldId?: string;
 }
 
 export function ImageUploadField({
@@ -31,8 +32,11 @@ export function ImageUploadField({
   previewAlt,
   placeholder = '/images/...',
   disabled = false,
+  fieldId,
 }: ImageUploadFieldProps) {
-  const inputId = useId();
+  const generatedId = useId();
+  const pasteInputId = fieldId ?? `${generatedId}-path`;
+  const fileInputId = `${pasteInputId}-file`;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -82,7 +86,7 @@ export function ImageUploadField({
         <div className="min-w-0 flex-1 space-y-3">
           <input
             ref={fileInputRef}
-            id={inputId}
+            id={fileInputId}
             type="file"
             accept={ADMIN_IMAGE_ACCEPT}
             className="sr-only"
@@ -108,6 +112,7 @@ export function ImageUploadField({
           </div>
 
           <Input
+            id={pasteInputId}
             label="Or paste a path or URL"
             placeholder={placeholder}
             value={value}

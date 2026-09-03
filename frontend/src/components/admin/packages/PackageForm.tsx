@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -21,12 +21,50 @@ import {
   type PackageFormValues,
 } from '@/lib/admin/package-form-schema';
 import { getAssignedSectionIdsForPackage } from '@/lib/admin/section-packages';
+import {
+  HOMEPAGE_SPOTLIGHT_SECTION_SLUGS,
+  SECTION_LISTING_TAB_CONFIG,
+  TRAVEL_YOUR_WAY_SECTION_SLUG,
+} from '@/lib/admin/package-placement-groups';
 import { getSections, type AdminSection } from '@/lib/admin/sections';
 import { ImageUploadField } from '@/components/admin/ImageUploadField';
 import { PackageDeleteButton } from '@/components/admin/packages/PackageDeleteButton';
 import { PackageSectionAssignField } from '@/components/admin/packages/PackageSectionAssignField';
+import { PackageSectionListingTabField } from '@/components/admin/packages/PackageSectionListingTabField';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+
+const VALIDATION_FIELD_ORDER: Array<keyof PackageFormValues> = [
+  'title',
+  'slug',
+  'subtitle',
+  'location',
+  'price',
+  'duration_nights',
+  'duration_days',
+  'category_option',
+  'category_custom',
+  'image',
+  'tag',
+  'section_ids',
+];
+
+function scrollToFirstValidationError(
+  issues: Array<{ path: PropertyKey[] }>
+): void {
+  const firstField = issues[0]?.path[0];
+
+  if (typeof firstField !== 'string') {
+    return;
+  }
+
+  const fieldElement =
+    document.getElementById(firstField) ??
+    document.querySelector<HTMLElement>(`[name="${firstField}"]`);
+
+  fieldElement?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  fieldElement?.focus({ preventScroll: true });
+}
 
 interface PackageFormProps {
   mode: 'create' | 'edit';
@@ -52,6 +90,7 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
     formState: { errors, isSubmitting },
   } = useForm<PackageFormValues>({
     defaultValues,
+    shouldUnregister: false,
   });
 
   const isActive = watch('is_active');
@@ -59,7 +98,41 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
   const image = watch('image');
   const title = watch('title');
   const categoryOption = watch('category_option');
+  const categoryCustom = watch('category_custom');
   const sectionIds = watch('section_ids') ?? [];
+
+  const travelYourWaySection = useMemo(
+    () => sections.find((section) => section.slug === TRAVEL_YOUR_WAY_SECTION_SLUG) ?? null,
+    [sections]
+  );
+
+  function getSectionIdsForSlugs(slugs: readonly string[]): number[] {
+    return sections.filter((section) => slugs.includes(section.slug)).map((section) => section.id);
+  }
+
+  function mergeSectionIds(nextIds: number[]) {
+    setValue('section_ids', [...new Set([...sectionIds, ...nextIds])], {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }
+
+  function applyHomepageSpotlight() {
+    mergeSectionIds(getSectionIdsForSlugs(HOMEPAGE_SPOTLIGHT_SECTION_SLUGS));
+  }
+
+  function applyTravelYourWayOnly() {
+    const travelYourWayId = travelYourWaySection?.id;
+
+    if (travelYourWayId) {
+      mergeSectionIds([travelYourWayId]);
+    }
+  }
+
+  function handleCategoryChange(option: string, custom: string) {
+    setValue('category_option', option, { shouldDirty: true, shouldValidate: true });
+    setValue('category_custom', custom, { shouldDirty: true, shouldValidate: true });
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -123,6 +196,15 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
         }
       }
 
+      const orderedIssue = [...parsed.error.issues].sort((left, right) => {
+        const leftIndex = VALIDATION_FIELD_ORDER.indexOf(left.path[0] as keyof PackageFormValues);
+        const rightIndex = VALIDATION_FIELD_ORDER.indexOf(right.path[0] as keyof PackageFormValues);
+
+        return (leftIndex === -1 ? 999 : leftIndex) - (rightIndex === -1 ? 999 : rightIndex);
+      });
+
+      scrollToFirstValidationError(orderedIssue);
+      setFormError('Please fix the highlighted fields below. Package image is required.');
       return;
     }
 
@@ -139,6 +221,8 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           setFormError(
             `Package "${created.title}" was created, but could not assign to: ${assignmentResult.failed.map((failure) => failure.message).join('; ')}`
           );
+          router.push('/admin/packages');
+          return;
         }
 
         router.push('/admin/packages');
@@ -158,6 +242,7 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           setFormError(
             `Package "${updated.title}" was saved, but section changes failed: ${syncResult.failed.map((failure) => failure.message).join('; ')}`
           );
+          return;
         }
 
         router.push('/admin/packages');
@@ -169,6 +254,9 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
       if (error instanceof ApiError) {
         if (error.status === 422) {
           applyApiErrors(setError, error);
+          scrollToFirstValidationError(
+            Object.keys(error.errors ?? {}).map((field) => ({ path: [field] }))
+          );
         }
 
         setFormError(error.message);
@@ -296,7 +384,8 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
                 ))}
               </select>
               <p className="mt-1.5 text-sm text-gray-500">
-                Use &quot;Beaches&quot; exactly for the Beaches tab on the Destinations page.
+                Use Travel Your Way tabs (Pocket Friendly, etc.) when assigning to Travel Your Way.
+                Use &quot;Beaches&quot; for the Destinations page Beaches tab.
               </p>
               {errors.category_option ? (
                 <p className="mt-1.5 text-sm text-red-600">{errors.category_option.message}</p>
@@ -315,9 +404,15 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           ) : null}
 
           <ImageUploadField
+            fieldId="image"
             label="Package image"
             value={image ?? ''}
-            onChange={(path) => setValue('image', path, { shouldDirty: true, shouldValidate: true })}
+            onChange={(path) =>
+              setValue('image', path, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
             error={errors.image?.message}
             previewAlt={title || 'Package preview'}
           />
@@ -341,9 +436,8 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
       <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-gray-900">Homepage &amp; listings</h2>
         <p className="mt-1 text-sm text-gray-600">
-          {mode === 'create'
-            ? 'Optionally assign this package to homepage sections. You can change assignments later in Sections → Content → Packages.'
-            : 'Add or remove homepage section assignments for this package.'}
+          Assign this package to homepage sections in one place — Popular Destinations, Travel Your
+          Way (with listing tab), Best of India, and more.
         </p>
 
         <div className="mt-6">
@@ -351,12 +445,41 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
             sections={sections}
             selectedIds={sectionIds}
             onChange={(ids) =>
-              setValue('section_ids', ids, { shouldDirty: true, shouldValidate: true })
+              setValue('section_ids', ids, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
             }
             isLoading={sectionsLoading}
             loadError={sectionsError}
             disabled={isSubmitting}
             error={errors.section_ids?.message}
+            grouped
+            onApplyHomepageSpotlight={applyHomepageSpotlight}
+            onApplyTravelYourWayOnly={applyTravelYourWayOnly}
+            renderListingTabField={(section) => {
+              const config = SECTION_LISTING_TAB_CONFIG[section.slug];
+
+              if (!config || !sectionIds.includes(section.id)) {
+                return null;
+              }
+
+              return (
+                <PackageSectionListingTabField
+                  sectionId={section.id}
+                  config={config}
+                  categoryOption={categoryOption ?? ''}
+                  categoryCustom={categoryCustom ?? ''}
+                  onCategoryChange={handleCategoryChange}
+                  disabled={isSubmitting}
+                  fieldId={
+                    section.slug === TRAVEL_YOUR_WAY_SECTION_SLUG
+                      ? 'travel_your_way_tab'
+                      : `section_listing_tab_${section.slug}`
+                  }
+                />
+              );
+            }}
           />
         </div>
       </div>

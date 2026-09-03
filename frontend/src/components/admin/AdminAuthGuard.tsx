@@ -76,7 +76,11 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   }
 
   if (!user) {
-    return null;
+    return (
+      <div className="flex h-full min-h-0 items-center justify-center bg-gray-50 text-sm text-gray-600">
+        Redirecting to login...
+      </div>
+    );
   }
 
   return <AdminShell user={user}>{children}</AdminShell>;

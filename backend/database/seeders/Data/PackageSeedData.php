@@ -232,6 +232,7 @@ class PackageSeedData
     {
         return [
             'popular-destinations' => [
+                'pkg-1',
                 'spiti-valley', 'heavenly-kashmir', 'secret-himachal', 'garhwal-escape',
                 'colors-of-rajasthan', 'andaman-escape', 'misty-kerala', 'assam-and-meghalaya',
                 'arunachal-the-last-frontier', 'tirthan-valley', 'essence-of-nepal', 'goa-waterfall-trail',
@@ -240,6 +241,7 @@ class PackageSeedData
             'across-boundaries' => ['intl-1', 'intl-2', 'intl-3', 'intl-4', 'intl-5'],
             'gateway-to-the-hills' => ['hill-1', 'hill-2', 'hill-3'],
             'best-of-india' => [
+                'pkg-1',
                 'golden-triangle', 'ladakh-explorer', 'heritage-rajasthan', 'classic-himachal',
                 'sikkim-and-darjeeling', 'western-coastal-trail', 'serene-kerala-with-rameshwaram',
                 'holy-ganges-quest', 'dunes-and-dynasties', 'kerala-coastal-circuit', 'southern-odyssey',
