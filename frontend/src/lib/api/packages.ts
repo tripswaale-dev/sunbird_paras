@@ -2,17 +2,9 @@ import type { Metadata } from 'next';
 import { apiGet } from '@/lib/api/client';
 import type { PackageDetailResponse, PackageSummary } from '@/lib/api/types';
 import { mapPackageDetailToPackage } from '@/lib/mappers/package-detail';
-import {
-  mapPackageDetailToMetadata,
-  mapStaticPackageToMetadata,
-} from '@/lib/mappers/package-metadata';
+import { mapPackageDetailToMetadata } from '@/lib/mappers/package-metadata';
 import { mapPackageSummaryToRelatedPackage } from '@/lib/mappers/related-packages';
 import { mapPackageSummariesToTravelPackages } from '@/lib/mappers/travel-packages';
-import {
-  allTravelPackages,
-  getPackageBySlug as getStaticPackageBySlug,
-  getRelatedPackages as getStaticRelatedPackages,
-} from '@/data/packages';
 import type { TravelPackage } from '@/data/travelPackages';
 import type { Package } from '@/types/package';
 
@@ -99,37 +91,13 @@ async function fetchSearchPackageSummaries(query: string): Promise<PackageSummar
   return packages;
 }
 
-function filterStaticPackagesByQuery(query: string): TravelPackage[] {
-  const normalizedQuery = query.trim().toLowerCase();
-
-  if (!normalizedQuery) {
-    return allTravelPackages;
-  }
-
-  return allTravelPackages.filter((pkg) => {
-    const searchString = `${pkg.title} ${pkg.category} ${pkg.duration}`.toLowerCase();
-    return searchString.includes(normalizedQuery);
-  });
-}
-
 export async function getSearchPackages(query: string): Promise<TravelPackage[]> {
   try {
     const summaries = await fetchSearchPackageSummaries(query);
 
-    if (!summaries.length) {
-      return query.trim() ? [] : allTravelPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(summaries);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `Failed to fetch search packages for "${query}"; using static fallback.`,
-        error
-      );
-    }
-
-    return filterStaticPackagesByQuery(query);
+  } catch {
+    return [];
   }
 }
 
@@ -137,20 +105,9 @@ export async function getPackagesIndexListingPackages(): Promise<TravelPackage[]
   try {
     const summaries = await fetchAllPackageSummaries();
 
-    if (!summaries.length) {
-      return allTravelPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(summaries);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch packages index listing; using static fallback.',
-        error
-      );
-    }
-
-    return allTravelPackages;
+  } catch {
+    return [];
   }
 }
 
@@ -164,25 +121,12 @@ export async function getRelatedPackages(
       ? await fetchPackages({ category: current.category, per_page: limit + 1 })
       : await fetchPackages({ per_page: limit + 1 });
 
-    const related = summaries
+    return summaries
       .filter((summary) => summary.slug !== currentSlug)
       .slice(0, limit)
       .map(mapPackageSummaryToRelatedPackage);
-
-    if (!related.length) {
-      return getStaticRelatedPackages(currentSlug, limit);
-    }
-
-    return related;
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `Failed to fetch related packages for "${currentSlug}"; using static fallback.`,
-        error
-      );
-    }
-
-    return getStaticRelatedPackages(currentSlug, limit);
+  } catch {
+    return [];
   }
 }
 
@@ -191,15 +135,8 @@ export async function getPackageBySlug(slug: string): Promise<Package | undefine
     const data = await fetchPackage(slug);
 
     return mapPackageDetailToPackage(data);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `Failed to fetch package "${slug}"; using static fallback.`,
-        error
-      );
-    }
-
-    return getStaticPackageBySlug(slug);
+  } catch {
+    return undefined;
   }
 }
 
@@ -208,22 +145,9 @@ export async function getPackageMetadata(slug: string): Promise<Metadata> {
     const data = await fetchPackage(slug);
 
     return mapPackageDetailToMetadata(data);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `Failed to fetch package metadata for "${slug}"; using static fallback.`,
-        error
-      );
-    }
-
-    const pkg = getStaticPackageBySlug(slug);
-
-    if (!pkg) {
-      return {
-        title: 'Package Not Found | Sunbird Vacations',
-      };
-    }
-
-    return mapStaticPackageToMetadata(pkg);
+  } catch {
+    return {
+      title: 'Package Not Found | Sunbird Vacations',
+    };
   }
 }

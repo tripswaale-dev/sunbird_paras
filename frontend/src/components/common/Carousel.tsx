@@ -34,20 +34,29 @@ export function Carousel<T>({
 }: CarouselProps<T>) {
   const [startIndex, setStartIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
+  const itemCount = items.length;
+  const slotCount = Math.min(visibleCount, itemCount);
 
   const nextSlide = () => {
+    if (itemCount === 0) {
+      return;
+    }
+
     setDirection(1);
-    setStartIndex((prev) => (prev + visibleCount) % items.length);
+    setStartIndex((prev) => (prev + visibleCount) % itemCount);
   };
 
   const prevSlide = () => {
+    if (itemCount === 0) {
+      return;
+    }
+
     setDirection(-1);
-    const len = items.length;
-    setStartIndex((prev) => (((prev - visibleCount) % len) + len) % len);
+    setStartIndex((prev) => (((prev - visibleCount) % itemCount) + itemCount) % itemCount);
   };
 
-  const visibleItems = Array.from({ length: visibleCount }).map((_, i) => {
-    return items[(startIndex + i) % items.length];
+  const visibleItems = Array.from({ length: slotCount }, (_, i) => {
+    return items[(startIndex + i) % itemCount];
   });
 
   const navButtons = (
@@ -89,12 +98,12 @@ export function Carousel<T>({
     <div className={className}>
       {renderHeader?.({ prevSlide, nextSlide, navButtons })}
 
+      {itemCount === 0 ? null : (
       <div className={buttonPosition === 'sides' ? 'relative md:px-16' : ''}>
         {buttonPosition === 'sides' && sideNavLeft}
 
         <div className={gridClassName}>
-          {Array.from({ length: visibleCount }).map((_, i) => {
-            const item = visibleItems[i];
+          {visibleItems.map((item, i) => {
             return (
               <div key={`slot-${i}`} className="relative h-full w-full overflow-hidden rounded-[20px]">
                 <AnimatePresence mode="popLayout" initial={false} custom={direction}>
@@ -122,6 +131,7 @@ export function Carousel<T>({
 
         {buttonPosition === 'sides' && sideNavRight}
       </div>
+      )}
     </div>
   );
 }

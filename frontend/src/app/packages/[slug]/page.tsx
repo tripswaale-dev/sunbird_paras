@@ -17,7 +17,12 @@ import { StickyBooking } from "@/components/package/StickyBooking";
 import { TourHighlights } from "@/components/package/TourHighlights";
 import { PackageCard } from "@/components/package/PackageCard";
 import { Accordion } from "@/components/ui/accordion";
+import { getAllPackageSlugParams } from "@/lib/build/static-params";
 
+
+export async function generateStaticParams() {
+  return getAllPackageSlugParams();
+}
 
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;

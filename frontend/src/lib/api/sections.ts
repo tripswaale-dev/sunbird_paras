@@ -15,49 +15,14 @@ import {
 } from '@/lib/mappers/popular-destinations';
 import { mapPackageSummariesToPackageCards } from '@/lib/mappers/package-cards';
 import { mapPackageSummariesToTravelPackages } from '@/lib/mappers/travel-packages';
-import {
-  acrossBoundariesPackages,
-} from '@/data/acrossBoundariesData';
-import { popularPackages } from '@/data/popularDestinationsData';
-import { bestOfIndiaPackages } from '@/data/bestOfIndiaData';
-import { spiritualDestinationsPackages } from '@/data/spiritualDestinationsData';
-import { exploreWildPackages } from '@/data/exploreWildData';
-import {
-  bestOfIndiaDestinations,
-  type BestOfIndiaDestination,
-} from '@/data/best-of-india';
-import {
-  internationalPackages,
-  type InternationalPackage,
-} from '@/data/international-packages';
-import {
-  hillDestinations,
-  type HillDestination,
-} from '@/data/hill-destinations';
-import {
-  journeyCategories,
-  type JourneyCategory,
-} from '@/data/journey-categories';
-import {
-  spiritualPackages,
-  type SpiritualPackage,
-} from '@/data/spiritual-packages';
-import {
-  wildlifePackages,
-  type WildlifePackage,
-} from '@/data/wildlife-packages';
-import {
-  popularDestinations,
-  popularStats,
-  type PopularDestination,
-  type PopularStat,
-} from '@/data/popular-destinations';
+import type { BestOfIndiaDestination } from '@/data/best-of-india';
+import type { InternationalPackage } from '@/data/international-packages';
+import type { HillDestination } from '@/data/hill-destinations';
+import type { JourneyCategory } from '@/data/journey-categories';
+import type { SpiritualPackage } from '@/data/spiritual-packages';
+import type { WildlifePackage } from '@/data/wildlife-packages';
+import type { PopularDestination, PopularStat } from '@/data/popular-destinations';
 import type { TravelPackage } from '@/data/travelPackages';
-import {
-  travelCategories,
-  travelPackages,
-} from '@/data/travelPackages';
-import { hillCategories, hillPackages } from '@/data/hillPackages';
 
 export interface PopularDestinationsSectionData {
   destinations: PopularDestination[];
@@ -91,27 +56,12 @@ export async function getTravelYourWayListingData(): Promise<CategoryFilteredLis
   try {
     const data = await fetchSectionPackages('travel-your-way');
 
-    const categories = data.categories.length
-      ? mapSectionCategoriesToFilterTabs(data.categories)
-      : travelCategories;
-
-    const packages = data.packages.length
-      ? mapPackageSummariesToTravelPackages(data.packages)
-      : travelPackages;
-
-    return { packages, categories };
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch travel-your-way listing packages; using static fallback.',
-        error
-      );
-    }
-
     return {
-      packages: travelPackages,
-      categories: travelCategories,
+      packages: mapPackageSummariesToTravelPackages(data.packages),
+      categories: mapSectionCategoriesToFilterTabs(data.categories),
     };
+  } catch {
+    return { packages: [], categories: [] };
   }
 }
 
@@ -119,27 +69,12 @@ export async function getGatewayToHillsListingData(): Promise<CategoryFilteredLi
   try {
     const data = await fetchSectionPackages('gateway-to-the-hills');
 
-    const categories = data.categories.length
-      ? mapSectionCategoriesToFilterTabs(data.categories)
-      : hillCategories;
-
-    const packages = data.packages.length
-      ? mapPackageSummariesToTravelPackages(data.packages)
-      : hillPackages;
-
-    return { packages, categories };
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch gateway-to-the-hills listing packages; using static fallback.',
-        error
-      );
-    }
-
     return {
-      packages: hillPackages,
-      categories: hillCategories,
+      packages: mapPackageSummariesToTravelPackages(data.packages),
+      categories: mapSectionCategoriesToFilterTabs(data.categories),
     };
+  } catch {
+    return { packages: [], categories: [] };
   }
 }
 
@@ -195,14 +130,7 @@ export async function getSectionListingMetadata(sectionSlug: string): Promise<Me
     const section = await fetchSection(sectionSlug);
 
     return mapSectionDetailToMetadata(section, fallback);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        `Failed to fetch section metadata for "${sectionSlug}"; using static fallback.`,
-        error
-      );
-    }
-
+  } catch {
     return mapStaticListingToMetadata(fallback);
   }
 }
@@ -222,20 +150,9 @@ export async function getAcrossBoundariesListingPackages(): Promise<TravelPackag
   try {
     const data = await fetchSectionPackages('across-boundaries');
 
-    if (!data.packages.length) {
-      return acrossBoundariesPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(data.packages);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch across-boundaries listing packages; using static fallback.',
-        error
-      );
-    }
-
-    return acrossBoundariesPackages;
+  } catch {
+    return [];
   }
 }
 
@@ -243,20 +160,9 @@ export async function getPopularDestinationsListingPackages(): Promise<TravelPac
   try {
     const data = await fetchSectionPackages('popular-destinations');
 
-    if (!data.packages.length) {
-      return popularPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(data.packages);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch popular-destinations listing packages; using static fallback.',
-        error
-      );
-    }
-
-    return popularPackages;
+  } catch {
+    return [];
   }
 }
 
@@ -264,20 +170,9 @@ export async function getBestOfIndiaListingPackages(): Promise<TravelPackage[]> 
   try {
     const data = await fetchSectionPackages('best-of-india');
 
-    if (!data.packages.length) {
-      return bestOfIndiaPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(data.packages);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch best-of-india listing packages; using static fallback.',
-        error
-      );
-    }
-
-    return bestOfIndiaPackages;
+  } catch {
+    return [];
   }
 }
 
@@ -285,20 +180,9 @@ export async function getSpiritualDestinationsListingPackages(): Promise<TravelP
   try {
     const data = await fetchSectionPackages('spiritual-destinations');
 
-    if (!data.packages.length) {
-      return spiritualDestinationsPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(data.packages);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch spiritual-destinations listing packages; using static fallback.',
-        error
-      );
-    }
-
-    return spiritualDestinationsPackages;
+  } catch {
+    return [];
   }
 }
 
@@ -306,20 +190,9 @@ export async function getExploreWildIndiaListingPackages(): Promise<TravelPackag
   try {
     const data = await fetchSectionPackages('explore-wild-india');
 
-    if (!data.packages.length) {
-      return exploreWildPackages;
-    }
-
     return mapPackageSummariesToTravelPackages(data.packages);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch explore-wild-india listing packages; using static fallback.',
-        error
-      );
-    }
-
-    return exploreWildPackages;
+  } catch {
+    return [];
   }
 }
 
@@ -327,22 +200,11 @@ export async function getTravelYourWayCategories(): Promise<JourneyCategory[]> {
   try {
     const section = await fetchSection('travel-your-way');
 
-    if (!section.categories.length) {
-      return journeyCategories.slice(0, TRAVEL_YOUR_WAY_HOME_LIMIT);
-    }
-
     return mapSectionCategoriesToJourneyCategories(
       selectHomepageCategories(section.categories, TRAVEL_YOUR_WAY_HOME_LIMIT)
     );
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch travel-your-way categories; using static fallback.',
-        error
-      );
-    }
-
-    return journeyCategories.slice(0, TRAVEL_YOUR_WAY_HOME_LIMIT);
+  } catch {
+    return [];
   }
 }
 
@@ -350,20 +212,9 @@ export async function getGatewayToHillsCategories(): Promise<HillDestination[]> 
   try {
     const section = await fetchSection('gateway-to-the-hills');
 
-    if (!section.categories.length) {
-      return hillDestinations;
-    }
-
     return mapSectionCategoriesToHillDestinations(section.categories);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch gateway-to-the-hills categories; using static fallback.',
-        error
-      );
-    }
-
-    return hillDestinations;
+  } catch {
+    return [];
   }
 }
 
@@ -371,34 +222,15 @@ export async function getAcrossBoundariesPackages(): Promise<InternationalPackag
   try {
     const section = await fetchSection('across-boundaries');
 
-    if (!section.packages.length) {
-      return internationalPackages;
-    }
-
-    return mapPackageSummariesToPackageCards(
-      section.packages,
-      '/across-boundaries'
-    );
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch across-boundaries packages; using static fallback.',
-        error
-      );
-    }
-
-    return internationalPackages;
+    return mapPackageSummariesToPackageCards(section.packages, '/across-boundaries');
+  } catch {
+    return [];
   }
 }
 
 export async function getSpiritualDestinationsPackages(): Promise<SpiritualPackage[]> {
   try {
     const section = await fetchSection('spiritual-destinations');
-
-    if (!section.packages.length) {
-      return spiritualPackages;
-    }
-
     const sorted = [...section.packages].sort(
       (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
     );
@@ -412,26 +244,14 @@ export async function getSpiritualDestinationsPackages(): Promise<SpiritualPacka
       tag: sorted[index].tag ?? '',
       href: card.href,
     }));
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch spiritual-destinations packages; using static fallback.',
-        error
-      );
-    }
-
-    return spiritualPackages;
+  } catch {
+    return [];
   }
 }
 
 export async function getExploreWildIndiaPackages(): Promise<WildlifePackage[]> {
   try {
     const section = await fetchSection('explore-wild-india');
-
-    if (!section.packages.length) {
-      return wildlifePackages;
-    }
-
     const sorted = [...section.packages].sort(
       (a, b) => (a.display_order ?? 0) - (b.display_order ?? 0)
     );
@@ -446,15 +266,8 @@ export async function getExploreWildIndiaPackages(): Promise<WildlifePackage[]> 
       category: sorted[index].category,
       href: card.href,
     }));
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch explore-wild-india packages; using static fallback.',
-        error
-      );
-    }
-
-    return wildlifePackages;
+  } catch {
+    return [];
   }
 }
 
@@ -462,20 +275,9 @@ export async function getBestOfIndiaDestinations(): Promise<BestOfIndiaDestinati
   try {
     const section = await fetchSection('best-of-india');
 
-    if (!section.packages.length) {
-      return bestOfIndiaDestinations;
-    }
-
     return mapPackageSummariesToBestOfIndiaDestinations(section.packages);
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch best-of-india destinations; using static fallback.',
-        error
-      );
-    }
-
-    return bestOfIndiaDestinations;
+  } catch {
+    return [];
   }
 }
 
@@ -484,24 +286,13 @@ export async function getPopularDestinationsSection(): Promise<PopularDestinatio
     const section = await fetchSection('popular-destinations');
 
     return {
-      destinations: section.packages.length
-        ? mapPackageSummariesToPopularDestinations(section.packages)
-        : popularDestinations,
-      stats: section.stats.length
-        ? mapSectionStatsToPopularStats(section.stats)
-        : popularStats,
+      destinations: mapPackageSummariesToPopularDestinations(section.packages),
+      stats: mapSectionStatsToPopularStats(section.stats),
     };
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch popular-destinations section; using static fallback.',
-        error
-      );
-    }
-
+  } catch {
     return {
-      destinations: popularDestinations,
-      stats: popularStats,
+      destinations: [],
+      stats: [],
     };
   }
 }

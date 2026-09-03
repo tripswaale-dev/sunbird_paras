@@ -1,38 +1,22 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { DestinationCategoryTabs } from '@/components/destinations/DestinationCategoryTabs';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import { getDestinationsHub } from '@/lib/api/destinations';
+import { Suspense } from 'react';
 import { getDestinationsMetadata } from '@/lib/api/page-seo';
+import { Loader } from '@/components/ui/loader';
+import { DestinationsPageClient } from './DestinationsPageClient';
 
 export async function generateMetadata() {
   return getDestinationsMetadata();
 }
 
-interface DestinationsPageProps {
-  searchParams: Promise<{ category?: string }>;
-}
-
-export default async function DestinationsPage({ searchParams }: DestinationsPageProps) {
-  const { category } = await searchParams;
-  const hub = await getDestinationsHub(category);
-
+export default function DestinationsPage() {
   return (
-    <>
-      <HeroBanner
-        image={hub.heroImage}
-        title={hub.heroTitle}
-        subtitle={hub.heroSubtitle ?? undefined}
-      />
-      <PackageList
-        packages={hub.packages}
-        baseRoute={hub.listingPath}
-        header={
-          <DestinationCategoryTabs
-            categories={hub.categories}
-            activeCategory={hub.activeCategory}
-          />
-        }
-      />
-    </>
+    <Suspense
+      fallback={
+        <div className="flex min-h-[50vh] items-center justify-center bg-gray-50">
+          <Loader />
+        </div>
+      }
+    >
+      <DestinationsPageClient />
+    </Suspense>
   );
 }

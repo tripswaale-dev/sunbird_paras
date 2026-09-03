@@ -23,20 +23,29 @@ interface PopularDestinationsProps {
 export function PopularDestinations({ destinations, stats }: PopularDestinationsProps) {
   const [startIndex, setStartIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
+  const destinationCount = destinations.length;
+  const visibleCount = Math.min(5, destinationCount);
 
   const nextSlide = () => {
+    if (destinationCount === 0) {
+      return;
+    }
+
     setDirection(1);
-    setStartIndex((prev) => (prev + 5) % destinations.length);
+    setStartIndex((prev) => (prev + visibleCount) % destinationCount);
   };
 
   const prevSlide = () => {
+    if (destinationCount === 0) {
+      return;
+    }
+
     setDirection(-1);
-    const len = destinations.length;
-    setStartIndex((prev) => (((prev - 5) % len) + len) % len);
+    setStartIndex((prev) => (((prev - visibleCount) % destinationCount) + destinationCount) % destinationCount);
   };
 
-  const visibleDestinations = Array.from({ length: 5 }).map((_, i) => {
-    return destinations[(startIndex + i) % destinations.length];
+  const visibleDestinations = Array.from({ length: visibleCount }, (_, i) => {
+    return destinations[(startIndex + i) % destinationCount];
   });
 
   return (
@@ -48,6 +57,7 @@ export function PopularDestinations({ destinations, stats }: PopularDestinations
       />
 
       {/* Bento Grid */}
+      {destinationCount > 0 ? (
       <div className="relative md:px-16 mt-8">
         <CarouselButton
           direction="left"
@@ -61,8 +71,12 @@ export function PopularDestinations({ destinations, stats }: PopularDestinations
           onSwipeLeft={nextSlide}
           onSwipeRight={prevSlide}
         >
-          {popularDestinationsGridSlots.map((slot, i) => {
+          {popularDestinationsGridSlots.slice(0, visibleCount).map((slot, i) => {
             const dest = visibleDestinations[i];
+            if (!dest) {
+              return null;
+            }
+
             return (
               <div
                 key={`slot-${i}`}
@@ -108,6 +122,7 @@ export function PopularDestinations({ destinations, stats }: PopularDestinations
           className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 border border-gray-100 bg-white shadow-md"
         />
       </div>
+      ) : null}
 
       <StatsCard stats={stats} />
     </Section>

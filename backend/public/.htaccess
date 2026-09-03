@@ -3,11 +3,38 @@
         Options -MultiViews -Indexes
     </IfModule>
 
+    DirectoryIndex index.html index.php
+
     RewriteEngine On
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Admin client routes: serve a pre-built shell when a specific ID was not exported
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/sections/[0-9]+/edit/?$ /admin/sections/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/sections/[0-9]+/content/?$ /admin/sections/1/content/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/packages/[0-9]+/edit/?$ /admin/packages/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/blogs/[0-9]+/edit/?$ /admin/blogs/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/gallery/[0-9]+/edit/?$ /admin/gallery/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/inquiries/[0-9]+/?$ /admin/inquiries/1/index.html [L]
 
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d

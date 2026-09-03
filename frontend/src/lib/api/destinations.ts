@@ -2,21 +2,24 @@ import { apiGet } from '@/lib/api/client';
 import type { DestinationsHubResponse } from '@/lib/api/types';
 import { resolvePublicImageSrc } from '@/lib/media';
 import { mapPackageSummariesToTravelPackages } from '@/lib/mappers/travel-packages';
-import {
-  getStaticDestinationsHub,
-  type StaticDestinationsHubData,
-} from '@/data/destinations';
+import type { StaticDestinationsHubData } from '@/data/destinations';
 
 export type DestinationsHubData = StaticDestinationsHubData;
+
+const EMPTY_DESTINATIONS_HUB: DestinationsHubData = {
+  categories: [],
+  activeCategory: '',
+  heroImage: '',
+  heroTitle: '',
+  heroSubtitle: '',
+  listingPath: '/destinations',
+  packages: [],
+};
 
 export async function getDestinationsHub(category?: string): Promise<DestinationsHubData> {
   try {
     const query = category ? `?category=${encodeURIComponent(category)}` : '';
     const data = await apiGet<DestinationsHubResponse>(`/destinations${query}`);
-
-    const packages = data.packages.length
-      ? mapPackageSummariesToTravelPackages(data.packages)
-      : getStaticDestinationsHub(data.activeCategory).packages;
 
     return {
       categories: data.categories,
@@ -25,16 +28,9 @@ export async function getDestinationsHub(category?: string): Promise<Destination
       heroTitle: data.heroTitle,
       heroSubtitle: data.heroSubtitle,
       listingPath: data.listingPath,
-      packages,
+      packages: mapPackageSummariesToTravelPackages(data.packages),
     };
-  } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error(
-        'Failed to fetch destinations hub; using static fallback.',
-        error
-      );
-    }
-
-    return getStaticDestinationsHub(category);
+  } catch {
+    return EMPTY_DESTINATIONS_HUB;
   }
 }

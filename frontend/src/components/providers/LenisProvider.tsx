@@ -1,15 +1,18 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import Lenis from 'lenis';
 
 export function LenisProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname.startsWith('/admin');
+  const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
     if (isAdminRoute) {
+      lenisRef.current = null;
+
       const html = document.documentElement;
       const body = document.body;
       const previousHtmlOverflow = html.style.overflow;
@@ -34,6 +37,8 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       touchMultiplier: 2,
     });
 
+    lenisRef.current = lenis;
+
     const handleStop = () => lenis.stop();
     const handleStart = () => lenis.start();
 
@@ -54,8 +59,18 @@ export function LenisProvider({ children }: { children: React.ReactNode }) {
       window.removeEventListener('lenis:start', handleStart);
       cancelAnimationFrame(rafId);
       lenis.destroy();
+      lenisRef.current = null;
     };
   }, [isAdminRoute]);
+
+  useEffect(() => {
+    if (isAdminRoute) {
+      return;
+    }
+
+    lenisRef.current?.scrollTo(0, { immediate: true });
+    window.scrollTo(0, 0);
+  }, [pathname, isAdminRoute]);
 
   return <>{children}</>;
 }

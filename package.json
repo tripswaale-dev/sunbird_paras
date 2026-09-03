@@ -1,0 +1,10 @@
+{
+  "name": "sunbird-vacations",
+  "private": true,
+  "scripts": {
+    "build:live": "node scripts/build-live.mjs",
+    "sync:images": "node scripts/sync-images-from-live.mjs",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "php artisan serve --working-directory=backend"
+  }
+}

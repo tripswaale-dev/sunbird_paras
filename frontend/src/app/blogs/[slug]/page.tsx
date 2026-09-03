@@ -6,11 +6,16 @@ import { HeroBanner } from '@/components/common/HeroBanner';
 import { getBlogBySlug, getBlogFeaturedPackages, getBlogMetadata } from '@/lib/api/blogs';
 import { PackageList } from '@/components/sections/packages/PackageList';
 import { BlogContentRenderer } from '@/components/blogs/BlogContentRenderer';
+import { getAllBlogSlugParams } from '@/lib/build/static-params';
 
 interface PageProps {
   params: Promise<{
     slug: string;
   }>;
+}
+
+export async function generateStaticParams() {
+  return getAllBlogSlugParams();
 }
 
 export async function generateMetadata({ params }: PageProps) {

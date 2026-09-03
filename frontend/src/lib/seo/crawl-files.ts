@@ -1,12 +1,10 @@
 import { getApiBaseUrl } from '@/lib/api/config';
 
-const SITEMAP_REVALIDATE_SECONDS = 3600;
-
 export async function fetchSitemapXml(): Promise<string> {
   const url = `${getApiBaseUrl()}/sitemap.xml`;
 
   const response = await fetch(url, {
-    next: { revalidate: SITEMAP_REVALIDATE_SECONDS },
+    cache: 'no-store',
   });
 
   if (!response.ok) {
