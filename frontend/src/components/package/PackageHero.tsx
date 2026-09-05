@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { Container } from "@/components/ui/container";
+import { resolvePublicImageSrc } from "@/lib/media";
 
 interface PackageHeroProps {
   images: string[];
@@ -14,9 +15,13 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  if (!images || images.length === 0) return null;
+  const resolvedImages = images
+    .map((src) => resolvePublicImageSrc(src) || src)
+    .filter(Boolean);
 
-  const mainImage = images[0];
+  if (!resolvedImages || resolvedImages.length === 0) return null;
+
+  const mainImage = resolvedImages[0];
 
 
   const openLightbox = (index: number) => {
@@ -31,11 +36,11 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    setCurrentImageIndex((prev) => (prev + 1) % resolvedImages.length);
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    setCurrentImageIndex((prev) => (prev - 1 + resolvedImages.length) % resolvedImages.length);
   };
 
   return (
@@ -59,13 +64,13 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
             </div>
 
             {/* Top Right Wide Image */}
-            {images[1] && (
+            {resolvedImages[1] && (
               <div
                 className="hidden md:block col-span-2 row-span-1 relative cursor-pointer group"
                 onClick={() => openLightbox(1)}
               >
                 <Image
-                  src={images[1]}
+                  src={resolvedImages[1]}
                   alt="Gallery Image 2"
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -75,13 +80,13 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
             )}
 
             {/* Bottom Right Small Image 1 */}
-            {images[2] && (
+            {resolvedImages[2] && (
               <div
                 className="hidden md:block col-span-1 row-span-1 relative cursor-pointer group"
                 onClick={() => openLightbox(2)}
               >
                 <Image
-                  src={images[2]}
+                  src={resolvedImages[2]}
                   alt="Gallery Image 3"
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -91,19 +96,19 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
             )}
 
             {/* Bottom Right Small Image 2 (with overlay) */}
-            {images[3] && (
+            {resolvedImages[3] && (
               <div
                 className="hidden md:block col-span-1 row-span-1 relative cursor-pointer group"
                 onClick={() => openLightbox(3)}
               >
                 <Image
-                  src={images[3]}
+                  src={resolvedImages[3]}
                   alt="Gallery Image 4"
                   fill
                   className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-300" />
-                {images.length > 4 && (
+                {resolvedImages.length > 4 && (
                   <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-[2px] transition-all group-hover:bg-black/70">
                     <span className="font-medium text-lg md:text-xl">See all images &gt;</span>
                   </div>
@@ -118,7 +123,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
                 className="bg-white/90 backdrop-blur-md text-text px-4 py-2 rounded-lg font-medium shadow-elevated flex items-center gap-2"
               >
                 <ImageIcon className="w-4 h-4" />
-                See all {images.length} photos
+                See all {resolvedImages.length} photos
               </button>
             </div>
           </div>
@@ -151,7 +156,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
 
               <div className="relative w-full h-full max-w-5xl">
                 <Image
-                  src={images[currentImageIndex]}
+                  src={resolvedImages[currentImageIndex]}
                   alt={`Lightbox Image ${currentImageIndex + 1}`}
                   fill
                   className="object-contain"

@@ -7,6 +7,7 @@ import { Bed, Utensils, Binoculars } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 interface HorizontalPackageCardProps {
   title: string;
@@ -26,6 +27,7 @@ export function HorizontalPackageCard({
   className,
 }: HorizontalPackageCardProps) {
   const generatedHref = href || `/packages/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
     <Link href={generatedHref} className={cn('block w-full cursor-pointer', className)}>
@@ -36,7 +38,7 @@ export function HorizontalPackageCard({
         {/* Image */}
         <div className="relative w-full md:w-[40%] h-[200px] md:h-[260px] shrink-0">
           <Image
-            src={image}
+            src={imageSrc}
             alt={title}
             fill
             className="object-cover transition-transform duration-700 hover:scale-105"

@@ -1,6 +1,7 @@
+import Image from 'next/image';
 import { Container } from '@/components/ui/container';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 interface HeroBannerProps {
   image: string;
@@ -19,25 +20,24 @@ export function HeroBanner({
   overlayClass = 'bg-black/35',
   contentPosition = 'center',
 }: HeroBannerProps) {
+  const imageSrc = resolvePublicImageSrc(image) || image;
+
   return (
     <section className={cn(
       'relative flex justify-start',
       contentPosition === 'center' ? 'items-center' : 'items-end pb-16 lg:pb-24',
       heightClass
     )}>
-      {/* Background Image */}
       <Image
-        src={image}
+        src={imageSrc}
         alt={title}
         fill
         className="object-cover"
         priority
       />
 
-      {/* Overlay */}
       <div className={cn('absolute inset-0', overlayClass)} />
 
-      {/* Content */}
       <Container className="relative z-10 text-white w-full">
         <h1 className="font-heading text-3xl md:text-4xl lg:text-6xl font-semibold leading-tight drop-shadow-md">
           {title}

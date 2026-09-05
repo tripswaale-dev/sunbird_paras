@@ -1,59 +1,42 @@
-import { getApiOrigin } from '@/lib/api/config';
+/**
+ * Public asset URL helpers.
+ *
+ * Backend-hosted files (`/uploads`, `/images`, `/storage`) must always use
+ * NEXT_PUBLIC_API_URL's origin — never BUILD_API_URL (that is local-only at build time).
+ */
+
+function getPublicApiOrigin(): string {
+  const baseUrl = (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api').replace(
+    /\/$/,
+    ''
+  );
+
+  return baseUrl.replace(/\/api\/?$/, '');
+}
 
 function normalizeLeadingSlash(src: string): string {
   return src.startsWith('/') ? src : `/${src}`;
-}
-
-function normalizeUploadPath(src: string): string {
-  if (src.startsWith('/uploads/')) {
-    return src;
-  }
-
-  if (src.startsWith('uploads/')) {
-    return `/${src}`;
-  }
-
-  return src;
 }
 
 function isUploadPath(src: string): boolean {
   return src.startsWith('/uploads/') || src.startsWith('uploads/');
 }
 
+function isStoragePath(src: string): boolean {
+  return src.startsWith('/storage/') || src.startsWith('storage/');
+}
+
 function isPublicImagePath(src: string): boolean {
   return src.startsWith('/images/') || src.startsWith('images/');
 }
 
-function normalizeAssetPath(src: string): string {
-  if (isUploadPath(src)) {
-    return normalizeUploadPath(src);
-  }
-
-  if (isPublicImagePath(src)) {
-    return normalizeLeadingSlash(src);
-  }
-
-  return src;
+/** Paths that live on the Laravel public disk, not the Next.js frontend. */
+export function isBackendAssetPath(src: string): boolean {
+  return isUploadPath(src) || isStoragePath(src) || isPublicImagePath(src);
 }
 
-function shouldUseApiOriginForAsset(path: string): boolean {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  try {
-    return window.location.origin !== new URL(getApiOrigin()).origin;
-  } catch {
-    return false;
-  }
-}
-
-function resolveAssetSrc(path: string): string {
-  if (shouldUseApiOriginForAsset(path)) {
-    return `${getApiOrigin()}${path}`;
-  }
-
-  return path;
+function normalizeBackendAssetPath(src: string): string {
+  return normalizeLeadingSlash(src);
 }
 
 export function toUsableImageSrc(src: unknown): string | null {
@@ -72,16 +55,12 @@ export function resolvePublicImageSrc(src: string | null | undefined): string {
 
   const trimmed = src.trim();
 
-  if (!trimmed) {
-    return '';
-  }
-
   if (/^(https?:|data:|blob:)/i.test(trimmed)) {
     return trimmed;
   }
 
-  if (isUploadPath(trimmed) || isPublicImagePath(trimmed)) {
-    return resolveAssetSrc(normalizeAssetPath(trimmed));
+  if (isBackendAssetPath(trimmed)) {
+    return `${getPublicApiOrigin()}${normalizeBackendAssetPath(trimmed)}`;
   }
 
   return trimmed;
@@ -94,16 +73,18 @@ export function resolveAbsoluteImageSrc(src: string | null | undefined): string 
 
   const trimmed = src.trim();
 
-  if (!trimmed) {
-    return '';
-  }
-
   if (/^(https?:|data:|blob:)/i.test(trimmed)) {
     return trimmed;
   }
 
-  if (isUploadPath(trimmed) || isPublicImagePath(trimmed)) {
-    return `${getApiOrigin()}${normalizeAssetPath(trimmed)}`;
+  if (isBackendAssetPath(trimmed)) {
+    return `${getPublicApiOrigin()}${normalizeBackendAssetPath(trimmed)}`;
+  }
+
+  if (trimmed.startsWith('/')) {
+    const site =
+      (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
+    return `${site}${trimmed}`;
   }
 
   return trimmed;

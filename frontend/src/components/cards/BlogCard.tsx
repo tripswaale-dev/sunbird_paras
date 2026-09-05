@@ -6,8 +6,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Calendar, Clock, User } from 'lucide-react';
 import { Blog } from '@/data/blogsData';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 export function BlogCard({ blog }: { blog: Blog }) {
+  const imageSrc = resolvePublicImageSrc(blog.image) || blog.image;
+
   return (
     <Link href={`/blogs/${blog.slug}`} className="block h-full cursor-pointer group">
       <motion.div
@@ -16,7 +19,7 @@ export function BlogCard({ blog }: { blog: Blog }) {
       >
       <div className="relative h-64 overflow-hidden">
         <Image
-          src={blog.image}
+          src={imageSrc}
           alt={blog.title}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"

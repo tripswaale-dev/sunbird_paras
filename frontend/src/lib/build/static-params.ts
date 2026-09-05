@@ -134,31 +134,30 @@ async function resolveAdminIdParams(
     rangeFallback?: { min: number; max: number };
   } = {}
 ): Promise<{ id: string }[]> {
+  // Always pre-generate a numeric ID range so newly created admin records
+  // (not yet known at build/dev start) still work with output: 'export'.
+  const range = options.rangeFallback ?? { min: 1, max: 50 };
+  const discovered: string[] = numericIdRangeParams(range.min, range.max).map(
+    (item) => item.id
+  );
+
   try {
     const adminIds = await fetchAdminNumericIds(adminPath);
-
-    if (adminIds.length > 0) {
-      return adminIds;
-    }
+    discovered.push(...adminIds.map((item) => item.id));
   } catch {
-    // Fall through to public API or numeric range.
+    // Keep range ids; try public fallback next.
   }
 
   if (options.publicFallback) {
     try {
       const publicIds = await options.publicFallback();
-
-      if (publicIds.length > 0) {
-        return publicIds;
-      }
+      discovered.push(...publicIds.map((item) => item.id));
     } catch {
-      // Fall through to numeric range.
+      // Range ids already included.
     }
   }
 
-  const range = options.rangeFallback ?? { min: 1, max: 50 };
-
-  return numericIdRangeParams(range.min, range.max);
+  return dedupeIdParams(discovered);
 }
 
 export async function getAllPackageSlugParams(): Promise<{ slug: string }[]> {
@@ -204,7 +203,7 @@ export async function getSectionIdParams(): Promise<{ id: string }[]> {
 
       return dedupeIdParams(sections.map((section) => String(section.id)));
     },
-    rangeFallback: { min: 1, max: 10 },
+    rangeFallback: { min: 1, max: 100 },
   });
 }
 
@@ -217,7 +216,7 @@ export async function getPackageAdminIdParams(): Promise<{ id: string }[]> {
 
       return dedupeIdParams(packages.map((pkg) => String(pkg.id)));
     },
-    rangeFallback: { min: 1, max: 100 },
+    rangeFallback: { min: 1, max: 500 },
   });
 }
 
@@ -225,7 +224,7 @@ export async function getAdminNumericIdParams(
   path: string
 ): Promise<{ id: string }[]> {
   return resolveAdminIdParams(path, {
-    rangeFallback: { min: 1, max: 50 },
+    rangeFallback: { min: 1, max: 500 },
   });
 }
 

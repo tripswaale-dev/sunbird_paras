@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { toUsableImageSrc } from '@/lib/media';
+import { resolvePublicImageSrc, toUsableImageSrc } from '@/lib/media';
 
 interface ImageOverlayCardProps {
   title: string;
@@ -52,7 +52,7 @@ export function ImageOverlayCard({
 }: ImageOverlayCardProps) {
   const isHover = overlayMode === 'hover';
   const generatedHref = href || `/packages/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-  const imageSrc = toUsableImageSrc(image);
+  const imageSrc = toUsableImageSrc(resolvePublicImageSrc(image));
 
   const CardContent = (
     <motion.div

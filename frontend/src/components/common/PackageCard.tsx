@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { PriceTag } from '@/components/common/PriceTag';
 import { Chip } from '@/components/common/Chip';
 import { Button } from '@/components/ui/button';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 interface PackageCardProps {
   title: string;
@@ -40,6 +41,7 @@ export function PackageCard({
   className,
 }: PackageCardProps) {
   const generatedHref = href || `/packages/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+  const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
     <Link href={generatedHref} className={cn('block h-full cursor-pointer', className)}>
@@ -53,7 +55,7 @@ export function PackageCard({
       {/* Image */}
       <div className="relative h-[260px] overflow-hidden">
         <Image
-          src={image}
+          src={imageSrc}
           alt={title}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"

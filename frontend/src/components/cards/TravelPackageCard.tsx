@@ -5,6 +5,7 @@ import { AmenityItem } from '@/components/common/AmenityItem';
 import { IndianRupee } from 'lucide-react';
 import Link from 'next/link';
 import type { TravelPackage } from '@/data/travelPackages';
+import { resolvePublicImageSrc } from '@/lib/media';
 
 interface TravelPackageCardProps {
   packageData: TravelPackage;
@@ -13,6 +14,7 @@ interface TravelPackageCardProps {
 
 export function TravelPackageCard({ packageData, baseRoute = '/packages' }: TravelPackageCardProps) {
   const { title, duration, price, pax, image, amenities } = packageData;
+  const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
     <Link href={`${baseRoute}/${packageData.id}`} className="block h-full cursor-pointer">
@@ -23,7 +25,7 @@ export function TravelPackageCard({ packageData, baseRoute = '/packages' }: Trav
       {/* Left Image Section */}
       <div className="relative w-full md:w-[320px] h-[240px] shrink-0 overflow-hidden md:rounded-l-[24px]">
         <Image
-          src={image}
+          src={imageSrc}
           alt={title}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"
