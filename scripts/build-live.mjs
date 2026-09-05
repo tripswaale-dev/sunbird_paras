@@ -22,6 +22,94 @@ const PRESERVE_ENTRIES = new Set([
   'sitemap.xml',
 ]);
 
+const PUBLIC_HTACCESS = `<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    DirectoryIndex index.html index.php
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # /login → admin login (common bookmark / typed URL)
+    RewriteRule ^login/?$ /admin/login/ [R=301,L]
+
+    # Serve Next.js static-export folders (…/path → …/path/index.html)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+    RewriteRule ^(.+?)/?$ /$1/index.html [L]
+
+    # Admin client routes: serve a pre-built shell when a specific ID was not exported
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/sections/[0-9]+/edit/?$ /admin/sections/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/sections/[0-9]+/content/?$ /admin/sections/1/content/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/packages/[0-9]+/edit/?$ /admin/packages/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/packages/[0-9]+/content/?$ /admin/packages/1/content/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/blogs/[0-9]+/edit/?$ /admin/blogs/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/gallery/[0-9]+/edit/?$ /admin/gallery/1/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/inquiries/[0-9]+/?$ /admin/inquiries/1/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/homepage/promises/[0-9]+/?$ /admin/homepage/promises/1/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/destinations/[^/]+/edit/?$ /admin/destinations/popular/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/pages/[^/]+/content/?$ /admin/pages/about/content/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/pages/[^/]+/seo/?$ /admin/pages/about/seo/index.html [L]
+
+    # Package / blog detail fallbacks (CSR shells for new slugs)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^packages/[^/]+/?$ /packages/fallback/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^blogs/[^/]+/?$ /blogs/fallback/index.html [L]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+`;
+
 function parseEnvFile(content) {
   return Object.fromEntries(
     content
@@ -221,24 +309,22 @@ async function main() {
   console.log('Copying export into backend/public...');
   await copyExportIntoPublic();
 
-  const htaccessPath = path.join(publicDir, '.htaccess');
-  let htaccess = await readFile(htaccessPath, 'utf8');
+  console.log('Writing public/.htaccess for static export + login aliases...');
+  await writeFile(path.join(publicDir, '.htaccess'), PUBLIC_HTACCESS, 'utf8');
 
-  if (!htaccess.includes('DirectoryIndex index.html index.php')) {
-    htaccess = htaccess.replace(
-      'RewriteEngine On',
-      'DirectoryIndex index.html index.php\n\n    RewriteEngine On'
-    );
-    await writeFile(htaccessPath, htaccess, 'utf8');
+  const loginHtml = path.join(publicDir, 'admin', 'login', 'index.html');
+  if (!(await pathExists(loginHtml))) {
+    throw new Error('Missing admin/login/index.html in export — login will 404 on live.');
   }
 
   await logAdminExportSummary();
 
   console.log('');
   console.log('Done. Next steps:');
-  console.log('1. Upload backend/public/ to shared hosting (preserve index.php, .htaccess, uploads/)');
-  console.log('2. Ensure server .env has APP_URL, FRONTEND_URL, DB credentials, and ADMIN_PASSWORD');
-  console.log('3. After admin/content changes, re-run npm run build:live and upload changed public files');
+  console.log('1. Upload backend/public/ to shared hosting (include admin/, login/, .htaccess)');
+  console.log('2. Verify https://your-domain/admin/login/ and https://your-domain/login');
+  console.log('3. Ensure server .env has APP_URL, FRONTEND_URL, DB credentials, and ADMIN_PASSWORD');
+  console.log('4. After admin/content changes, re-run npm run build:live and upload changed public files');
 }
 
 main().catch((error) => {

@@ -1,3 +1,4 @@
+import { resolvePublicImageSrc } from '@/lib/media';
 import type { Metadata } from 'next';
 import { apiGet } from '@/lib/api/client';
 import type { SectionCategory, SectionDetail, SectionPackagesResponse } from '@/lib/api/types';
@@ -30,6 +31,14 @@ export interface PopularDestinationsSectionData {
 }
 
 export interface CategoryFilteredListingData {
+  packages: TravelPackage[];
+  categories: string[];
+}
+
+export interface SectionListingViewData {
+  title: string;
+  subtitle: string;
+  heroImage: string;
   packages: TravelPackage[];
   categories: string[];
 }
@@ -146,6 +155,28 @@ export async function fetchSectionPackages(
   return apiGet<SectionPackagesResponse>(`/sections/${slug}/packages${query}`);
 }
 
+export async function getSectionListingViewData(slug: string): Promise<SectionListingViewData> {
+  try {
+    const data = await fetchSectionPackages(slug);
+
+    return {
+      title: data.section.title,
+      subtitle: data.section.subtitle ?? '',
+      heroImage: resolvePublicImageSrc(data.section.hero_image) || '',
+      packages: mapPackageSummariesToTravelPackages(data.packages),
+      categories: mapSectionCategoriesToFilterTabs(data.categories),
+    };
+  } catch {
+    return {
+      title: '',
+      subtitle: '',
+      heroImage: '',
+      packages: [],
+      categories: [],
+    };
+  }
+}
+
 export async function getAcrossBoundariesListingPackages(): Promise<TravelPackage[]> {
   try {
     const data = await fetchSectionPackages('across-boundaries');
@@ -240,9 +271,9 @@ export async function getSpiritualDestinationsPackages(): Promise<SpiritualPacka
       title: card.title,
       image: card.image,
       price: card.price,
-      location: card.location,
+      location: card.location ?? '',
       tag: sorted[index].tag ?? '',
-      href: card.href,
+      href: card.href ?? '',
     }));
   } catch {
     return [];
@@ -261,10 +292,10 @@ export async function getExploreWildIndiaPackages(): Promise<WildlifePackage[]> 
       title: card.title,
       image: card.image,
       price: card.price,
-      location: card.location,
-      duration: card.duration!,
+      location: card.location ?? '',
+      duration: card.duration ?? '',
       category: sorted[index].category,
-      href: card.href,
+      href: card.href ?? '',
     }));
   } catch {
     return [];

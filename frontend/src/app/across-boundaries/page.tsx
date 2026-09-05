@@ -1,25 +1,10 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getAcrossBoundariesListingPackages,
-  getSectionListingMetadata,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('across-boundaries');
 }
 
-export default async function AcrossBoundariesPage() {
-  const packages = await getAcrossBoundariesListingPackages();
-
-  return (
-    <>
-      <HeroBanner
-        image="/images/international/maldives.jpg"
-        title="Across Boundaries"
-        subtitle="Discover incredible international destinations and experiences."
-      />
-      <PackageList packages={packages} baseRoute="/across-boundaries" />
-    </>
-  );
+export default function AcrossBoundariesPage() {
+  return <SectionListingPage sectionSlug="across-boundaries" baseRoute="/across-boundaries" />;
 }

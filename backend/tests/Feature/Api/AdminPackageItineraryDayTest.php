@@ -543,7 +543,7 @@ class AdminPackageItineraryDayTest extends TestCase
         $this->assertSame($itineraryCount - 1, $package->itineraryDays()->count());
     }
 
-    public function test_package_can_be_deleted_after_itinerary_is_removed(): void
+    public function test_package_can_be_deleted_with_itinerary_present(): void
     {
         $headers = $this->adminHeaders($this->createAdmin());
         $package = $this->createPackageWithoutItinerary(['slug' => 'itinerary-delete-unblocks-package'], $headers);
@@ -555,21 +555,12 @@ class AdminPackageItineraryDayTest extends TestCase
             ]))
             ->assertCreated();
 
-        $day = PackageItineraryDay::where('title', 'Blocking Day')->first();
-
-        $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}")
-            ->assertStatus(409);
-
-        $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}/itinerary/{$day->id}")
-            ->assertOk();
-
         $this->withHeaders($headers)
             ->deleteJson("/api/admin/packages/{$package->id}")
             ->assertOk();
 
         $this->assertDatabaseMissing('packages', ['slug' => 'itinerary-delete-unblocks-package']);
+        $this->assertDatabaseMissing('package_itinerary_days', ['title' => 'Blocking Day']);
     }
 
     public function test_seeded_itinerary_days_remain_intact(): void

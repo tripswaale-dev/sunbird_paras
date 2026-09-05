@@ -3,7 +3,7 @@ import type { HomepageResponse } from '@/lib/api/types';
 
 const EMPTY_HOMEPAGE: HomepageResponse = {
   hero: {
-    backgroundVideo: '/bg1.mp4',
+    backgroundVideo: '',
     chips: [],
     featuredChip: null,
   },

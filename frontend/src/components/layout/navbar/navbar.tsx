@@ -1,18 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
-import { navbarDestinations } from '@/data/navigation';
+import { useApiData } from '@/hooks/use-api-data';
+import { apiGet } from '@/lib/api/client';
+import type { DestinationCategorySummary } from '@/lib/api/types';
 
 const navLinks = [
   { label: 'Gallery', href: '/gallery' },
   { label: 'Blogs', href: '/blogs' },
 ];
+
+async function fetchNavbarDestinations(): Promise<string[]> {
+  try {
+    const data = await apiGet<{ categories: DestinationCategorySummary[] }>('/destinations');
+    return data.categories.map((c) => c.title);
+  } catch {
+    return [];
+  }
+}
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -20,6 +31,8 @@ export function Navbar() {
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const destFetcher = useCallback(() => fetchNavbarDestinations(), []);
+  const { data: navbarDestinations } = useApiData<string[]>(destFetcher, []);
 
   useEffect(() => {
     setIsMounted(true);

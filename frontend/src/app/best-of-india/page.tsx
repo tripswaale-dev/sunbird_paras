@@ -1,25 +1,10 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getBestOfIndiaListingPackages,
-  getSectionListingMetadata,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('best-of-india');
 }
 
-export default async function BestOfIndiaPage() {
-  const packages = await getBestOfIndiaListingPackages();
-
-  return (
-    <>
-      <HeroBanner
-        image="/images/india/rajasthan.jpg"
-        title="Best of India"
-        subtitle="Experience the diverse and incredible beauty of India."
-      />
-      <PackageList packages={packages} baseRoute="/best-of-india" />
-    </>
-  );
+export default function BestOfIndiaPage() {
+  return <SectionListingPage sectionSlug="best-of-india" baseRoute="/best-of-india" />;
 }

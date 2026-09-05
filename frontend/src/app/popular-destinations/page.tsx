@@ -1,25 +1,12 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getPopularDestinationsListingPackages,
-  getSectionListingMetadata,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('popular-destinations');
 }
 
-export default async function PopularDestinationsPage() {
-  const packages = await getPopularDestinationsListingPackages();
-
+export default function PopularDestinationsPage() {
   return (
-    <>
-      <HeroBanner
-        image="/images/destinations/ladakh.jpg"
-        title="Popular Destinations"
-        subtitle="Explore the most loved destinations and curated packages."
-      />
-      <PackageList packages={packages} baseRoute="/popular-destinations" />
-    </>
+    <SectionListingPage sectionSlug="popular-destinations" baseRoute="/popular-destinations" />
   );
 }

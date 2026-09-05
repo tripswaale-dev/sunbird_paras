@@ -530,7 +530,7 @@ class AdminPackageFaqTest extends TestCase
         $this->assertSame($faqCount - 1, $package->faqs()->count());
     }
 
-    public function test_package_can_be_deleted_after_faqs_are_removed(): void
+    public function test_package_can_be_deleted_with_faqs_present(): void
     {
         $headers = $this->adminHeaders($this->createAdmin());
         $package = $this->createPackageWithoutFaqs(['slug' => 'faq-delete-unblocks-package'], $headers);
@@ -541,21 +541,12 @@ class AdminPackageFaqTest extends TestCase
             ]))
             ->assertCreated();
 
-        $faq = PackageFaq::where('question', 'Blocking FAQ?')->first();
-
-        $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}")
-            ->assertStatus(409);
-
-        $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}/faqs/{$faq->id}")
-            ->assertOk();
-
         $this->withHeaders($headers)
             ->deleteJson("/api/admin/packages/{$package->id}")
             ->assertOk();
 
         $this->assertDatabaseMissing('packages', ['slug' => 'faq-delete-unblocks-package']);
+        $this->assertDatabaseMissing('package_faqs', ['question' => 'Blocking FAQ?']);
     }
 
     public function test_seeded_faqs_remain_intact(): void

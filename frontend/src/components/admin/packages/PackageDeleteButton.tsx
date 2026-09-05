@@ -17,7 +17,9 @@ export function PackageDeleteButton({ packageId, packageTitle }: PackageDeleteBu
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   async function handleDelete() {
-    const confirmed = window.confirm(`Delete "${packageTitle}" permanently?`);
+    const confirmed = window.confirm(
+      `Delete "${packageTitle}" permanently?\n\nThis also removes section placements, details, itinerary, FAQs, and images.`
+    );
 
     if (!confirmed) {
       return;

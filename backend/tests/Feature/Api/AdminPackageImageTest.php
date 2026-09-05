@@ -553,7 +553,7 @@ class AdminPackageImageTest extends TestCase
         $this->assertSame($imageCount - 1, $package->images()->count());
     }
 
-    public function test_package_can_be_deleted_after_images_are_removed(): void
+    public function test_package_can_be_deleted_with_images_present(): void
     {
         $headers = $this->adminHeaders($this->createAdmin());
         $package = $this->createPackageWithoutImages(['slug' => 'image-delete-unblocks-package'], $headers);
@@ -564,21 +564,12 @@ class AdminPackageImageTest extends TestCase
             ]))
             ->assertCreated();
 
-        $image = PackageImage::where('path', '/images/blocking.jpg')->first();
-
-        $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}")
-            ->assertStatus(409);
-
-        $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}/images/{$image->id}")
-            ->assertOk();
-
         $this->withHeaders($headers)
             ->deleteJson("/api/admin/packages/{$package->id}")
             ->assertOk();
 
         $this->assertDatabaseMissing('packages', ['slug' => 'image-delete-unblocks-package']);
+        $this->assertDatabaseMissing('package_images', ['path' => '/images/blocking.jpg']);
     }
 
     public function test_seeded_images_remain_intact(): void

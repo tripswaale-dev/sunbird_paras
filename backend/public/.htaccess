@@ -11,6 +11,15 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # /login → admin login (common bookmark / typed URL)
+    RewriteRule ^login/?$ /admin/login/ [R=301,L]
+
+    # Serve Next.js static-export folders (…/path → …/path/index.html)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{DOCUMENT_ROOT}/$1/index.html -f
+    RewriteRule ^(.+?)/?$ /$1/index.html [L]
+
     # Admin client routes: serve a pre-built shell when a specific ID was not exported
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
@@ -26,6 +35,10 @@
 
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/packages/[0-9]+/content/?$ /admin/packages/1/content/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^admin/blogs/[0-9]+/edit/?$ /admin/blogs/1/edit/index.html [L]
 
     RewriteCond %{REQUEST_FILENAME} !-f
@@ -35,6 +48,31 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteRule ^admin/inquiries/[0-9]+/?$ /admin/inquiries/1/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/homepage/promises/[0-9]+/?$ /admin/homepage/promises/1/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/destinations/[^/]+/edit/?$ /admin/destinations/popular/edit/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/pages/[^/]+/content/?$ /admin/pages/about/content/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^admin/pages/[^/]+/seo/?$ /admin/pages/about/seo/index.html [L]
+
+    # Package / blog detail fallbacks (CSR shells for new slugs)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^packages/[^/]+/?$ /packages/fallback/index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^blogs/[^/]+/?$ /blogs/fallback/index.html [L]
 
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d

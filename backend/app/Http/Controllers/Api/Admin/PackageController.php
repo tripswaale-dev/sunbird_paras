@@ -92,17 +92,8 @@ class PackageController extends Controller
     {
         $package = Package::findOrFail($id);
 
-        if ($package->sectionPackages()->exists()
-            || $package->detail()->exists()
-            || $package->itineraryDays()->exists()
-            || $package->faqs()->exists()
-            || $package->images()->exists()) {
-            return ApiResponse::error(
-                'Cannot delete package with existing section assignments, details, itinerary, FAQs, or images. Deactivate the package instead.',
-                409
-            );
-        }
-
+        // Related rows (section assignments, detail, itinerary, FAQs, images)
+        // cascade via foreign keys — hard delete is intentional for admin.
         $package->delete();
 
         return ApiResponse::success(['message' => 'Package deleted successfully.']);

@@ -1,25 +1,17 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getGatewayToHillsListingData,
-  getSectionListingMetadata,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('gateway-to-the-hills');
 }
 
-export default async function GatewayToHillsPage() {
-  const { packages, categories } = await getGatewayToHillsListingData();
-
+export default function GatewayToHillsPage() {
   return (
-    <>
-      <HeroBanner
-        image="/hills/lifestyle.png"
-        title="Gateway to the Hills"
-        subtitle="Escape to the serene and majestic mountains with our curated packages."
-      />
-      <PackageList packages={packages} categories={categories} baseRoute="/gateway-to-the-hills" variant="horizontal" />
-    </>
+    <SectionListingPage
+      sectionSlug="gateway-to-the-hills"
+      baseRoute="/gateway-to-the-hills"
+      variant="horizontal"
+      withCategories
+    />
   );
 }

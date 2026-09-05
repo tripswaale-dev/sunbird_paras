@@ -421,20 +421,22 @@ class AdminPackageDetailTest extends TestCase
         $this->assertDatabaseMissing('packages', ['slug' => 'detail-then-delete-package']);
     }
 
-    public function test_package_with_section_assignment_still_blocked_after_detail_delete(): void
+    public function test_package_with_section_assignment_can_be_deleted_after_detail_delete(): void
     {
         $package = Package::where('slug', 'spiti-valley')->first();
+        $packageId = $package->id;
         $headers = $this->adminHeaders($this->createAdmin());
 
         $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}/detail")
+            ->deleteJson("/api/admin/packages/{$packageId}/detail")
             ->assertOk();
 
         $this->withHeaders($headers)
-            ->deleteJson("/api/admin/packages/{$package->id}")
-            ->assertStatus(409);
+            ->deleteJson("/api/admin/packages/{$packageId}")
+            ->assertOk();
 
-        $this->assertDatabaseHas('packages', ['slug' => 'spiti-valley']);
+        $this->assertDatabaseMissing('packages', ['slug' => 'spiti-valley']);
+        $this->assertDatabaseMissing('section_packages', ['package_id' => $packageId]);
     }
 
     public function test_seeded_package_details_remain_intact(): void

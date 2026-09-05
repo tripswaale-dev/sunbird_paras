@@ -371,39 +371,40 @@ class AdminPackageCrudTest extends TestCase
         $this->assertDatabaseMissing('packages', ['slug' => 'empty-package']);
     }
 
-    public function test_cannot_delete_package_with_dependencies(): void
+    public function test_admin_can_delete_package_with_dependencies(): void
     {
         $package = Package::where('slug', 'spiti-valley')->first();
+        $packageId = $package->id;
+
+        $this->assertDatabaseHas('section_packages', ['package_id' => $packageId]);
+        $this->assertDatabaseHas('package_details', ['package_id' => $packageId]);
 
         $this->withHeaders($this->adminHeaders())
-            ->deleteJson("/api/admin/packages/{$package->id}")
-            ->assertStatus(409)
-            ->assertJsonPath('success', false);
+            ->deleteJson("/api/admin/packages/{$packageId}")
+            ->assertOk()
+            ->assertJsonPath('success', true);
 
-        $this->assertDatabaseHas('packages', ['slug' => 'spiti-valley']);
-        $this->assertDatabaseHas('section_packages', ['package_id' => $package->id]);
-        $this->assertDatabaseHas('package_details', ['package_id' => $package->id]);
+        $this->assertDatabaseMissing('packages', ['slug' => 'spiti-valley']);
+        $this->assertDatabaseMissing('section_packages', ['package_id' => $packageId]);
+        $this->assertDatabaseMissing('package_details', ['package_id' => $packageId]);
     }
 
-    public function test_dependent_records_remain_when_deletion_is_blocked(): void
+    public function test_deleting_package_cascades_related_records(): void
     {
         $package = Package::where('slug', 'kashmir-paradise')->first();
+        $packageId = $package->id;
 
-        $detailCount = $package->detail()->count();
-        $itineraryCount = $package->itineraryDays()->count();
-        $faqCount = $package->faqs()->count();
-        $imageCount = $package->images()->count();
-        $sectionPivotCount = $package->sectionPackages()->count();
+        $this->assertTrue($package->detail()->exists() || $package->itineraryDays()->exists() || $package->faqs()->exists() || $package->images()->exists() || $package->sectionPackages()->exists());
 
         $this->withHeaders($this->adminHeaders())
-            ->deleteJson("/api/admin/packages/{$package->id}")
-            ->assertStatus(409);
+            ->deleteJson("/api/admin/packages/{$packageId}")
+            ->assertOk();
 
-        $this->assertDatabaseHas('packages', ['slug' => 'kashmir-paradise']);
-        $this->assertSame($detailCount, $package->fresh()->detail()->count());
-        $this->assertSame($itineraryCount, $package->fresh()->itineraryDays()->count());
-        $this->assertSame($faqCount, $package->fresh()->faqs()->count());
-        $this->assertSame($imageCount, $package->fresh()->images()->count());
-        $this->assertSame($sectionPivotCount, $package->fresh()->sectionPackages()->count());
+        $this->assertDatabaseMissing('packages', ['slug' => 'kashmir-paradise']);
+        $this->assertDatabaseMissing('section_packages', ['package_id' => $packageId]);
+        $this->assertDatabaseMissing('package_details', ['package_id' => $packageId]);
+        $this->assertDatabaseMissing('package_itinerary_days', ['package_id' => $packageId]);
+        $this->assertDatabaseMissing('package_faqs', ['package_id' => $packageId]);
+        $this->assertDatabaseMissing('package_images', ['package_id' => $packageId]);
     }
 }

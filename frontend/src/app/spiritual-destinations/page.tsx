@@ -1,25 +1,15 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getSectionListingMetadata,
-  getSpiritualDestinationsListingPackages,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('spiritual-destinations');
 }
 
-export default async function SpiritualDestinationsPage() {
-  const packages = await getSpiritualDestinationsListingPackages();
-
+export default function SpiritualDestinationsPage() {
   return (
-    <>
-      <HeroBanner
-        image="/images/spiritual/kedarnath.jpg"
-        title="Spiritual Destinations"
-        subtitle="Embark on a soulful journey to sacred destinations."
-      />
-      <PackageList packages={packages} baseRoute="/spiritual-destinations" />
-    </>
+    <SectionListingPage
+      sectionSlug="spiritual-destinations"
+      baseRoute="/spiritual-destinations"
+    />
   );
 }

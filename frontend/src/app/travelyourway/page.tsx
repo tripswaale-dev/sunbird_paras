@@ -1,25 +1,17 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getSectionListingMetadata,
-  getTravelYourWayListingData,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('travel-your-way');
 }
 
-export default async function PackagesPage() {
-  const { packages, categories } = await getTravelYourWayListingData();
-
+export default function TravelYourWayPage() {
   return (
-    <>
-      <HeroBanner
-        image="/images/hero/travel-your-way.png"
-        title="Choose your journey"
-        subtitle="Discover curated experiences tailored to your travel style."
-      />
-      <PackageList packages={packages} categories={categories} baseRoute="/travelyourway" variant="horizontal" />
-    </>
+    <SectionListingPage
+      sectionSlug="travel-your-way"
+      baseRoute="/travelyourway"
+      variant="horizontal"
+      withCategories
+    />
   );
 }

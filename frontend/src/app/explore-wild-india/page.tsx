@@ -1,25 +1,12 @@
-import { HeroBanner } from '@/components/common/HeroBanner';
-import { PackageList } from '@/components/sections/packages/PackageList';
-import {
-  getExploreWildIndiaListingPackages,
-  getSectionListingMetadata,
-} from '@/lib/api/sections';
+import { getSectionListingMetadata } from '@/lib/api/sections';
+import { SectionListingPage } from '@/components/sections/packages/SectionListingPage';
 
 export async function generateMetadata() {
   return getSectionListingMetadata('explore-wild-india');
 }
 
-export default async function ExploreWildIndiaPage() {
-  const packages = await getExploreWildIndiaListingPackages();
-
+export default function ExploreWildIndiaPage() {
   return (
-    <>
-      <HeroBanner
-        image="/images/wildlife/tiger.jpg"
-        title="Explore the WILD"
-        subtitle="Discover the untamed beauty of nature with our wildlife safaris."
-      />
-      <PackageList packages={packages} baseRoute="/explore-wild-india" />
-    </>
+    <SectionListingPage sectionSlug="explore-wild-india" baseRoute="/explore-wild-india" />
   );
 }

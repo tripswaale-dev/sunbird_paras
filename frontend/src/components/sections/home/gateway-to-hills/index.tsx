@@ -1,27 +1,23 @@
 'use client';
 
-import React from 'react';
+import { useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Section } from '@/components/common/Section';
 import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
-import { Button } from '@/components/ui/button';
 import { SectionHeader } from '@/components/ui/section-header';
+import { EmptyState } from '@/components/common/EmptyState';
+import { GridSkeleton } from '@/components/ui/skeleton';
+import { useApiData } from '@/hooks/use-api-data';
+import { getGatewayToHillsCategories } from '@/lib/api/sections';
 import type { HillDestination } from '@/data/hill-destinations';
 
-// ===========================================
-// Gateway To Hills Section
-// ===========================================
+export function GatewayToHills() {
+  const fetcher = useCallback(() => getGatewayToHillsCategories(), []);
+  const { data: categories, isLoading } = useApiData<HillDestination[]>(fetcher, []);
 
-interface GatewayToHillsProps {
-  categories: HillDestination[];
-}
-
-export function GatewayToHills({ categories }: GatewayToHillsProps) {
   return (
     <Section bg="bg-surface" animate={false}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] items-center gap-12 lg:gap-16">
-
-        {/* Left Content Area */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -36,23 +32,27 @@ export function GatewayToHills({ categories }: GatewayToHillsProps) {
             viewAllLabel="Explore all"
           />
 
-          {/* Destination Grid */}
-          <div className="grid grid-cols-2 gap-5 mt-10">
-            {categories.map((dest, index) => (
-              <ImageOverlayCard
-                key={index}
-                title={dest.title}
-                image={dest.image}
-                href={`/gateway-to-the-hills?category=${encodeURIComponent(dest.category)}`}
-                overlayMode="always"
-                featured={dest.featured}
-                className={dest.featured ? 'h-[180px]' : 'h-[160px]'}
-              />
-            ))}
-          </div>
+          {isLoading ? (
+            <GridSkeleton count={3} className="mt-10" />
+          ) : categories.length > 0 ? (
+            <div className="grid grid-cols-2 gap-5 mt-10">
+              {categories.map((dest, index) => (
+                <ImageOverlayCard
+                  key={index}
+                  title={dest.title}
+                  image={dest.image}
+                  href={`/gateway-to-the-hills?category=${encodeURIComponent(dest.category)}`}
+                  overlayMode="always"
+                  featured={dest.featured}
+                  className={dest.featured ? 'h-[180px]' : 'h-[160px]'}
+                />
+              ))}
+            </div>
+          ) : (
+            <EmptyState compact message="No hill categories yet" />
+          )}
         </motion.div>
 
-        {/* Right Side Image */}
         <motion.div
           initial={{ opacity: 0, x: 30 }}
           whileInView={{ opacity: 1, x: 0 }}
@@ -68,7 +68,6 @@ export function GatewayToHills({ categories }: GatewayToHillsProps) {
             className="w-full h-full object-cover scale-110"
           />
         </motion.div>
-
       </div>
     </Section>
   );

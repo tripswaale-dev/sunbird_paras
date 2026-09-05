@@ -1,11 +1,6 @@
 import type { NavLink } from '@/types';
 
-export const navbarDestinations = [
-  "Rajasthan", "Kashmir", "Nepal", "Himachal Pradesh",
-  "Uttrakhand", "Bhutan", "South India", "Andaman islands",
-  "North East", "Sri Lanka", "Maldives", "Ladakh",
-];
-
+/** Site structure routes only — not destination content. */
 export const navigationLinks: NavLink[] = [
   { label: 'Home', href: '/' },
   { label: 'About', href: '/about' },

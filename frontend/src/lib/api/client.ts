@@ -26,13 +26,16 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   const url = `${getApiBaseUrl()}${normalizedPath}`;
 
+  // Browser: always fresh (backend off → empty UI). Build/SSR: cacheable for static export.
+  const defaultCache: RequestCache =
+    typeof window !== 'undefined' ? 'no-store' : 'force-cache';
+
   let response: Response | null = null;
 
   for (let attempt = 1; attempt <= API_GET_MAX_ATTEMPTS; attempt += 1) {
     response = await fetch(url, {
       ...init,
-      // Static export (`output: 'export'`) requires cacheable fetches at build time.
-      cache: init?.cache ?? 'force-cache',
+      cache: init?.cache ?? defaultCache,
       headers: {
         Accept: 'application/json',
         ...init?.headers,
