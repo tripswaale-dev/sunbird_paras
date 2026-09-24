@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 interface UseApiDataResult<T> {
   data: T;
@@ -20,13 +20,11 @@ export function useApiData<T>(
   const [data, setData] = useState<T>(fallback);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const calledRef = useRef(false);
 
   useEffect(() => {
-    if (calledRef.current) return;
-    calledRef.current = true;
-
     let cancelled = false;
+    setIsLoading(true);
+    setError(null);
 
     (async () => {
       try {
@@ -67,7 +65,10 @@ export function useApiDataByKey<T>(
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    if (!key) return;
+    if (!key) {
+      setIsLoading(false);
+      return;
+    }
 
     let cancelled = false;
     setIsLoading(true);

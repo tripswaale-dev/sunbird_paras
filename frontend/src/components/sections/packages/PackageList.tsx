@@ -26,6 +26,19 @@ export function PackageList({ packages, categories, baseRoute = '/packages', var
   );
 }
 
+function packageMatchesDestination(pkg: TravelPackage, destination: string): boolean {
+  if (!destination || destination.toLowerCase().startsWith('all ')) {
+    return true;
+  }
+
+  const needle = destination.toLowerCase().replace(/[-_]/g, ' ').trim();
+  const haystacks = [pkg.category, pkg.location, pkg.title]
+    .filter(Boolean)
+    .map((value) => value!.toLowerCase().replace(/[-_]/g, ' '));
+
+  return haystacks.some((value) => value === needle || value.includes(needle));
+}
+
 function PackageListInner({ packages, categories, baseRoute, variant, header }: PackageListProps) {
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || categories?.[0] || '';
@@ -42,13 +55,10 @@ function PackageListInner({ packages, categories, baseRoute, variant, header }: 
     }
   }
 
-  const filteredPackages = categories && categories.length > 0 && activeCategory
-    ? packages.filter((pkg) => {
-        const catMatch = pkg.category === activeCategory;
-        const titleMatch = pkg.title.toLowerCase().includes(activeCategory.toLowerCase());
-        return catMatch || titleMatch;
-      })
-    : packages;
+  const filteredPackages =
+    categories && categories.length > 0 && activeCategory
+      ? packages.filter((pkg) => packageMatchesDestination(pkg, activeCategory))
+      : packages;
 
   return (
     <section className="bg-gray-50 min-h-screen py-10">
@@ -86,7 +96,7 @@ function PackageListInner({ packages, categories, baseRoute, variant, header }: 
                       priceSuffix="/person"
                       duration={pkg.duration}
                       category={pkg.category}
-                      location={pkg.category} // Or some other appropriate field if available
+                      location={pkg.location || pkg.category}
                       href={`${baseRoute}/${pkg.id}`}
                       accentColor="var(--color-primary)" // Primary brand green
                     />

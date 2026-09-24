@@ -1,5 +1,20 @@
 import type { NavLink } from '@/types';
 
+/** Header Destinations dropdown + packages page filter tabs (live order). */
+export const navbarDestinations = [
+  'All Destinations',
+  'Rajasthan',
+  'Himachal Pradesh',
+  'Kashmir',
+  'Kerala',
+  'Goa',
+  'Uttarakhand',
+  'Andaman',
+  'North East',
+  'Nepal',
+  'Ladakh',
+];
+
 /** Site structure routes only — not destination content. */
 export const navigationLinks: NavLink[] = [
   { label: 'Home', href: '/' },

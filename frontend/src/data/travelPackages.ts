@@ -2,6 +2,7 @@ export interface TravelPackage {
   id: string;
   title: string;
   category: string;
+  location?: string;
   duration: string;
   price: number;
   pax: number;

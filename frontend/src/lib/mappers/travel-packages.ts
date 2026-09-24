@@ -11,6 +11,7 @@ export function mapPackageSummariesToTravelPackages(
       id: pkg.slug,
       title: pkg.title,
       category: pkg.category,
+      location: pkg.location,
       duration: pkg.duration.formatted,
       price: pkg.price,
       pax: pkg.pax ?? 2,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { Container } from '@/components/ui/container';
 import { SearchBar } from '@/components/common/SearchBar';
 import { SearchChip } from '@/components/common/SearchChip';
@@ -17,12 +17,26 @@ const FALLBACK: HomepageHeroData = {
 };
 
 export function Hero() {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const fetcher = useCallback(async () => {
     const homepage = await getHomepage();
     return homepage.hero;
   }, []);
 
   const { data, isLoading } = useApiData<HomepageHeroData>(fetcher, FALLBACK);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !data.backgroundVideo) return;
+
+    video.load();
+    const playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {
+        // Autoplay can be blocked after client navigations; ignore.
+      });
+    }
+  }, [data.backgroundVideo]);
 
   if (isLoading) {
     return <HeroSkeleton />;
@@ -33,6 +47,8 @@ export function Hero() {
       <div className="absolute inset-0 bg-linear-to-b from-black/40 via-black/20 to-black/50" />
       {data.backgroundVideo ? (
         <video
+          key={data.backgroundVideo}
+          ref={videoRef}
           autoPlay
           muted
           loop
