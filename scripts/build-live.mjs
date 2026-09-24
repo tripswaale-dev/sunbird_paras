@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * Legacy optional path: single-domain Hostinger static export into backend/public/.
+ * Recommended production is split deploy (Vercel frontend + Hostinger API) — see docs/DEPLOYMENT.md.
+ * This script sets STATIC_EXPORT=1 so next.config enables output: 'export'.
+ */
 
 import { cp, mkdir, readdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -290,6 +295,7 @@ async function main() {
   const buildEnv = {
     ...process.env,
     NODE_ENV: 'production',
+    STATIC_EXPORT: '1',
     BUILD_API_URL: buildApiUrl,
     NEXT_PUBLIC_API_URL: publicApiUrl,
     NEXT_PUBLIC_SITE_URL: publicSiteUrl,

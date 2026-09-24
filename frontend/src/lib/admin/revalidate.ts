@@ -1,3 +1,4 @@
 export function revalidatePublicSite(): void {
-  // Static export: public HTML is generated at build time. Run `npm run build:live` after admin changes.
+  // Vercel Node serves dynamic package/blog/admin routes without a full static rebuild.
+  // Optional: add on-demand revalidation (revalidatePath / revalidateTag) later if needed.
 }

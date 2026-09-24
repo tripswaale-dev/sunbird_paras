@@ -58,12 +58,10 @@ function localImagePatterns() {
   return localAssetPatterns('/images/**');
 }
 
-const isProd = process.env.NODE_ENV === 'production';
-
 const nextConfig: NextConfig = {
-  // Static Apache hosting still uses `output: 'export'` on `next build`.
-  // Keep it off in `next dev` so new package slugs are not blocked by generateStaticParams.
-  ...(isProd ? { output: 'export' as const } : {}),
+  // Production on Vercel runs as Node Next.js (no static export).
+  // Legacy single-domain Hostinger path: npm run build:live sets STATIC_EXPORT=1.
+  ...(process.env.STATIC_EXPORT === '1' ? { output: 'export' as const } : {}),
   trailingSlash: true,
   images: {
     unoptimized: true,

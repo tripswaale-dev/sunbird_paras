@@ -145,8 +145,8 @@ Crawlers should use the **frontend origin** directly:
 
 | Route | Handler | Behavior |
 |-------|---------|----------|
-| `/sitemap.xml` | `src/app/sitemap.xml/route.ts` | Proxies backend `GET {NEXT_PUBLIC_API_URL}/sitemap.xml` via `fetchSitemapXml()` in `src/lib/seo/crawl-files.ts`. Cached with `revalidate: 3600` (1 hour). On API error, returns minimal XML urlset with homepage only (`getSiteUrl()`). |
-| `/robots.txt` | `src/app/robots.txt/route.ts` | Generated on frontend (not proxied). `Sitemap:` points to `{getSiteUrl()}/sitemap.xml` — does **not** reference the API domain. |
+| `/sitemap.xml` | `src/app/sitemap.ts` | Fetches backend `GET {API}/sitemap.xml` via `fetchSitemapXml()`, parses `<loc>` into Metadata sitemap. Revalidate 3600s. On API error, homepage-only fallback (`getSiteUrl()`). |
+| `/robots.txt` | `src/app/robots.ts` | Generated on frontend. `Sitemap:` points to `{getSiteUrl()}/sitemap.xml` — does **not** reference the API domain. |
 
 Backend still serves `/api/sitemap.xml` and `/api/robots.txt` unchanged; production crawlers should use the frontend routes above.
 
