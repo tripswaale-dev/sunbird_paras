@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 import { FullPageLink } from '@/components/ui/full-page-link';
@@ -9,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { PriceTag } from '@/components/common/PriceTag';
 import { Chip } from '@/components/common/Chip';
 import { Button } from '@/components/ui/button';
-import { resolvePublicImageSrc } from '@/lib/media';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface PackageCardProps {
   title: string;
@@ -41,7 +40,6 @@ export function PackageCard({
   className,
 }: PackageCardProps) {
   const generatedHref = href || `/packages/${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
-  const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
     <FullPageLink href={generatedHref} className={cn('block h-full cursor-pointer', className)}>
@@ -54,8 +52,8 @@ export function PackageCard({
       >
       {/* Image */}
       <div className="relative h-[260px] overflow-hidden">
-        <Image
-          src={imageSrc}
+        <SafeImage
+          src={image}
           alt={title}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"

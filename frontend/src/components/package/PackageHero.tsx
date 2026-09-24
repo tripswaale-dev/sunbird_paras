@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from "lucide-react";
 import { Container } from "@/components/ui/container";
-import { resolvePublicImageSrc } from "@/lib/media";
+import { ImagePlaceholder, SafeImage } from "@/components/ui/safe-image";
+import { resolvePublicImageSrc, toUsableImageSrc } from "@/lib/media";
 
 interface PackageHeroProps {
   images: string[];
@@ -16,13 +16,8 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const resolvedImages = images
-    .map((src) => resolvePublicImageSrc(src) || src)
-    .filter(Boolean);
-
-  if (!resolvedImages || resolvedImages.length === 0) return null;
-
-  const mainImage = resolvedImages[0];
-
+    .map((src) => toUsableImageSrc(resolvePublicImageSrc(src)))
+    .filter((src): src is string => Boolean(src));
 
   const openLightbox = (index: number) => {
     setCurrentImageIndex(index);
@@ -36,12 +31,31 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
   };
 
   const nextImage = () => {
+    if (resolvedImages.length === 0) return;
     setCurrentImageIndex((prev) => (prev + 1) % resolvedImages.length);
   };
 
   const prevImage = () => {
+    if (resolvedImages.length === 0) return;
     setCurrentImageIndex((prev) => (prev - 1 + resolvedImages.length) % resolvedImages.length);
   };
+
+  if (resolvedImages.length === 0) {
+    return (
+      <section className="pt-24 pb-8 bg-surface">
+        <Container>
+          <div className="relative h-[400px] md:h-[500px] lg:h-[600px] rounded-2xl overflow-hidden">
+            <ImagePlaceholder
+              className="absolute inset-0"
+              label="Photos coming soon"
+            />
+          </div>
+        </Container>
+      </section>
+    );
+  }
+
+  const mainImage = resolvedImages[0];
 
   return (
     <>
@@ -53,7 +67,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
               className="col-span-1 md:col-span-2 row-span-2 relative cursor-pointer group"
               onClick={() => openLightbox(0)}
             >
-              <Image
+              <SafeImage
                 src={mainImage}
                 alt="Package Highlight"
                 fill
@@ -69,7 +83,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
                 className="hidden md:block col-span-2 row-span-1 relative cursor-pointer group"
                 onClick={() => openLightbox(1)}
               >
-                <Image
+                <SafeImage
                   src={resolvedImages[1]}
                   alt="Gallery Image 2"
                   fill
@@ -85,7 +99,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
                 className="hidden md:block col-span-1 row-span-1 relative cursor-pointer group"
                 onClick={() => openLightbox(2)}
               >
-                <Image
+                <SafeImage
                   src={resolvedImages[2]}
                   alt="Gallery Image 3"
                   fill
@@ -101,7 +115,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
                 className="hidden md:block col-span-1 row-span-1 relative cursor-pointer group"
                 onClick={() => openLightbox(3)}
               >
-                <Image
+                <SafeImage
                   src={resolvedImages[3]}
                   alt="Gallery Image 4"
                   fill
@@ -155,7 +169,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
               </button>
 
               <div className="relative w-full h-full max-w-5xl">
-                <Image
+                <SafeImage
                   src={resolvedImages[currentImageIndex]}
                   alt={`Lightbox Image ${currentImageIndex + 1}`}
                   fill
@@ -172,7 +186,7 @@ export const PackageHero = ({ images }: PackageHeroProps) => {
             </div>
 
             <div className="absolute bottom-6 left-0 right-0 text-center text-white/70">
-              {currentImageIndex + 1} / {images.length}
+              {currentImageIndex + 1} / {resolvedImages.length}
             </div>
           </motion.div>
         )}

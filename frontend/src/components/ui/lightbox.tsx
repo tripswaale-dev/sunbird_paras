@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface LightboxProps {
   isOpen: boolean;
@@ -94,7 +94,7 @@ export function Lightbox({ isOpen, onClose, images, currentIndex, onNavigate }: 
                   className="absolute inset-0 flex items-center justify-center"
                 >
                   <div className="relative w-full h-full max-w-5xl">
-                    <Image
+                    <SafeImage
                       src={currentImage.src}
                       alt={currentImage.title}
                       fill

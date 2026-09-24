@@ -1,7 +1,5 @@
-import Image from 'next/image';
-
 import type { BlogContentBlock } from '@/lib/blog-content-blocks';
-import { resolvePublicImageSrc } from '@/lib/media';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface BlogContentRendererProps {
   blocks: BlogContentBlock[];
@@ -53,8 +51,8 @@ export function BlogContentRenderer({ blocks }: BlogContentRendererProps) {
             return (
               <figure key={`image-${index}`} className="my-8">
                 <div className="relative aspect-[16/10] overflow-hidden rounded-2xl bg-gray-100">
-                  <Image
-                    src={resolvePublicImageSrc(block.image)}
+                  <SafeImage
+                    src={block.image}
                     alt={block.alt || 'Blog image'}
                     fill
                     className="object-cover"

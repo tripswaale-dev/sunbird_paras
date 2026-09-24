@@ -1,11 +1,10 @@
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { AmenityItem } from '@/components/common/AmenityItem';
 import { IndianRupee } from 'lucide-react';
 import { FullPageLink } from '@/components/ui/full-page-link';
+import { SafeImage } from '@/components/ui/safe-image';
 import type { TravelPackage } from '@/data/travelPackages';
-import { resolvePublicImageSrc } from '@/lib/media';
 
 interface TravelPackageCardProps {
   packageData: TravelPackage;
@@ -14,7 +13,6 @@ interface TravelPackageCardProps {
 
 export function TravelPackageCard({ packageData, baseRoute = '/packages' }: TravelPackageCardProps) {
   const { title, duration, price, pax, image, amenities } = packageData;
-  const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
     <FullPageLink href={`${baseRoute}/${packageData.id}`} className="block h-full cursor-pointer">
@@ -24,8 +22,8 @@ export function TravelPackageCard({ packageData, baseRoute = '/packages' }: Trav
       >
       {/* Left Image Section */}
       <div className="relative w-full md:w-[320px] h-[240px] shrink-0 overflow-hidden md:rounded-l-[24px]">
-        <Image
-          src={imageSrc}
+        <SafeImage
+          src={image}
           alt={title}
           fill
           className="object-cover transition-transform duration-700 group-hover:scale-105"

@@ -1,6 +1,6 @@
 import React from "react";
-import Image from "next/image";
 import { BulletList } from "@/components/ui/bullet-list";
+import { SafeImage } from "@/components/ui/safe-image";
 
 interface SightseeingTabProps {
   sightseeing: string[];
@@ -18,10 +18,10 @@ export const SightseeingTab = ({ sightseeing, images }: SightseeingTabProps) => 
       {images && images.length >= 2 && (
         <div className="relative h-[400px] hidden md:block">
           <div className="absolute top-0 right-10 w-64 h-64 rounded-full overflow-hidden border-4 border-white shadow-elevated z-10 transition-transform duration-500 hover:scale-105 hover:z-30">
-            <Image src={images[0]} alt="Sightseeing 1" fill className="object-cover" />
+            <SafeImage src={images[0]} alt="Sightseeing 1" fill className="object-cover" />
           </div>
           <div className="absolute bottom-10 left-10 w-56 h-56 rounded-full overflow-hidden border-4 border-white shadow-elevated z-20 transition-transform duration-500 hover:scale-105 hover:z-30">
-            <Image src={images[1]} alt="Sightseeing 2" fill className="object-cover" />
+            <SafeImage src={images[1]} alt="Sightseeing 2" fill className="object-cover" />
           </div>
         </div>
       )}

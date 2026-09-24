@@ -1,8 +1,8 @@
 import React from "react";
-import Image from "next/image";
 import { IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FullPageLink } from "@/components/ui/full-page-link";
+import { SafeImage } from "@/components/ui/safe-image";
 import { Package } from "@/types/package";
 
 interface PackageCardProps {
@@ -13,11 +13,11 @@ export const PackageCard = ({ pkg }: PackageCardProps) => {
   return (
     <div className="bg-white rounded-2xl overflow-hidden border border-border shadow-sm group hover:shadow-card-hover transition-all duration-300 flex flex-col h-full">
       <div className="relative h-56 overflow-hidden shrink-0">
-        <Image 
-          src={pkg.gallery[0] || pkg.heroImages[0]} 
-          alt={pkg.title} 
-          fill 
-          className="object-cover transition-transform duration-700 group-hover:scale-105" 
+        <SafeImage
+          src={pkg.gallery[0] || pkg.heroImages[0]}
+          alt={pkg.title}
+          fill
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-primary">
           {pkg.duration.nights}N / {pkg.duration.days}D

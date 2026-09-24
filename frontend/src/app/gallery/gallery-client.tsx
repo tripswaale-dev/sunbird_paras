@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GalleryCategory, galleryCategories, type GalleryItem } from '@/data/gallery';
 import { Lightbox } from '@/components/ui/lightbox';
+import { SafeImage } from '@/components/ui/safe-image';
 
 interface GalleryClientProps {
   items: GalleryItem[];
@@ -73,7 +73,7 @@ export function GalleryClient({ items }: GalleryClientProps) {
                   'aspect-square'
                 }`}
               >
-                <Image
+                <SafeImage
                   src={item.src}
                   alt={item.title}
                   fill
