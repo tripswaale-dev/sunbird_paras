@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { MapPin, Phone, Mail, ArrowRight, Heart } from 'lucide-react';
 import { Container } from '@/components/ui/container';
 import { InstagramIcon, FacebookIcon, YoutubeIcon, TwitterIcon } from '@/components/ui/social-icons';
+import { navbarDestinations } from '@/data/navigation';
 import { siteConfig } from '@/lib/utils';
 
 const quickLinks = [
@@ -15,14 +16,14 @@ const quickLinks = [
   { label: 'Payment Policy', href: '/payment-policy' },
 ];
 
-const destinationLinks = [
-  { label: 'Rajasthan', href: '/destinations?q=rajasthan' },
-  { label: 'Kerala', href: '/destinations?q=kerala' },
-  { label: 'Himachal Pradesh', href: '/destinations?q=himachal' },
-  { label: 'Nepal', href: '/destinations?q=nepal' },
-  { label: 'srilanka', href: '/destinations?q=srilanka' },
-  { label: 'ladakh', href: '/destinations?q=ladakh' },
-];
+/** Top destinations in footer → packages page with that tab pre-selected. */
+const destinationLinks = navbarDestinations
+  .filter((destination) => !destination.toLowerCase().startsWith('all '))
+  .slice(0, 6)
+  .map((destination) => ({
+    label: destination,
+    href: `/packages/?category=${encodeURIComponent(destination)}`,
+  }));
 
 const socialLinks = [
   { icon: InstagramIcon, href: siteConfig.social.instagram, label: 'Instagram' },
