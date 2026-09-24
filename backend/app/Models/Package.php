@@ -59,7 +59,7 @@ class Package extends Model
     public function sections(): BelongsToMany
     {
         return $this->belongsToMany(Section::class, 'section_packages')
-            ->withPivot(['display_order', 'is_featured'])
+            ->withPivot(['display_order', 'is_featured', 'listing_category'])
             ->withTimestamps()
             ->orderByPivot('display_order');
     }

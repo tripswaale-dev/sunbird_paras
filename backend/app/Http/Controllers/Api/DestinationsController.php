@@ -73,7 +73,10 @@ class DestinationsController extends Controller
                 ->with('detail:id,package_id,inclusions');
 
             if (filled($category->package_category)) {
-                $query->where('packages.category', $category->package_category);
+                $query->whereRaw(
+                    'COALESCE(section_packages.listing_category, packages.category) = ?',
+                    [$category->package_category]
+                );
             }
 
             return $query->get();

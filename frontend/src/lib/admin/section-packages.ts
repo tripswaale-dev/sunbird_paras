@@ -19,17 +19,20 @@ export interface AdminSectionPackage {
   is_active: boolean;
   display_order: number;
   is_featured: boolean;
+  listing_category: string | null;
 }
 
 export type SectionPackageAssignPayload = {
   package_id: number;
   display_order: number;
   is_featured: boolean;
+  listing_category?: string | null;
 };
 
 export type SectionPackageUpdatePayload = {
-  display_order: number;
-  is_featured: boolean;
+  display_order?: number;
+  is_featured?: boolean;
+  listing_category?: string | null;
 };
 
 export function getDefaultSectionPackageAssignFormValues(): SectionPackageAssignFormValues {
@@ -113,40 +116,76 @@ export interface SyncPackageSectionAssignmentsResult {
   failed: Array<{ sectionId: number; message: string }>;
 }
 
+export interface PackageSectionAssignmentState {
+  sectionIds: number[];
+  listingCategories: Record<number, string>;
+}
+
 export function getNextSectionDisplayOrder(packages: AdminSectionPackage[]): number {
   return packages.reduce((max, pkg) => Math.max(max, pkg.display_order), -1) + 1;
+}
+
+function resolveListingCategory(assignment: AdminSectionPackage): string {
+  return assignment.listing_category?.trim() || assignment.category?.trim() || '';
+}
+
+export async function getPackageSectionAssignments(
+  packageId: number,
+  sections: Array<{ id: number }>
+): Promise<PackageSectionAssignmentState> {
+  const listingCategories: Record<number, string> = {};
+  const sectionIds: number[] = [];
+
+  const results = await Promise.all(
+    sections.map(async (section) => {
+      const packages = await getSectionPackages(section.id);
+      const assignment = packages.find((pkg) => pkg.id === packageId);
+
+      return { sectionId: section.id, assignment };
+    })
+  );
+
+  for (const result of results) {
+    if (!result.assignment) {
+      continue;
+    }
+
+    sectionIds.push(result.sectionId);
+    const listingCategory = resolveListingCategory(result.assignment);
+
+    if (listingCategory) {
+      listingCategories[result.sectionId] = listingCategory;
+    }
+  }
+
+  return { sectionIds, listingCategories };
 }
 
 export async function getAssignedSectionIdsForPackage(
   packageId: number,
   sections: Array<{ id: number }>
 ): Promise<number[]> {
-  const assignments = await Promise.all(
-    sections.map(async (section) => {
-      const packages = await getSectionPackages(section.id);
-      const isAssigned = packages.some((pkg) => pkg.id === packageId);
+  const { sectionIds } = await getPackageSectionAssignments(packageId, sections);
 
-      return isAssigned ? section.id : null;
-    })
-  );
-
-  return assignments.filter((sectionId): sectionId is number => sectionId !== null);
+  return sectionIds;
 }
 
 export async function syncPackageSectionAssignments(
   packageId: number,
   nextSectionIds: number[],
   previousSectionIds: number[],
-  sectionTitles: Record<number, string> = {}
+  sectionTitles: Record<number, string> = {},
+  listingCategories: Record<number, string | null | undefined> = {}
 ): Promise<SyncPackageSectionAssignmentsResult> {
   const nextIds = [...new Set(nextSectionIds)];
   const previousIds = [...new Set(previousSectionIds)];
 
   const toAdd = nextIds.filter((sectionId) => !previousIds.includes(sectionId));
   const toRemove = previousIds.filter((sectionId) => !nextIds.includes(sectionId));
+  const toKeep = nextIds.filter((sectionId) => previousIds.includes(sectionId));
 
   const assignResult = toAdd.length
-    ? await assignPackageToSections(packageId, toAdd, sectionTitles)
+    ? await assignPackageToSections(packageId, toAdd, sectionTitles, listingCategories)
     : { assigned: [], failed: [] };
 
   const removed: number[] = [];
@@ -168,6 +207,29 @@ export async function syncPackageSectionAssignments(
     }
   }
 
+  for (const sectionId of toKeep) {
+    if (!(sectionId in listingCategories)) {
+      continue;
+    }
+
+    const sectionLabel = sectionTitles[sectionId] ?? `Section ${sectionId}`;
+    const listingCategory = listingCategories[sectionId]?.trim() || null;
+
+    try {
+      await updateSectionPackage(sectionId, packageId, {
+        listing_category: listingCategory,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Unable to update section listing tab.';
+
+      assignResult.failed.push({
+        sectionId,
+        message: `${sectionLabel}: ${message}`,
+      });
+    }
+  }
+
   return {
     assigned: assignResult.assigned,
     removed,
@@ -178,7 +240,8 @@ export async function syncPackageSectionAssignments(
 export async function assignPackageToSections(
   packageId: number,
   sectionIds: number[],
-  sectionTitles: Record<number, string> = {}
+  sectionTitles: Record<number, string> = {},
+  listingCategories: Record<number, string | null | undefined> = {}
 ): Promise<AssignPackageToSectionsResult> {
   const assigned: AdminSectionPackage[] = [];
   const failed: AssignPackageToSectionsResult['failed'] = [];
@@ -189,11 +252,13 @@ export async function assignPackageToSections(
     try {
       const existing = await getSectionPackages(sectionId);
       const displayOrder = getNextSectionDisplayOrder(existing);
+      const listingCategory = listingCategories[sectionId]?.trim() || null;
 
       const result = await assignPackageToSection(sectionId, {
         package_id: packageId,
         display_order: displayOrder,
         is_featured: false,
+        listing_category: listingCategory,
       });
 
       assigned.push(result);

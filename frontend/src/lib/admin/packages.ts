@@ -177,7 +177,8 @@ export interface CreatePackageWithSectionsResult {
 export async function createPackageWithSectionAssignments(
   payload: PackageApiPayload,
   sectionIds: number[],
-  sectionTitles: Record<number, string> = {}
+  sectionTitles: Record<number, string> = {},
+  listingCategories: Record<number, string | null | undefined> = {}
 ): Promise<CreatePackageWithSectionsResult> {
   const pkg = await createPackage(payload);
 
@@ -185,7 +186,12 @@ export async function createPackageWithSectionAssignments(
     return { package: pkg, sections: { assigned: [], failed: [] } };
   }
 
-  const sections = await assignPackageToSections(pkg.id, sectionIds, sectionTitles);
+  const sections = await assignPackageToSections(
+    pkg.id,
+    sectionIds,
+    sectionTitles,
+    listingCategories
+  );
 
   return { package: pkg, sections };
 }
@@ -200,14 +206,16 @@ export async function updatePackageWithSectionAssignments(
   payload: PackageApiPayload,
   sectionIds: number[],
   previousSectionIds: number[],
-  sectionTitles: Record<number, string> = {}
+  sectionTitles: Record<number, string> = {},
+  listingCategories: Record<number, string | null | undefined> = {}
 ): Promise<UpdatePackageWithSectionsResult> {
   const pkg = await updatePackage(id, payload);
   const sections = await syncPackageSectionAssignments(
     pkg.id,
     sectionIds,
     previousSectionIds,
-    sectionTitles
+    sectionTitles,
+    listingCategories
   );
 
   return { package: pkg, sections };

@@ -12,6 +12,7 @@ class SectionPackage extends Model
         'package_id',
         'display_order',
         'is_featured',
+        'listing_category',
     ];
 
     protected $casts = [

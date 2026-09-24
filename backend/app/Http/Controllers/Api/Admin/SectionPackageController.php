@@ -35,6 +35,7 @@ class SectionPackageController extends Controller
             'package_id' => $validated['package_id'],
             'display_order' => $validated['display_order'],
             'is_featured' => $validated['is_featured'] ?? false,
+            'listing_category' => $validated['listing_category'] ?? null,
         ]);
 
         $package = $section->packages()

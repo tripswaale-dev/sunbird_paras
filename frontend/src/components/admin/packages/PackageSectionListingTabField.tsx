@@ -1,10 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  applyFilterValueToCategoryFields,
-  getCategoryFilterValue,
-} from '@/lib/admin/package-categories';
 import type { SectionListingTabConfig } from '@/lib/admin/package-placement-groups';
 import {
   getSectionCategories,
@@ -14,9 +10,8 @@ import {
 interface PackageSectionListingTabFieldProps {
   sectionId: number;
   config: SectionListingTabConfig;
-  categoryOption: string;
-  categoryCustom: string;
-  onCategoryChange: (option: string, custom: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   disabled?: boolean;
   fieldId?: string;
 }
@@ -24,9 +19,8 @@ interface PackageSectionListingTabFieldProps {
 export function PackageSectionListingTabField({
   sectionId,
   config,
-  categoryOption,
-  categoryCustom,
-  onCategoryChange,
+  value,
+  onChange,
   disabled = false,
   fieldId,
 }: PackageSectionListingTabFieldProps) {
@@ -65,7 +59,11 @@ export function PackageSectionListingTabField({
   }, [sectionId, config.label]);
 
   const activeCategories = [...categories].sort((left, right) => left.sort_order - right.sort_order);
-  const currentFilterValue = getCategoryFilterValue(categoryOption, categoryCustom);
+  const matchedValue = activeCategories.some(
+    (category) => (category.filter_value ?? category.title) === value
+  )
+    ? value
+    : '';
 
   return (
     <div className="mt-3 space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-4">
@@ -74,8 +72,7 @@ export function PackageSectionListingTabField({
       </label>
       <p className="text-sm text-gray-600">
         Choose which tab on{' '}
-        <span className="font-mono text-xs">{config.listingPath}</span> shows this package. Sets
-        the package category automatically.
+        <span className="font-mono text-xs">{config.listingPath}</span> shows this package.
       </p>
 
       {isLoading ? (
@@ -86,19 +83,16 @@ export function PackageSectionListingTabField({
         <select
           id={selectId}
           className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-gray-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-          value={currentFilterValue}
+          value={matchedValue}
           disabled={disabled || activeCategories.length === 0}
-          onChange={(event) => {
-            const fields = applyFilterValueToCategoryFields(event.target.value);
-            onCategoryChange(fields.category_option, fields.category_custom);
-          }}
+          onChange={(event) => onChange(event.target.value)}
         >
           <option value="">{config.placeholder}</option>
           {activeCategories.map((category) => {
-            const value = category.filter_value ?? category.title;
+            const optionValue = category.filter_value ?? category.title;
 
             return (
-              <option key={category.id} value={value}>
+              <option key={category.id} value={optionValue}>
                 {category.title}
                 {category.filter_value && category.filter_value !== category.title
                   ? ` (${category.filter_value})`

@@ -172,8 +172,10 @@ class AdminSectionPackageTest extends TestCase
         $this->assertSame($package->id, $assignment['id']);
         $this->assertArrayHasKey('display_order', $assignment);
         $this->assertArrayHasKey('is_featured', $assignment);
+        $this->assertArrayHasKey('listing_category', $assignment);
         $this->assertSame(0, $assignment['display_order']);
         $this->assertFalse($assignment['is_featured']);
+        $this->assertNull($assignment['listing_category']);
     }
 
     public function test_admin_can_assign_package_to_section(): void

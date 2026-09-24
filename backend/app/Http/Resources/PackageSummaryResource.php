@@ -29,7 +29,9 @@ class PackageSummaryResource extends JsonResource
                     $this->duration_days
                 ),
             ],
-            'category' => $this->category,
+            'category' => $this->pivot !== null && filled($this->pivot->listing_category ?? null)
+                ? $this->pivot->listing_category
+                : $this->category,
             'tag' => $this->tag,
             'image' => $this->image,
             'pax' => $this->pax,

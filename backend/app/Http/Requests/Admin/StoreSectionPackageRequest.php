@@ -27,6 +27,7 @@ class StoreSectionPackageRequest extends FormRequest
             ],
             'display_order' => ['required', 'integer', 'min:0'],
             'is_featured' => ['sometimes', 'boolean'],
+            'listing_category' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

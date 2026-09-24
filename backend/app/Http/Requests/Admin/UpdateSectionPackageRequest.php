@@ -16,6 +16,7 @@ class UpdateSectionPackageRequest extends FormRequest
         return [
             'display_order' => ['sometimes', 'integer', 'min:0'],
             'is_featured' => ['sometimes', 'boolean'],
+            'listing_category' => ['nullable', 'string', 'max:100'],
         ];
     }
 }

@@ -64,7 +64,10 @@ class SectionController extends Controller
                 ->with('detail:id,package_id,inclusions');
 
             if (! empty($validated['category'])) {
-                $packagesQuery->where('packages.category', $validated['category']);
+                $packagesQuery->whereRaw(
+                    'COALESCE(section_packages.listing_category, packages.category) = ?',
+                    [$validated['category']]
+                );
             }
 
             $packages = $packagesQuery->get();

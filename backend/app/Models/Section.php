@@ -48,7 +48,7 @@ class Section extends Model
     public function packages(): BelongsToMany
     {
         return $this->belongsToMany(Package::class, 'section_packages')
-            ->withPivot(['display_order', 'is_featured'])
+            ->withPivot(['display_order', 'is_featured', 'listing_category'])
             ->withTimestamps()
             ->orderByPivot('display_order');
     }

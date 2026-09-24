@@ -5,23 +5,19 @@ import { PackageSectionListingTabField } from '@/components/admin/packages/Packa
 
 interface PackageTravelYourWayTabFieldProps {
   sectionId: number | null;
-  isSectionSelected: boolean;
-  categoryOption: string;
-  categoryCustom: string;
-  onCategoryChange: (option: string, custom: string) => void;
+  value: string;
+  onChange: (value: string) => void;
   disabled?: boolean;
 }
 
 /** @deprecated Use PackageSectionListingTabField with SECTION_LISTING_TAB_CONFIG */
 export function PackageTravelYourWayTabField({
   sectionId,
-  isSectionSelected,
-  categoryOption,
-  categoryCustom,
-  onCategoryChange,
+  value,
+  onChange,
   disabled = false,
 }: PackageTravelYourWayTabFieldProps) {
-  if (!isSectionSelected || !sectionId) {
+  if (!sectionId) {
     return null;
   }
 
@@ -31,9 +27,8 @@ export function PackageTravelYourWayTabField({
     <PackageSectionListingTabField
       sectionId={sectionId}
       config={config}
-      categoryOption={categoryOption}
-      categoryCustom={categoryCustom}
-      onCategoryChange={onCategoryChange}
+      value={value}
+      onChange={onChange}
       disabled={disabled}
       fieldId="travel_your_way_tab"
     />

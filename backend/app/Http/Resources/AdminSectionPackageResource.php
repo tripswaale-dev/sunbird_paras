@@ -19,6 +19,7 @@ class AdminSectionPackageResource extends JsonResource
             'is_active' => $this->is_active,
             'display_order' => $this->pivot->display_order,
             'is_featured' => (bool) $this->pivot->is_featured,
+            'listing_category' => $this->pivot->listing_category,
         ];
     }
 }

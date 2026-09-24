@@ -20,8 +20,9 @@ import {
   packageFormSchema,
   type PackageFormValues,
 } from '@/lib/admin/package-form-schema';
-import { getAssignedSectionIdsForPackage } from '@/lib/admin/section-packages';
+import { getPackageSectionAssignments } from '@/lib/admin/section-packages';
 import {
+  hasSectionListingTabPicker,
   HOMEPAGE_SPOTLIGHT_SECTION_SLUGS,
   SECTION_LISTING_TAB_CONFIG,
   TRAVEL_YOUR_WAY_SECTION_SLUG,
@@ -80,6 +81,7 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
   const [sections, setSections] = useState<AdminSection[]>([]);
   const [sectionsLoading, setSectionsLoading] = useState(true);
   const [sectionsError, setSectionsError] = useState<string | null>(null);
+  const [sectionListingTabs, setSectionListingTabs] = useState<Record<number, string>>({});
 
   const {
     register,
@@ -129,9 +131,30 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
     }
   }
 
-  function handleCategoryChange(option: string, custom: string) {
-    setValue('category_option', option, { shouldDirty: true, shouldValidate: true });
-    setValue('category_custom', custom, { shouldDirty: true, shouldValidate: true });
+  function handleListingTabChange(sectionId: number, value: string) {
+    setSectionListingTabs((current) => {
+      if (!value) {
+        const next = { ...current };
+        delete next[sectionId];
+        return next;
+      }
+
+      return { ...current, [sectionId]: value };
+    });
+  }
+
+  function buildListingCategoriesPayload(selectedIds: number[]): Record<number, string | null> {
+    const payload: Record<number, string | null> = {};
+
+    for (const section of sections) {
+      if (!selectedIds.includes(section.id) || !hasSectionListingTabPicker(section.slug)) {
+        continue;
+      }
+
+      payload[section.id] = sectionListingTabs[section.id]?.trim() || null;
+    }
+
+    return payload;
   }
 
   useEffect(() => {
@@ -151,14 +174,15 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
         setSections(data);
 
         if (mode === 'edit' && packageId) {
-          const assignedSectionIds = await getAssignedSectionIdsForPackage(packageId, data);
+          const assignments = await getPackageSectionAssignments(packageId, data);
 
           if (!isMounted) {
             return;
           }
 
-          initialSectionIdsRef.current = assignedSectionIds;
-          setValue('section_ids', assignedSectionIds, { shouldDirty: false });
+          initialSectionIdsRef.current = assignments.sectionIds;
+          setValue('section_ids', assignments.sectionIds, { shouldDirty: false });
+          setSectionListingTabs(assignments.listingCategories);
         }
       } catch {
         if (isMounted) {
@@ -211,11 +235,17 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
     const payload = toPackagePayload(parsed.data);
     const sectionTitleMap = Object.fromEntries(sections.map((section) => [section.id, section.title]));
     const selectedSectionIds = parsed.data.section_ids ?? [];
+    const listingCategories = buildListingCategoriesPayload(selectedSectionIds);
 
     try {
       if (mode === 'create') {
         const { package: created, sections: assignmentResult } =
-          await createPackageWithSectionAssignments(payload, selectedSectionIds, sectionTitleMap);
+          await createPackageWithSectionAssignments(
+            payload,
+            selectedSectionIds,
+            sectionTitleMap,
+            listingCategories
+          );
 
         if (assignmentResult.failed.length > 0) {
           setFormError(
@@ -235,7 +265,8 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           payload,
           selectedSectionIds,
           initialSectionIdsRef.current,
-          sectionTitleMap
+          sectionTitleMap,
+          listingCategories
         );
 
         if (syncResult.failed.length > 0) {
@@ -468,9 +499,8 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
                 <PackageSectionListingTabField
                   sectionId={section.id}
                   config={config}
-                  categoryOption={categoryOption ?? ''}
-                  categoryCustom={categoryCustom ?? ''}
-                  onCategoryChange={handleCategoryChange}
+                  value={sectionListingTabs[section.id] ?? ''}
+                  onChange={(value) => handleListingTabChange(section.id, value)}
                   disabled={isSubmitting}
                   fieldId={
                     section.slug === TRAVEL_YOUR_WAY_SECTION_SLUG
