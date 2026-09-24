@@ -12,7 +12,7 @@ export function mapPackageSummariesToPopularDestinations(
       location: `Starts at ₹${pkg.price.toLocaleString('en-IN')}`,
       duration: pkg.duration.short,
       imageSrc: resolvePublicImageSrc(pkg.image),
-      href: `/packages/${pkg.slug}`,
+      href: `/packages/${pkg.slug}/`,
     }));
 }
 

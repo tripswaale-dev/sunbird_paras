@@ -8,16 +8,16 @@ import { PackageCard } from '@/components/common/PackageCard';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { CarouselSkeleton } from '@/components/ui/skeleton';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getAcrossBoundariesPackages } from '@/lib/api/sections';
 import type { InternationalPackage } from '@/data/international-packages';
 
 export function AcrossBoundaries() {
   const fetcher = useCallback(() => getAcrossBoundariesPackages(), []);
-  const { data: packages, isLoading } = useApiData<InternationalPackage[]>(fetcher, []);
+  const { ref, data: packages, isLoading } = useLazyApiData<InternationalPackage[]>(fetcher, []);
 
   return (
-    <Section>
+    <Section sectionRef={ref}>
       {isLoading ? (
         <>
           <SectionHeader

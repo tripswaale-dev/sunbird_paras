@@ -3,8 +3,8 @@
 import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { FullPageLink } from '@/components/ui/full-page-link';
 import { resolvePublicImageSrc, toUsableImageSrc } from '@/lib/media';
 
 interface ImageOverlayCardProps {
@@ -96,8 +96,8 @@ export function ImageOverlayCard({
   );
 
   return href !== null ? (
-    <Link href={generatedHref} className={cn('block w-full h-full', featured && 'col-span-2')}>
+    <FullPageLink href={generatedHref} className={cn('block w-full h-full', featured && 'col-span-2')}>
       {CardContent}
-    </Link>
+    </FullPageLink>
   ) : CardContent;
 }

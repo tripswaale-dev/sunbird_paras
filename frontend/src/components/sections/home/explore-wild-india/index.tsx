@@ -7,13 +7,13 @@ import { PackageCard } from '@/components/common/PackageCard';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { CarouselSkeleton } from '@/components/ui/skeleton';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getExploreWildIndiaPackages } from '@/lib/api/sections';
 import type { WildlifePackage } from '@/data/wildlife-packages';
 
 export function ExploreWildIndia() {
   const fetcher = useCallback(() => getExploreWildIndiaPackages(), []);
-  const { data: packages, isLoading } = useApiData<WildlifePackage[]>(fetcher, []);
+  const { ref, data: packages, isLoading } = useLazyApiData<WildlifePackage[]>(fetcher, []);
 
   const header = (
     <div className="flex flex-col md:flex-row md:items-end justify-between mb-14 relative gap-6">
@@ -39,7 +39,7 @@ export function ExploreWildIndia() {
   );
 
   return (
-    <Section>
+    <Section sectionRef={ref}>
       {isLoading ? (
         <>
           {header}

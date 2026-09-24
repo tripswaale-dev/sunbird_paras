@@ -33,7 +33,7 @@ export function PackageDetailClient() {
   const fetcher = useCallback(async (s: string): Promise<PackagePageData> => {
     const pkg = await fetchPackageBySlug(s);
     if (!pkg) return { pkg: undefined, relatedPackages: [] };
-    const related = await getRelatedPackages(s, 3);
+    const related = await getRelatedPackages(s, 3, pkg.category);
     return { pkg, relatedPackages: related };
   }, []);
 
@@ -119,7 +119,7 @@ export function PackageDetailClient() {
                 </h2>
                 <p className="text-text-muted">Other tours you might love.</p>
               </div>
-              <Link href="/destinations" className="hidden md:flex items-center gap-2 text-primary hover:text-primary-dark font-medium transition-colors">
+              <Link href="/packages/" className="hidden md:flex items-center gap-2 text-primary hover:text-primary-dark font-medium transition-colors">
                 View All <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

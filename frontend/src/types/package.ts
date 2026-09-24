@@ -17,6 +17,7 @@ export interface Package {
   slug: string;
   title: string;
   subtitle?: string;
+  category?: string;
   startingPrice: number;
   duration: {
     nights: number;

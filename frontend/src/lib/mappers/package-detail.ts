@@ -31,6 +31,7 @@ export function mapPackageDetailToPackage(data: PackageDetailResponse): Package 
     slug: data.slug,
     title: data.title,
     subtitle: data.subtitle ?? undefined,
+    category: data.category || undefined,
     startingPrice: data.price,
     duration: {
       nights: data.duration.nights,

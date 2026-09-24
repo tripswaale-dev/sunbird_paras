@@ -7,16 +7,16 @@ import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { GridSkeleton } from '@/components/ui/skeleton';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getTravelYourWayCategories } from '@/lib/api/sections';
 import type { JourneyCategory } from '@/data/journey-categories';
 
 export function ChooseYourJourney() {
   const fetcher = useCallback(() => getTravelYourWayCategories(), []);
-  const { data: categories, isLoading } = useApiData<JourneyCategory[]>(fetcher, []);
+  const { ref, data: categories, isLoading } = useLazyApiData<JourneyCategory[]>(fetcher, []);
 
   return (
-    <Section animate={false}>
+    <Section animate={false} sectionRef={ref}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-12 lg:gap-16 items-center">
         <motion.div
           initial={{ opacity: 0, x: -30 }}

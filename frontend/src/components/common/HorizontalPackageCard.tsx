@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Bed, Utensils, Binoculars } from 'lucide-react';
-import Link from 'next/link';
+import { FullPageLink } from '@/components/ui/full-page-link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { resolvePublicImageSrc } from '@/lib/media';
@@ -30,7 +30,7 @@ export function HorizontalPackageCard({
   const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
-    <Link href={generatedHref} className={cn('block w-full cursor-pointer', className)}>
+    <FullPageLink href={generatedHref} className={cn('block w-full cursor-pointer', className)}>
       <motion.div
         whileHover={{ y: -4, transition: { duration: 0.4, ease: 'easeOut' } }}
         className="bg-surface-muted rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 flex flex-col md:flex-row w-full max-w-4xl mx-auto border border-gray-100"
@@ -89,6 +89,6 @@ export function HorizontalPackageCard({
           </div>
         </div>
       </motion.div>
-    </Link>
+    </FullPageLink>
   );
 }

@@ -58,8 +58,12 @@ function localImagePatterns() {
   return localAssetPatterns('/images/**');
 }
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const nextConfig: NextConfig = {
-  output: 'export',
+  // Static Apache hosting still uses `output: 'export'` on `next build`.
+  // Keep it off in `next dev` so new package slugs are not blocked by generateStaticParams.
+  ...(isProd ? { output: 'export' as const } : {}),
   trailingSlash: true,
   images: {
     unoptimized: true,

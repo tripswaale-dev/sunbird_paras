@@ -7,7 +7,7 @@ import { PromiseCard } from '@/components/ui/promise-card';
 import { resolvePromiseIcon } from '@/lib/mappers/homepage-icons';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PromiseGridSkeleton } from '@/components/ui/skeleton';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getHomepage } from '@/lib/api/homepage';
 import type { CustomerPromiseItemData } from '@/lib/api/types';
 
@@ -30,10 +30,10 @@ export function CustomerPromise() {
     return homepage.customerPromises;
   }, []);
 
-  const { data: promises, isLoading } = useApiData<CustomerPromiseItemData[]>(fetcher, []);
+  const { ref, data: promises, isLoading } = useLazyApiData<CustomerPromiseItemData[]>(fetcher, []);
 
   return (
-    <Section bg="bg-surface-alt" animate={false}>
+    <Section bg="bg-surface-alt" animate={false} sectionRef={ref}>
       {isLoading ? (
         <PromiseGridSkeleton />
       ) : promises.length > 0 ? (

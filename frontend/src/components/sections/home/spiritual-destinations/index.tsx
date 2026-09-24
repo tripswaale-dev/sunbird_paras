@@ -8,16 +8,16 @@ import { PackageCard } from '@/components/common/PackageCard';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/common/EmptyState';
 import { CarouselSkeleton } from '@/components/ui/skeleton';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getSpiritualDestinationsPackages } from '@/lib/api/sections';
 import type { SpiritualPackage } from '@/data/spiritual-packages';
 
 export function SpiritualDestinations() {
   const fetcher = useCallback(() => getSpiritualDestinationsPackages(), []);
-  const { data: packages, isLoading } = useApiData<SpiritualPackage[]>(fetcher, []);
+  const { ref, data: packages, isLoading } = useLazyApiData<SpiritualPackage[]>(fetcher, []);
 
   return (
-    <Section bg="bg-surface-alt">
+    <Section bg="bg-surface-alt" sectionRef={ref}>
       {isLoading ? (
         <>
           <SectionHeader

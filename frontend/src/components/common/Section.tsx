@@ -1,5 +1,6 @@
 'use client';
 
+import type { Ref } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +10,7 @@ interface SectionProps {
   className?: string;
   innerClassName?: string;
   animate?: boolean;
+  sectionRef?: (node: Element | null) => void;
   children: React.ReactNode;
 }
 
@@ -18,6 +20,7 @@ export function Section({
   className,
   innerClassName,
   animate = true,
+  sectionRef,
   children,
 }: SectionProps) {
   const inner = (
@@ -28,14 +31,14 @@ export function Section({
 
   if (!animate) {
     return (
-      <Tag className={cn(bg, className)}>
+      <Tag ref={sectionRef as Ref<HTMLElement>} className={cn(bg, className)}>
         {inner}
       </Tag>
     );
   }
 
   return (
-    <Tag className={cn(bg, className)}>
+    <Tag ref={sectionRef as Ref<HTMLElement>} className={cn(bg, className)}>
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         whileInView={{ opacity: 1, y: 0 }}

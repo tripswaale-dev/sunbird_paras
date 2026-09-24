@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { AmenityItem } from '@/components/common/AmenityItem';
 import { IndianRupee } from 'lucide-react';
-import Link from 'next/link';
+import { FullPageLink } from '@/components/ui/full-page-link';
 import type { TravelPackage } from '@/data/travelPackages';
 import { resolvePublicImageSrc } from '@/lib/media';
 
@@ -17,7 +17,7 @@ export function TravelPackageCard({ packageData, baseRoute = '/packages' }: Trav
   const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
-    <Link href={`${baseRoute}/${packageData.id}`} className="block h-full cursor-pointer">
+    <FullPageLink href={`${baseRoute}/${packageData.id}`} className="block h-full cursor-pointer">
       <motion.div
         whileHover={{ y: -6 }}
         className="bg-white rounded-[24px] shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl group flex flex-col md:flex-row h-full"
@@ -76,6 +76,6 @@ export function TravelPackageCard({ packageData, baseRoute = '/packages' }: Trav
         </div>
       </div>
       </motion.div>
-    </Link>
+    </FullPageLink>
   );
 }

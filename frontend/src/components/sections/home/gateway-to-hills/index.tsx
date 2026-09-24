@@ -7,16 +7,16 @@ import { ImageOverlayCard } from '@/components/common/ImageOverlayCard';
 import { SectionHeader } from '@/components/ui/section-header';
 import { EmptyState } from '@/components/common/EmptyState';
 import { GridSkeleton } from '@/components/ui/skeleton';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getGatewayToHillsCategories } from '@/lib/api/sections';
 import type { HillDestination } from '@/data/hill-destinations';
 
 export function GatewayToHills() {
   const fetcher = useCallback(() => getGatewayToHillsCategories(), []);
-  const { data: categories, isLoading } = useApiData<HillDestination[]>(fetcher, []);
+  const { ref, data: categories, isLoading } = useLazyApiData<HillDestination[]>(fetcher, []);
 
   return (
-    <Section bg="bg-surface" animate={false}>
+    <Section bg="bg-surface" animate={false} sectionRef={ref}>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.15fr] items-center gap-12 lg:gap-16">
         <motion.div
           initial={{ opacity: 0, x: -30 }}

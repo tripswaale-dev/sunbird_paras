@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, Suspense, type ReactNode } from 'react';
+import { Suspense, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FilterTabs } from '@/components/common/FilterTabs';
+import { Loader } from '@/components/ui/loader';
 import { PackageCard } from '@/components/common/PackageCard';
 import { HorizontalPackageCard } from '@/components/common/HorizontalPackageCard';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -20,7 +21,13 @@ interface PackageListProps {
 
 export function PackageList({ packages, categories, baseRoute = '/packages', variant = 'grid', header }: PackageListProps) {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <section className="flex min-h-[40vh] items-center justify-center bg-gray-50 py-10">
+          <Loader />
+        </section>
+      }
+    >
       <PackageListInner packages={packages} categories={categories} baseRoute={baseRoute} variant={variant} header={header} />
     </Suspense>
   );
@@ -97,7 +104,7 @@ function PackageListInner({ packages, categories, baseRoute, variant, header }: 
                       duration={pkg.duration}
                       category={pkg.category}
                       location={pkg.location || pkg.category}
-                      href={`${baseRoute}/${pkg.id}`}
+                      href={`${baseRoute}/${pkg.id}/`}
                       accentColor="var(--color-primary)" // Primary brand green
                     />
                   ) : (
@@ -107,7 +114,7 @@ function PackageListInner({ packages, categories, baseRoute, variant, header }: 
                       image={pkg.image}
                       price={`₹${pkg.price.toLocaleString('en-IN')}`}
                       duration={pkg.duration}
-                      href={`${baseRoute}/${pkg.id}`}
+                      href={`${baseRoute}/${pkg.id}/`}
                     />
                   )
                 ))

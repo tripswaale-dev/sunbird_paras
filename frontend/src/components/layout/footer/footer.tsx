@@ -8,7 +8,7 @@ import { siteConfig } from '@/lib/utils';
 const quickLinks = [
   { label: 'Home', href: '/' },
   { label: 'About Us', href: '/about' },
-  { label: 'Tour Packages', href: '/packages' },
+  { label: 'Tour Packages', href: '/packages/' },
   { label: 'Gallery', href: '/gallery' },
   { label: 'Contact Us', href: '/contact' },
   { label: 'Cancellation & Refund Policy', href: '/cancellation-policy' },

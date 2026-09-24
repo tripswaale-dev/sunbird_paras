@@ -11,6 +11,7 @@ use App\Http\Responses\ApiResponse;
 use App\Models\Section;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class SectionController extends Controller
 {
@@ -28,15 +29,21 @@ class SectionController extends Controller
 
     public function show(Section $section): JsonResponse
     {
-        $section->load([
-            'categories' => fn ($query) => $query->active()->orderBy('sort_order'),
-            'stats',
-            'activePackages' => fn ($query) => $query->with('detail:id,package_id,inclusions'),
-        ]);
+        $payload = Cache::remember(
+            "api.section.detail.{$section->slug}",
+            now()->addSeconds(45),
+            function () use ($section) {
+                $section->load([
+                    'categories' => fn ($query) => $query->active()->orderBy('sort_order'),
+                    'stats',
+                    'activePackages' => fn ($query) => $query->with('detail:id,package_id,inclusions'),
+                ]);
 
-        return ApiResponse::success(
-            (new SectionDetailResource($section))->resolve()
+                return (new SectionDetailResource($section))->resolve();
+            }
         );
+
+        return ApiResponse::success($payload);
     }
 
     public function packages(Request $request, Section $section): JsonResponse
@@ -45,23 +52,30 @@ class SectionController extends Controller
             'category' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $section->load([
-            'categories' => fn ($query) => $query->active()->orderBy('sort_order'),
-        ]);
+        $categoryKey = $validated['category'] ?? '_all';
+        $cacheKey = "api.section.packages.{$section->slug}.{$categoryKey}";
 
-        $packagesQuery = $section->activePackages()
-            ->with('detail:id,package_id,inclusions');
+        $payload = Cache::remember($cacheKey, now()->addSeconds(45), function () use ($section, $validated) {
+            $section->load([
+                'categories' => fn ($query) => $query->active()->orderBy('sort_order'),
+            ]);
 
-        if (! empty($validated['category'])) {
-            $packagesQuery->where('packages.category', $validated['category']);
-        }
+            $packagesQuery = $section->activePackages()
+                ->with('detail:id,package_id,inclusions');
 
-        $packages = $packagesQuery->get();
+            if (! empty($validated['category'])) {
+                $packagesQuery->where('packages.category', $validated['category']);
+            }
 
-        return ApiResponse::success([
-            'section' => (new SectionResource($section))->resolve(),
-            'categories' => SectionCategoryResource::collection($section->categories)->resolve(),
-            'packages' => PackageSummaryResource::collection($packages)->resolve(),
-        ]);
+            $packages = $packagesQuery->get();
+
+            return [
+                'section' => (new SectionResource($section))->resolve(),
+                'categories' => SectionCategoryResource::collection($section->categories)->resolve(),
+                'packages' => PackageSummaryResource::collection($packages)->resolve(),
+            ];
+        });
+
+        return ApiResponse::success($payload);
     }
 }

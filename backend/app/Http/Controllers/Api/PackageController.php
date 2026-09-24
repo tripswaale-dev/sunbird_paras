@@ -9,6 +9,7 @@ use App\Http\Responses\ApiResponse;
 use App\Models\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class PackageController extends Controller
 {
@@ -57,15 +58,21 @@ class PackageController extends Controller
 
     public function show(Package $package): JsonResponse
     {
-        $package->load([
-            'detail',
-            'itineraryDays',
-            'faqs',
-            'images',
-        ]);
+        $payload = Cache::remember(
+            "api.package.detail.{$package->slug}",
+            now()->addSeconds(45),
+            function () use ($package) {
+                $package->load([
+                    'detail',
+                    'itineraryDays',
+                    'faqs',
+                    'images',
+                ]);
 
-        return ApiResponse::success(
-            (new PackageDetailResource($package))->resolve()
+                return (new PackageDetailResource($package))->resolve();
+            }
         );
+
+        return ApiResponse::success($payload);
     }
 }

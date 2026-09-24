@@ -166,9 +166,13 @@ export async function getAllPackageSlugParams(): Promise<{ slug: string }[]> {
       (page) => `/packages?per_page=50&page=${page}`
     );
 
+    if (packages.length === 0) {
+      return [{ slug: '_' }];
+    }
+
     return packages.map((pkg) => ({ slug: pkg.slug }));
   } catch {
-    return [];
+    return [{ slug: '_' }];
   }
 }
 
@@ -180,9 +184,13 @@ export async function getSectionPackageSlugParams(
       `/sections/${sectionSlug}/packages`
     );
 
+    if (data.packages.length === 0) {
+      return [{ slug: '_' }];
+    }
+
     return data.packages.map((pkg) => ({ slug: pkg.slug }));
   } catch {
-    return [];
+    return [{ slug: '_' }];
   }
 }
 

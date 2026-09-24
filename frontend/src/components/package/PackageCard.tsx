@@ -1,8 +1,8 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FullPageLink } from "@/components/ui/full-page-link";
 import { Package } from "@/types/package";
 
 interface PackageCardProps {
@@ -35,11 +35,11 @@ export const PackageCard = ({ pkg }: PackageCardProps) => {
             <p className="text-xs text-text-light uppercase tracking-wider mb-1">Starting from</p>
             <p className="font-semibold text-lg text-primary-900"><IndianRupee className="inline-block w-[0.8em] h-[0.8em] mr-0.5 mb-[0.1em]" strokeWidth={2.5} />{pkg.startingPrice}</p>
           </div>
-          <Link href={`/packages/${pkg.slug}`}>
+          <FullPageLink href={`/packages/${pkg.slug}`}>
             <Button variant="outline" size="sm" className="rounded-lg">
               View Details
             </Button>
-          </Link>
+          </FullPageLink>
         </div>
       </div>
     </div>

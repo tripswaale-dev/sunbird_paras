@@ -1,6 +1,8 @@
+'use client';
+
 import React from 'react';
-import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { FullPageLink } from '@/components/ui/full-page-link';
 
 interface SectionHeaderProps {
   title: string;
@@ -39,7 +41,7 @@ export function SectionHeader({
       <div className="flex w-full md:w-auto items-center gap-4 shrink-0 mt-4 md:mt-0">
         {children}
         {viewAllHref && (
-          <Link
+          <FullPageLink
             href={viewAllHref}
             className={cn(
               'h-[44px] px-6 bg-primary text-white rounded-full font-medium shadow-md text-base',
@@ -48,7 +50,7 @@ export function SectionHeader({
             )}
           >
             {viewAllLabel}
-          </Link>
+          </FullPageLink>
         )}
       </div>
     </div>

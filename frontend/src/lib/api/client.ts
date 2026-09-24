@@ -3,6 +3,10 @@ import type { ApiResponse } from '@/lib/api/types';
 
 const API_GET_MAX_ATTEMPTS = 3;
 const API_GET_RETRY_DELAY_MS = 750;
+/** Browser memory cache — collapses Strict Mode doubles + remount refetches. */
+const BROWSER_GET_TTL_MS = 45_000;
+/** Cap parallel browser GETs so PHP is not stampeded on homepage mount. */
+const MAX_BROWSER_CONCURRENT = 2;
 
 export class ApiError extends Error {
   readonly status: number;
@@ -22,20 +26,47 @@ async function sleep(ms: number): Promise<void> {
   });
 }
 
-export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
-  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-  const url = `${getApiBaseUrl()}${normalizedPath}`;
+type CacheEntry = { expires: number; data: unknown };
 
-  // Browser: always fresh (backend off → empty UI). Build/SSR: cacheable for static export.
-  const defaultCache: RequestCache =
-    typeof window !== 'undefined' ? 'no-store' : 'force-cache';
+const browserGetCache = new Map<string, CacheEntry>();
+const browserInflight = new Map<string, Promise<unknown>>();
+let browserActiveNetwork = 0;
+const browserNetworkQueue: Array<() => void> = [];
 
+function browserCacheKey(url: string, cacheMode: RequestCache): string {
+  return `${cacheMode}:${url}`;
+}
+
+async function withBrowserConcurrency<T>(fn: () => Promise<T>): Promise<T> {
+  if (browserActiveNetwork >= MAX_BROWSER_CONCURRENT) {
+    await new Promise<void>((resolve) => {
+      browserNetworkQueue.push(resolve);
+    });
+  }
+
+  browserActiveNetwork += 1;
+  try {
+    return await fn();
+  } finally {
+    browserActiveNetwork -= 1;
+    const next = browserNetworkQueue.shift();
+    if (next) {
+      next();
+    }
+  }
+}
+
+async function apiGetNetwork<T>(
+  url: string,
+  cacheMode: RequestCache,
+  init?: RequestInit
+): Promise<T> {
   let response: Response | null = null;
 
   for (let attempt = 1; attempt <= API_GET_MAX_ATTEMPTS; attempt += 1) {
     response = await fetch(url, {
       ...init,
-      cache: init?.cache ?? defaultCache,
+      cache: cacheMode,
       headers: {
         Accept: 'application/json',
         ...init?.headers,
@@ -64,6 +95,45 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return body.data;
+}
+
+export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${getApiBaseUrl()}${normalizedPath}`;
+
+  // Browser: memory TTL + inflight dedupe. Build/SSR: Next force-cache for static export.
+  const defaultCache: RequestCache =
+    typeof window !== 'undefined' ? 'no-store' : 'force-cache';
+  const cacheMode = init?.cache ?? defaultCache;
+  const isBrowser = typeof window !== 'undefined';
+
+  if (isBrowser && cacheMode === 'no-store') {
+    const key = browserCacheKey(url, cacheMode);
+    const cached = browserGetCache.get(key);
+
+    if (cached && cached.expires > Date.now()) {
+      return cached.data as T;
+    }
+
+    const inflight = browserInflight.get(key);
+    if (inflight) {
+      return inflight as Promise<T>;
+    }
+
+    const request = withBrowserConcurrency(() => apiGetNetwork<T>(url, cacheMode, init))
+      .then((data) => {
+        browserGetCache.set(key, { expires: Date.now() + BROWSER_GET_TTL_MS, data });
+        return data;
+      })
+      .finally(() => {
+        browserInflight.delete(key);
+      });
+
+    browserInflight.set(key, request);
+    return request;
+  }
+
+  return apiGetNetwork<T>(url, cacheMode, init);
 }
 
 export async function apiPost<T, B = unknown>(path: string, body: B, init?: RequestInit): Promise<T> {

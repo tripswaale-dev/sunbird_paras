@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
-import Link from 'next/link';
+import { FullPageLink } from '@/components/ui/full-page-link';
 import { cn } from '@/lib/utils';
 import { PriceTag } from '@/components/common/PriceTag';
 import { Chip } from '@/components/common/Chip';
@@ -44,7 +44,7 @@ export function PackageCard({
   const imageSrc = resolvePublicImageSrc(image) || image;
 
   return (
-    <Link href={generatedHref} className={cn('block h-full cursor-pointer', className)}>
+    <FullPageLink href={generatedHref} className={cn('block h-full cursor-pointer', className)}>
       <motion.div
         whileHover={{ y: -4, transition: { duration: 0.4, ease: "easeOut" } }}
         className={cn(
@@ -118,6 +118,6 @@ export function PackageCard({
         </div>
       </div>
     </motion.div>
-  </Link>
+  </FullPageLink>
   );
 }

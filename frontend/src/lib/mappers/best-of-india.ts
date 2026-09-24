@@ -12,6 +12,6 @@ export function mapPackageSummariesToBestOfIndiaDestinations(
       subtitle: `Starts at ₹${pkg.price.toLocaleString('en-IN')}`,
       duration: pkg.duration.short,
       image: resolvePublicImageSrc(pkg.image),
-      href: `/packages/${pkg.slug}`,
+      href: `/packages/${pkg.slug}/`,
     }));
 }

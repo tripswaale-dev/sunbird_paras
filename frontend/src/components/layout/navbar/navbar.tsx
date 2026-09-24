@@ -8,11 +8,19 @@ import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { navbarDestinations } from '@/data/navigation';
+import { FullPageLink } from '@/components/ui/full-page-link';
 
 const navLinks = [
-  { label: 'Gallery', href: '/gallery' },
-  { label: 'Blogs', href: '/blogs' },
+  { label: 'Gallery', href: '/gallery/' },
+  { label: 'Blogs', href: '/blogs/' },
 ];
+
+function packagesCategoryHref(destination: string): string {
+  if (destination.toLowerCase().startsWith('all ')) {
+    return '/packages/';
+  }
+  return `/packages/?category=${encodeURIComponent(destination)}`;
+}
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -119,23 +127,23 @@ export function Navbar() {
                 })}
 
                 <div className="mt-2 border-t border-gray-100 pt-6">
-                  <Link
-                    href="/packages"
+                  <FullPageLink
+                    href="/packages/"
                     onClick={closeMobileMenu}
                     className="text-xl font-semibold text-zinc-900"
                   >
                     Destinations
-                  </Link>
+                  </FullPageLink>
                   <div className="mt-4 grid grid-cols-1 gap-2 border-l-2 border-primary/20 pl-4">
                     {navbarDestinations.map((dest) => (
-                      <Link
+                      <FullPageLink
                         key={dest}
-                        href={`/packages?category=${encodeURIComponent(dest)}`}
+                        href={packagesCategoryHref(dest)}
                         onClick={closeMobileMenu}
                         className="py-1.5 text-base font-medium text-zinc-600 transition-colors hover:text-primary"
                       >
                         {dest}
-                      </Link>
+                      </FullPageLink>
                     ))}
                   </div>
                 </div>
@@ -211,10 +219,10 @@ export function Navbar() {
           })}
 
           <div className="group relative flex h-full items-center py-2">
-            <Link
-              href="/packages"
+            <FullPageLink
+              href="/packages/"
               className={`flex items-center gap-1 text-base tracking-wide transition-colors ${
-                pathname === '/packages' || pathname.startsWith('/packages/')
+                pathname === '/packages' || pathname === '/packages/' || pathname.startsWith('/packages/')
                   ? isHomePage
                     ? isScrolled
                       ? 'font-semibold text-zinc-900'
@@ -240,19 +248,19 @@ export function Navbar() {
                   clipRule="evenodd"
                 />
               </svg>
-            </Link>
+            </FullPageLink>
 
             <div className="invisible absolute left-1/2 top-full z-50 -translate-x-1/2 pt-4 opacity-0 transition-all duration-300 group-hover:visible group-hover:opacity-100">
               <div className="w-[400px] overflow-hidden rounded-2xl border border-gray-100 bg-white p-3 shadow-2xl">
                 <div className="grid grid-cols-2 gap-1">
                   {navbarDestinations.map((dest) => (
-                    <Link
+                    <FullPageLink
                       key={dest}
-                      href={`/packages?category=${encodeURIComponent(dest)}`}
+                      href={packagesCategoryHref(dest)}
                       className="flex items-center justify-center rounded-xl px-3 py-2 text-center text-sm font-medium text-gray-700 transition-colors hover:bg-teal-50 hover:text-primary"
                     >
                       {dest}
-                    </Link>
+                    </FullPageLink>
                   ))}
                 </div>
               </div>

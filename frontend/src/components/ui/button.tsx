@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef } from 'react';
-import Link from 'next/link';
+import { FullPageLink } from '@/components/ui/full-page-link';
 import { cn } from '@/lib/utils';
 
 const variants = {
@@ -56,9 +56,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     if (href) {
       return (
-        <Link href={href} className={baseStyles}>
+        <FullPageLink href={href} className={baseStyles}>
           {children}
-        </Link>
+        </FullPageLink>
       );
     }
 

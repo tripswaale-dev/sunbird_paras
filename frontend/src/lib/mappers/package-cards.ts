@@ -14,6 +14,6 @@ export function mapPackageSummariesToPackageCards(
       price: `₹${pkg.price.toLocaleString('en-IN')}`,
       location: pkg.location,
       duration: pkg.duration.formatted,
-      href: `${hrefPrefix}/${pkg.slug}`,
+      href: `${hrefPrefix}/${pkg.slug}/`,
     }));
 }

@@ -11,12 +11,12 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { BentoGridSkeleton } from '@/components/ui/skeleton';
 import { bestOfIndiaGridClasses } from '@/data/best-of-india';
 import type { BestOfIndiaDestination } from '@/data/best-of-india';
-import { useApiData } from '@/hooks/use-api-data';
+import { useLazyApiData } from '@/hooks/use-api-data';
 import { getBestOfIndiaDestinations } from '@/lib/api/sections';
 
 export function BestOfIndia() {
   const fetcher = useCallback(() => getBestOfIndiaDestinations(), []);
-  const { data: destinations, isLoading } = useApiData<BestOfIndiaDestination[]>(fetcher, []);
+  const { ref, data: destinations, isLoading } = useLazyApiData<BestOfIndiaDestination[]>(fetcher, []);
 
   const [startIndex, setStartIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
@@ -40,7 +40,7 @@ export function BestOfIndia() {
   });
 
   return (
-    <Section>
+    <Section sectionRef={ref}>
       <SectionHeader
         title="Best of India"
         subtitle="Discover India's diverse landscapes and experiences"

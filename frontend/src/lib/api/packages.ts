@@ -113,12 +113,17 @@ export async function getPackagesIndexListingPackages(): Promise<TravelPackage[]
 
 export async function getRelatedPackages(
   currentSlug: string,
-  limit = 3
+  limit = 3,
+  category?: string | null
 ): Promise<Package[]> {
   try {
-    const current = await fetchPackage(currentSlug);
-    const summaries = current.category
-      ? await fetchPackages({ category: current.category, per_page: limit + 1 })
+    const resolvedCategory =
+      category === undefined
+        ? (await fetchPackage(currentSlug)).category
+        : category;
+
+    const summaries = resolvedCategory
+      ? await fetchPackages({ category: resolvedCategory, per_page: limit + 1 })
       : await fetchPackages({ per_page: limit + 1 });
 
     return summaries
