@@ -11,6 +11,7 @@ import { navbarDestinations } from '@/data/navigation';
 import { FullPageLink } from '@/components/ui/full-page-link';
 
 const navLinks = [
+  { label: 'About', href: '/about/' },
   { label: 'Gallery', href: '/gallery/' },
   { label: 'Blogs', href: '/blogs/' },
 ];
