@@ -13,6 +13,7 @@ import {
 } from '@/lib/admin/gallery-items';
 import type { AdminPaginationMeta } from '@/lib/admin/pagination';
 import { GalleryImagePreview } from '@/components/admin/gallery/GalleryImagePreview';
+import { GalleryItemDeleteButton } from '@/components/admin/gallery/GalleryItemDeleteButton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -337,12 +338,19 @@ export function GalleryItemsList() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <Link
-                          href={`/admin/gallery/${item.id}/edit`}
-                          className="text-primary hover:underline"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Link
+                            href={`/admin/gallery/${item.id}/edit`}
+                            className="text-primary hover:underline"
+                          >
+                            Edit
+                          </Link>
+                          <GalleryItemDeleteButton
+                            itemId={item.id}
+                            itemTitle={item.title}
+                            variant="link"
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}

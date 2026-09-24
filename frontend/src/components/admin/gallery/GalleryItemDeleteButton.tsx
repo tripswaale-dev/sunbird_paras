@@ -8,11 +8,14 @@ import { Button } from '@/components/ui/button';
 interface GalleryItemDeleteButtonProps {
   itemId: number;
   itemTitle: string;
+  /** Compact text link for table rows; default is the outline button used on edit forms. */
+  variant?: 'button' | 'link';
 }
 
 export function GalleryItemDeleteButton({
   itemId,
   itemTitle,
+  variant = 'button',
 }: GalleryItemDeleteButtonProps) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -35,6 +38,22 @@ export function GalleryItemDeleteButton({
       setErrorMessage('Unable to delete gallery item. Please try again.');
       setIsDeleting(false);
     }
+  }
+
+  if (variant === 'link') {
+    return (
+      <span className="inline-flex flex-col items-start gap-1">
+        <button
+          type="button"
+          className="text-red-600 hover:underline disabled:opacity-50"
+          onClick={() => void handleDelete()}
+          disabled={isDeleting}
+        >
+          {isDeleting ? 'Deleting...' : 'Delete'}
+        </button>
+        {errorMessage ? <span className="text-xs text-red-600">{errorMessage}</span> : null}
+      </span>
+    );
   }
 
   return (

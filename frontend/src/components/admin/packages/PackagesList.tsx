@@ -10,6 +10,7 @@ import {
   type AdminPackage,
 } from '@/lib/admin/packages';
 import type { AdminPaginationMeta } from '@/lib/admin/pagination';
+import { PackageDeleteButton } from '@/components/admin/packages/PackageDeleteButton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -346,7 +347,7 @@ export function PackagesList() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <div className="flex gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                           <Link
                             href={`/admin/packages/${pkg.id}/content`}
                             className="text-primary hover:underline"
@@ -359,6 +360,11 @@ export function PackagesList() {
                           >
                             Edit
                           </Link>
+                          <PackageDeleteButton
+                            packageId={pkg.id}
+                            packageTitle={pkg.title}
+                            variant="link"
+                          />
                         </div>
                       </td>
                     </tr>

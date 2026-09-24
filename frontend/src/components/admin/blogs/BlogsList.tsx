@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ApiError } from '@/lib/api/client';
 import { formatBlogDate, getBlogs, type AdminBlog } from '@/lib/admin/blogs';
 import type { AdminPaginationMeta } from '@/lib/admin/pagination';
+import { BlogDeleteButton } from '@/components/admin/blogs/BlogDeleteButton';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -281,12 +282,19 @@ export function BlogsList() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <Link
-                          href={`/admin/blogs/${blog.id}/edit`}
-                          className="text-primary hover:underline"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Link
+                            href={`/admin/blogs/${blog.id}/edit`}
+                            className="text-primary hover:underline"
+                          >
+                            Edit
+                          </Link>
+                          <BlogDeleteButton
+                            blogId={blog.id}
+                            blogTitle={blog.title}
+                            variant="link"
+                          />
+                        </div>
                       </td>
                     </tr>
                   ))}
