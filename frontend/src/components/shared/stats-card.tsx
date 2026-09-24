@@ -41,14 +41,14 @@ function AnimatedStat({ value }: { value: string }) {
 
 export function StatsCard({ stats }: StatsCardProps) {
   return (
-    <div className="mt-14 bg-surface-muted rounded-[24px] py-10 px-8">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+    <div className="mt-14 rounded-[28px] bg-[#f2f1eb] px-6 py-12 sm:px-10">
+      <div className="grid grid-cols-2 gap-8 lg:grid-cols-4 lg:gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="text-center flex flex-col items-center justify-center">
-            <span className="text-primary text-4xl lg:text-5xl font-semibold">
+          <div key={index} className="flex flex-col items-center justify-center text-center">
+            <span className="text-4xl font-semibold tracking-tight text-primary lg:text-5xl">
               <AnimatedStat value={stat.value} />
             </span>
-            <span className="text-primary text-sm lg:text-base font-medium leading-relaxed mt-2 text-balance max-w-[140px]">
+            <span className="mt-2 max-w-[150px] text-sm font-medium leading-snug text-primary lg:text-base">
               {stat.label}
             </span>
           </div>

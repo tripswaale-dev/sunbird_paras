@@ -10,21 +10,24 @@ import { CarouselButton } from '@/components/ui/carousel-button';
 import { StatsCard } from '@/components/shared/stats-card';
 import { EmptyState } from '@/components/common/EmptyState';
 import { BentoGridSkeleton, StatsSkeleton } from '@/components/ui/skeleton';
-import { popularDestinationsGridSlots } from '@/data/popular-destinations';
-import type { PopularDestination, PopularStat } from '@/data/popular-destinations';
+import { popularDestinationsGridSlots, popularStats } from '@/data/popular-destinations';
 import { useApiData } from '@/hooks/use-api-data';
 import {
   getPopularDestinationsSection,
   type PopularDestinationsSectionData,
 } from '@/lib/api/sections';
 
-const EMPTY: PopularDestinationsSectionData = { destinations: [], stats: [] };
+const EMPTY: PopularDestinationsSectionData = { destinations: [], stats: popularStats };
+
+function resolvePopularStats(stats: PopularDestinationsSectionData['stats']) {
+  return stats.length >= popularStats.length ? stats : popularStats;
+}
 
 export function PopularDestinations() {
   const fetcher = useCallback(() => getPopularDestinationsSection(), []);
   const { data, isLoading } = useApiData<PopularDestinationsSectionData>(fetcher, EMPTY);
   const destinations = data.destinations;
-  const stats = data.stats;
+  const stats = resolvePopularStats(data.stats);
 
   const [startIndex, setStartIndex] = React.useState(0);
   const [direction, setDirection] = React.useState(0);
@@ -129,7 +132,7 @@ export function PopularDestinations() {
         <EmptyState compact message="No destinations yet — start the API / add packages in admin." />
       )}
 
-      {!isLoading && stats.length > 0 ? <StatsCard stats={stats} /> : null}
+      {!isLoading ? <StatsCard stats={stats} /> : null}
     </Section>
   );
 }

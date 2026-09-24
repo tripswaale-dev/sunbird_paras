@@ -23,6 +23,7 @@ import type { JourneyCategory } from '@/data/journey-categories';
 import type { SpiritualPackage } from '@/data/spiritual-packages';
 import type { WildlifePackage } from '@/data/wildlife-packages';
 import type { PopularDestination, PopularStat } from '@/data/popular-destinations';
+import { popularStats } from '@/data/popular-destinations';
 import type { TravelPackage } from '@/data/travelPackages';
 
 export interface PopularDestinationsSectionData {
@@ -315,15 +316,16 @@ export async function getBestOfIndiaDestinations(): Promise<BestOfIndiaDestinati
 export async function getPopularDestinationsSection(): Promise<PopularDestinationsSectionData> {
   try {
     const section = await fetchSection('popular-destinations');
+    const stats = mapSectionStatsToPopularStats(section.stats);
 
     return {
       destinations: mapPackageSummariesToPopularDestinations(section.packages),
-      stats: mapSectionStatsToPopularStats(section.stats),
+      stats: stats.length >= popularStats.length ? stats : popularStats,
     };
   } catch {
     return {
       destinations: [],
-      stats: [],
+      stats: popularStats,
     };
   }
 }
