@@ -1,6 +1,5 @@
 'use client';
 
-import type { Ref } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -23,30 +22,38 @@ export function Section({
   sectionRef,
   children,
 }: SectionProps) {
-  const inner = (
+  const shellClassName = cn(bg, className);
+  const padded = (
     <div className={cn('max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 section-padding', innerClassName)}>
       {children}
     </div>
   );
 
-  if (!animate) {
+  const inner = animate ? (
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      viewport={{ once: true }}
+    >
+      {padded}
+    </motion.div>
+  ) : (
+    padded
+  );
+
+  // Render concrete tags so ref types resolve (union `as` breaks Ref<HTMLElement> vs Ref<HTMLDivElement>).
+  if (Tag === 'div') {
     return (
-      <Tag ref={sectionRef as Ref<HTMLElement>} className={cn(bg, className)}>
+      <div ref={sectionRef} className={shellClassName}>
         {inner}
-      </Tag>
+      </div>
     );
   }
 
   return (
-    <Tag ref={sectionRef as Ref<HTMLElement>} className={cn(bg, className)}>
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        viewport={{ once: true }}
-      >
-        {inner}
-      </motion.div>
-    </Tag>
+    <section ref={sectionRef} className={shellClassName}>
+      {inner}
+    </section>
   );
 }
