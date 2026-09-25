@@ -172,7 +172,7 @@ These are intentional or legacy mapping decisions. Fixing them would require UI 
 | Variable | App | Purpose |
 |----------|-----|---------|
 | `NEXT_PUBLIC_API_URL` | Frontend | Laravel API base URL (must include `/api` suffix, e.g. `http://localhost:8000/api`) |
-| `NEXT_PUBLIC_SITE_URL` | Frontend | Frontend origin for OpenGraph `url`, `/robots.txt` Sitemap line, sitemap fallback (no trailing slash). Defaults to `https://sunbirdvacations.com` when unset |
+| `NEXT_PUBLIC_SITE_URL` | Frontend | Frontend origin for OpenGraph `url`, `/robots.txt` Sitemap line, sitemap fallback (no trailing slash). Defaults to `https://www.sunbirdvacations.com` when unset |
 | `FRONTEND_URL` | Backend | Sitemap `<loc>` canonical URLs, SEO canonical generation |
 | `APP_URL` | Backend | API base URL; used in robots.txt `Sitemap:` line (`{APP_URL}/api/sitemap.xml`) |
 | CORS allowed origins | Backend | `config/cors.php` → `allowed_origins` = `[env('FRONTEND_URL')]` — must match the deployed Next.js origin |
@@ -184,7 +184,7 @@ These are intentional or legacy mapping decisions. Fixing them would require UI 
 | Environment | Frontend `NEXT_PUBLIC_SITE_URL` | Backend `FRONTEND_URL` |
 |-------------|--------------------------------|------------------------|
 | Local | `http://localhost:3000` | `http://localhost:3000` |
-| Production | `https://sunbirdvacations.com` | `https://sunbirdvacations.com` |
+| Production | `https://www.sunbirdvacations.com` | `https://www.sunbirdvacations.com` |
 
 ### Example local values
 
@@ -204,18 +204,19 @@ FRONTEND_URL=http://localhost:3000
 
 ### Example production values
 
-**Frontend:**
+**Frontend (Vercel Production):**
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api
-NEXT_PUBLIC_SITE_URL=https://sunbirdvacations.com
+NEXT_PUBLIC_API_URL=https://backend.sunbirdvacations.com/api
+NEXT_PUBLIC_SITE_URL=https://www.sunbirdvacations.com
+BUILD_API_URL=https://backend.sunbirdvacations.com/api
 ```
 
-**Backend:**
+**Backend (Hostinger):**
 
 ```env
-APP_URL=https://api.yourdomain.com
-FRONTEND_URL=https://yourdomain.com
+APP_URL=https://backend.sunbirdvacations.com
+FRONTEND_URL=https://www.sunbirdvacations.com
 ```
 
 Do not commit `.env` files. Do not put secrets in documentation.
@@ -338,7 +339,7 @@ Do not commit `.env` files. Do not put secrets in documentation.
 
 - **Step 2 — Frontend `/sitemap.xml`** — proxies backend XML (`revalidate: 3600`); minimal homepage fallback on error
 - **Step 2 — Frontend `/robots.txt`** — generated on frontend with `Sitemap: {getSiteUrl()}/sitemap.xml` (not proxied from backend)
-- **Step 3 — Env-driven site URL** — `NEXT_PUBLIC_SITE_URL` via `getSiteUrl()` in `lib/utils.ts`; defaults to `https://sunbirdvacations.com`
+- **Step 3 — Env-driven site URL** — `NEXT_PUBLIC_SITE_URL` via `getSiteUrl()` in `lib/utils.ts`; defaults to `https://www.sunbirdvacations.com`
 
 ### Completed (Phase 7 — Blogs)
 

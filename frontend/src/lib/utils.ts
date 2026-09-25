@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const DEFAULT_SITE_URL = 'https://sunbirdvacations.com';
+const DEFAULT_SITE_URL = 'https://www.sunbirdvacations.com';
 
 export function getSiteUrl(): string {
   const raw = process.env.NEXT_PUBLIC_SITE_URL ?? DEFAULT_SITE_URL;

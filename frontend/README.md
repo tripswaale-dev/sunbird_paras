@@ -31,11 +31,11 @@ Set `NEXT_PUBLIC_SITE_URL` to the frontend origin (no trailing slash). It must m
 # Local
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
-# Production
-NEXT_PUBLIC_SITE_URL=https://sunbirdvacations.com
+# Production (canonical www; see docs/DEPLOYMENT.md)
+NEXT_PUBLIC_SITE_URL=https://www.sunbirdvacations.com
 ```
 
-When unset, defaults to `https://sunbirdvacations.com`.
+When unset, defaults to `https://www.sunbirdvacations.com`.
 
 ## API Integration (Phases 5–13 complete)
 
