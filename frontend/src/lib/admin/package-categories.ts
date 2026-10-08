@@ -21,7 +21,7 @@ export const HERO_CATEGORY_VALUES = [
 
 export type HeroCategory = (typeof HERO_CATEGORY_VALUES)[number];
 
-export const HERO_CATEGORY_OPTIONS: PackageCategoryOption[] = HERO_CATEGORY_VALUES.map(
+export const HERO_CATEGORY_OPTIONS: { value: HeroCategory; label: string }[] = HERO_CATEGORY_VALUES.map(
   (value) => ({ value, label: value })
 );
 
