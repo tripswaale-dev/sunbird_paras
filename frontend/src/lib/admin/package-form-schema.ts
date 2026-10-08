@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PACKAGE_CATEGORY_OTHER } from '@/lib/admin/package-categories';
+import { HERO_CATEGORY_VALUES, PACKAGE_CATEGORY_OTHER } from '@/lib/admin/package-categories';
 
 const slugRegex = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -23,6 +23,7 @@ export const packageFormSchema = z
       .min(0, 'Days must be zero or greater.'),
     category_option: z.string().optional(),
     category_custom: z.string().max(100, 'Custom category must be 100 characters or fewer.').optional(),
+    hero_categories: z.array(z.enum(HERO_CATEGORY_VALUES)).optional(),
     section_ids: z.array(z.number().int().positive()).optional(),
     tag: z.string().optional(),
     image: z.string().min(1, 'Image path or URL is required.'),

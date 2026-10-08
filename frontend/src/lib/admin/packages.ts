@@ -1,6 +1,7 @@
 import type { PackageFormValues } from '@/lib/admin/package-form-schema';
 import { slugifyTitle } from '@/lib/admin/blogs';
 import {
+  isHeroCategory,
   parseCategoryToFormValues,
   resolvePackageCategory,
 } from '@/lib/admin/package-categories';
@@ -34,6 +35,7 @@ export interface AdminPackage {
   price: number;
   duration: AdminPackageDuration;
   category: string | null;
+  hero_categories: string[];
   tag: string | null;
   image: string;
   is_active: boolean;
@@ -58,6 +60,7 @@ export type PackageApiPayload = {
   duration_nights: number;
   duration_days: number;
   category?: string | null;
+  hero_categories?: string[];
   tag?: string | null;
   image: string;
   is_active: boolean;
@@ -82,6 +85,7 @@ export function adminPackageToFormValues(pkg: AdminPackage): PackageFormValues {
     duration_days: pkg.duration.days,
     category_option: categoryFields.category_option,
     category_custom: categoryFields.category_custom,
+    hero_categories: (pkg.hero_categories ?? []).filter(isHeroCategory),
     section_ids: [],
     tag: pkg.tag ?? '',
     image: pkg.image,
@@ -99,6 +103,7 @@ export function toPackagePayload(values: PackageFormValues): PackageApiPayload {
     duration_nights: values.duration_nights,
     duration_days: values.duration_days,
     category: resolvePackageCategory(values.category_option ?? '', values.category_custom),
+    hero_categories: values.hero_categories ?? [],
     tag: values.tag?.trim() || null,
     image: values.image,
     is_active: values.is_active,
@@ -116,6 +121,7 @@ export function getDefaultPackageFormValues(): PackageFormValues {
     duration_days: 0,
     category_option: '',
     category_custom: '',
+    hero_categories: [],
     section_ids: [],
     tag: '',
     image: '',

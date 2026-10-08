@@ -31,6 +31,31 @@ class PackageApiTest extends TestCase
             ->assertJsonPath('meta.per_page', 15);
     }
 
+    public function test_packages_index_filters_by_hero_category(): void
+    {
+        Package::where('slug', 'spiti-valley')->update([
+            'hero_categories' => ['Mountains', 'Trending in India'],
+        ]);
+        Package::where('slug', 'andaman-escape')->update([
+            'hero_categories' => ['Beaches'],
+        ]);
+
+        $response = $this->getJson('/api/packages?hero_category=Mountains');
+
+        $response->assertOk()->assertJsonPath('success', true);
+
+        $slugs = collect($response->json('data'))->pluck('slug')->all();
+        $this->assertContains('spiti-valley', $slugs);
+        $this->assertNotContains('andaman-escape', $slugs);
+    }
+
+    public function test_packages_index_rejects_invalid_hero_category(): void
+    {
+        $this->getJson('/api/packages?hero_category=Wildlife')
+            ->assertUnprocessable()
+            ->assertJsonPath('success', false);
+    }
+
     public function test_packages_index_filters_by_category(): void
     {
         $response = $this->getJson('/api/packages?category=Pilgrimage');

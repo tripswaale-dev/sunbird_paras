@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { apiGet } from '@/lib/api/client';
+import type { HeroCategory } from '@/lib/admin/package-categories';
 import type { PackageDetailResponse, PackageSummary } from '@/lib/api/types';
 import { mapPackageDetailToPackage } from '@/lib/mappers/package-detail';
 import { mapPackageDetailToMetadata } from '@/lib/mappers/package-metadata';
@@ -14,6 +15,7 @@ export async function fetchPackage(slug: string): Promise<PackageDetailResponse>
 
 export async function fetchPackages(params?: {
   category?: string;
+  hero_category?: string;
   search?: string;
   per_page?: number;
   page?: number;
@@ -22,6 +24,10 @@ export async function fetchPackages(params?: {
 
   if (params?.category) {
     searchParams.set('category', params.category);
+  }
+
+  if (params?.hero_category) {
+    searchParams.set('hero_category', params.hero_category);
   }
 
   if (params?.search) {
@@ -89,6 +95,40 @@ async function fetchSearchPackageSummaries(query: string): Promise<PackageSummar
   }
 
   return packages;
+}
+
+async function fetchHeroCategoryPackageSummaries(label: string): Promise<PackageSummary[]> {
+  const perPage = 50;
+  const packages: PackageSummary[] = [];
+  let page = 1;
+
+  while (true) {
+    const batch = await fetchPackages({
+      hero_category: label,
+      per_page: perPage,
+      page,
+    });
+
+    packages.push(...batch);
+
+    if (batch.length < perPage) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return packages;
+}
+
+export async function getHeroCategoryPackages(label: HeroCategory): Promise<TravelPackage[]> {
+  try {
+    const summaries = await fetchHeroCategoryPackageSummaries(label);
+
+    return mapPackageSummariesToTravelPackages(summaries);
+  } catch {
+    return [];
+  }
 }
 
 export async function getSearchPackages(query: string): Promise<TravelPackage[]> {

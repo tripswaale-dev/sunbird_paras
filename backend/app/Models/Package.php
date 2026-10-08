@@ -10,6 +10,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Package extends Model
 {
+    public const HERO_CATEGORIES = [
+        'Mountains',
+        'Beaches',
+        'Nature',
+        'Trending in India',
+    ];
+
     protected $table = 'packages';
 
     protected $fillable = [
@@ -21,6 +28,7 @@ class Package extends Model
         'duration_nights',
         'duration_days',
         'category',
+        'hero_categories',
         'tag',
         'image',
         'pax',
@@ -39,6 +47,7 @@ class Package extends Model
         'pax' => 'integer',
         'is_active' => 'boolean',
         'is_indexable' => 'boolean',
+        'hero_categories' => 'array',
     ];
 
     public function getRouteKeyName(): string

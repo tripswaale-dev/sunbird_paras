@@ -10,6 +10,7 @@ use App\Models\Package;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 
 class PackageController extends Controller
 {
@@ -17,6 +18,7 @@ class PackageController extends Controller
     {
         $validated = $request->validate([
             'category' => ['nullable', 'string', 'max:100'],
+            'hero_category' => ['nullable', 'string', Rule::in(Package::HERO_CATEGORIES)],
             'search' => ['nullable', 'string', 'max:100'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
@@ -31,6 +33,10 @@ class PackageController extends Controller
 
         if (! empty($validated['category'])) {
             $query->where('category', $validated['category']);
+        }
+
+        if (! empty($validated['hero_category'])) {
+            $query->whereJsonContains('hero_categories', $validated['hero_category']);
         }
 
         if (! empty($validated['search'])) {

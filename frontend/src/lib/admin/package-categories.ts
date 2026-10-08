@@ -12,6 +12,23 @@ export const TRAVEL_YOUR_WAY_CATEGORY_OPTIONS: PackageCategoryOption[] = [
   { value: 'Couple Getaways', label: 'Couple Getaways (Travel Your Way)' },
 ];
 
+export const HERO_CATEGORY_VALUES = [
+  'Mountains',
+  'Beaches',
+  'Nature',
+  'Trending in India',
+] as const;
+
+export type HeroCategory = (typeof HERO_CATEGORY_VALUES)[number];
+
+export const HERO_CATEGORY_OPTIONS: PackageCategoryOption[] = HERO_CATEGORY_VALUES.map(
+  (value) => ({ value, label: value })
+);
+
+export function isHeroCategory(value: string): value is HeroCategory {
+  return (HERO_CATEGORY_VALUES as readonly string[]).includes(value);
+}
+
 export const PACKAGE_CATEGORY_OPTIONS: PackageCategoryOption[] = [
   ...TRAVEL_YOUR_WAY_CATEGORY_OPTIONS,
   { value: 'Mountains', label: 'Mountains' },

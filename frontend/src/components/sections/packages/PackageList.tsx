@@ -9,6 +9,7 @@ import { HorizontalPackageCard } from '@/components/common/HorizontalPackageCard
 import { EmptyState } from '@/components/common/EmptyState';
 import { Container } from '@/components/ui/container';
 import { TravelPackage } from '@/data/travelPackages';
+import { destinationFilterAliases } from '@/data/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface PackageListProps {
@@ -38,12 +39,14 @@ function packageMatchesDestination(pkg: TravelPackage, destination: string): boo
     return true;
   }
 
-  const needle = destination.toLowerCase().replace(/[-_]/g, ' ').trim();
+  const needles = [destination, ...(destinationFilterAliases[destination] ?? [])].map((value) =>
+    value.toLowerCase().replace(/[-_]/g, ' ').trim()
+  );
   const haystacks = [pkg.category, pkg.location, pkg.title]
     .filter(Boolean)
     .map((value) => value!.toLowerCase().replace(/[-_]/g, ' '));
 
-  return haystacks.some((value) => value === needle || value.includes(needle));
+  return haystacks.some((value) => needles.some((needle) => value.includes(needle)));
 }
 
 function PackageListInner({ packages, categories, baseRoute, variant, header }: PackageListProps) {

@@ -184,6 +184,32 @@ class AdminPackageCrudTest extends TestCase
         );
     }
 
+    public function test_admin_can_create_package_with_hero_categories(): void
+    {
+        $this->withHeaders($this->adminHeaders())
+            ->postJson('/api/admin/packages', $this->validPackagePayload([
+                'slug' => 'hero-linked-package',
+                'hero_categories' => ['Mountains', 'Trending in India'],
+            ]))
+            ->assertCreated()
+            ->assertJsonPath('data.hero_categories', ['Mountains', 'Trending in India']);
+
+        $package = Package::where('slug', 'hero-linked-package')->first();
+
+        $this->assertSame(['Mountains', 'Trending in India'], $package->hero_categories);
+    }
+
+    public function test_create_rejects_invalid_hero_categories(): void
+    {
+        $this->withHeaders($this->adminHeaders())
+            ->postJson('/api/admin/packages', $this->validPackagePayload([
+                'slug' => 'invalid-hero-package',
+                'hero_categories' => ['Wildlife'],
+            ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['hero_categories.0']);
+    }
+
     public function test_admin_can_create_package(): void
     {
         $this->withHeaders($this->adminHeaders())

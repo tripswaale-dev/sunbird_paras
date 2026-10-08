@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Package;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +28,8 @@ class UpdatePackageRequest extends FormRequest
             'duration_nights' => [$required, 'integer', 'min:0', 'max:65535'],
             'duration_days' => [$required, 'integer', 'min:0', 'max:65535'],
             'category' => ['nullable', 'string', 'max:100'],
+            'hero_categories' => ['nullable', 'array'],
+            'hero_categories.*' => ['distinct', 'string', Rule::in(Package::HERO_CATEGORIES)],
             'tag' => ['nullable', 'string', 'max:100'],
             'image' => [$required, 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],

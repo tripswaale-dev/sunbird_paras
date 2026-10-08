@@ -26,6 +26,7 @@ class AdminPackageResource extends JsonResource
                 ),
             ],
             'category' => $this->category,
+            'hero_categories' => $this->hero_categories ?? [],
             'tag' => $this->tag,
             'image' => $this->image,
             'is_active' => $this->is_active,

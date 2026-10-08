@@ -4,16 +4,26 @@ import type { NavLink } from '@/types';
 export const navbarDestinations = [
   'All Destinations',
   'Rajasthan',
-  'Himachal Pradesh',
   'Kashmir',
-  'Kerala',
-  'Goa',
-  'Uttarakhand',
-  'Andaman',
-  'North East',
   'Nepal',
+  'Himachal Pradesh',
+  'Uttarakhand',
+  'Bhutan',
+  'South India',
+  'Andaman Islands',
+  'North East',
+  'Sri Lanka',
+  'Maldives',
   'Ladakh',
 ];
+
+/** Extra keywords a destination tab matches against package category, location and title. */
+export const destinationFilterAliases: Record<string, string[]> = {
+  'Andaman Islands': ['andaman'],
+  'South India': ['kerala', 'tamil nadu', 'karnataka', 'munnar', 'ooty', 'coorg', 'alleppey', 'kodaikanal'],
+  'North East': ['northeast', 'north-east', 'sikkim', 'meghalaya', 'arunachal', 'assam', 'darjeeling'],
+  'Himachal Pradesh': ['himachal', 'manali', 'shimla', 'spiti'],
+};
 
 /** Site structure routes only — not destination content. */
 export const navigationLinks: NavLink[] = [

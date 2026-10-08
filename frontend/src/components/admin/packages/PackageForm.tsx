@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { ApiError } from '@/lib/api/client';
 import {
+  HERO_CATEGORY_OPTIONS,
   PACKAGE_CATEGORY_OPTIONS,
   PACKAGE_CATEGORY_OTHER,
 } from '@/lib/admin/package-categories';
@@ -100,7 +101,7 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
   const image = watch('image');
   const title = watch('title');
   const categoryOption = watch('category_option');
-  const categoryCustom = watch('category_custom');
+  const heroCategories = watch('hero_categories') ?? [];
   const sectionIds = watch('section_ids') ?? [];
 
   const travelYourWaySection = useMemo(
@@ -129,6 +130,17 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
     if (travelYourWayId) {
       mergeSectionIds([travelYourWayId]);
     }
+  }
+
+  function toggleHeroCategory(value: (typeof HERO_CATEGORY_OPTIONS)[number]['value']) {
+    const next = heroCategories.includes(value)
+      ? heroCategories.filter((category) => category !== value)
+      : [...heroCategories, value];
+
+    setValue('hero_categories', next, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
   }
 
   function handleListingTabChange(sectionId: number, value: string) {
@@ -471,7 +483,45 @@ export function PackageForm({ mode, defaultValues, packageId }: PackageFormProps
           Way (with listing tab), Best of India, and more.
         </p>
 
-        <div className="mt-6">
+        <div className="mt-6 space-y-6">
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Destinations &amp; Category</p>
+              <p className="mt-0.5 text-sm text-gray-600">
+                Package appears when visitors click this chip in the home hero.
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {HERO_CATEGORY_OPTIONS.map((option) => {
+                const isChecked = heroCategories.includes(option.value);
+
+                return (
+                  <label
+                    key={option.value}
+                    className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 transition hover:border-primary/30"
+                  >
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={isChecked}
+                      disabled={isSubmitting}
+                      onChange={() => toggleHeroCategory(option.value)}
+                    />
+                    <span>
+                      <span className="block text-sm font-medium text-gray-900">{option.label}</span>
+                      <span className="block text-xs text-gray-500">Home hero chip</span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+            {errors.hero_categories ? (
+              <p className="text-sm text-red-600" role="alert">
+                {errors.hero_categories.message}
+              </p>
+            ) : null}
+          </div>
+
           <PackageSectionAssignField
             sections={sections}
             selectedIds={sectionIds}

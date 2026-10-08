@@ -1,3 +1,4 @@
+import { isHeroCategory } from '@/lib/admin/package-categories';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -30,8 +31,12 @@ export function SearchChip({ icon: Icon, label, className, onClick }: SearchChip
     );
   }
 
+  const href = isHeroCategory(label)
+    ? `/search?hero=${encodeURIComponent(label)}`
+    : `/search?q=${encodeURIComponent(label)}`;
+
   return (
-    <Link href={`/search?q=${encodeURIComponent(label)}`} className={classes}>
+    <Link href={href} className={classes}>
       {content}
     </Link>
   );
